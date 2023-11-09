@@ -14,6 +14,8 @@ simple example without any magic happening :)
 
 ### Features
 
+- **TypeMap**: Including cross conversion between Classes, Arrays, Collections and Maps
+- **TypeConverter**: Cross conversion between Classes, Arrays, Collections and Maps
 - **Pure Java**: No external dependencies for a lightweight integration.
 - **Functional Design**: Embraces modern Java functional paradigms.
 - **No Reflection**: Ensures compatibility with GraalVM native images.

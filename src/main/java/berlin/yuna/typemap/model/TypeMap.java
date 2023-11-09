@@ -1,15 +1,10 @@
 package berlin.yuna.typemap.model;
 
 
-import java.lang.reflect.Array;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static berlin.yuna.typemap.logic.TypeConverter.*;
 import static java.util.Optional.ofNullable;
@@ -39,25 +34,13 @@ public class TypeMap extends ConcurrentHashMap<Object, Object> {
         return collectionOf(super.get(key), output, itemType);
     }
 
-    @SuppressWarnings("unchecked")
-    public <E> E[] getArray(final Object key, final Class<E> componentType) {
-        if (componentType == null) return null;
-        final Object input = super.get(key);
-        Stream<E> stream = null;
-        if (input instanceof Collection<?>) {
-            final Collection<?> collection = (Collection<?>) input;
-            stream = collection.stream().map(item -> convertObj(item, componentType)).filter(Objects::nonNull);
-        } else if (input != null && input.getClass().isArray()) {
-            stream = IntStream.range(0, Array.getLength(input)).mapToObj(i -> convertObj(Array.get(input, i), componentType)).filter(Objects::nonNull);
-        } else if (input != null) {
-            stream = ofNullable(convertObj(input, componentType)).map(Stream::of).orElseGet(Stream::empty);
-        }
+    public <E> E[] getArray(final Object key, final E[] typeIndicator, final Class<E> componentType) {
+        final ArrayList<E> result = get(key, ArrayList::new, componentType);
+        return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
+    }
 
-        if (stream != null) {
-            return stream.toArray(size -> (E[]) Array.newInstance(componentType, size));
-        }
-
-        return (E[]) Array.newInstance(componentType, 0);
+    public <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType) {
+        return get(key, ArrayList::new, componentType).stream().toArray(generator);
     }
 
     public <K, V, M extends Map<K, V>> M get(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {

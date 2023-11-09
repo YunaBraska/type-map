@@ -3,9 +3,15 @@ package berlin.yuna.typemap.logic;
 
 import berlin.yuna.typemap.model.FunctionOrNull;
 
-import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.IntFunction;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static berlin.yuna.typemap.config.TypeConversionRegister.TYPE_CONVERSIONS;
 import static java.util.Optional.ofNullable;
@@ -36,7 +42,6 @@ public class TypeConverter {
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static <T> T convertObj(final Object value, final Class<T> targetType) {
-        //TODO: enum convert
         if (value == null) return null;
         if (targetType.isInstance(value)) {
             return safeCast(value, targetType);
@@ -46,6 +51,11 @@ public class TypeConverter {
         final Object firstValue = getFirstItem(value);
         if (firstValue != null) {
             return convertObj(firstValue, targetType);
+        }
+
+        // Enums
+        if (targetType.isEnum()) {
+            return (T) enumOf(String.valueOf(value), (Class<Enum>) targetType);
         }
 
         final Class<?> sourceType = value.getClass();
@@ -145,11 +155,10 @@ public class TypeConverter {
             if (input instanceof Collection<?>) {
                 final Collection<?> noTypeCollection = (Collection<?>) input;
                 return collectionOf(noTypeCollection, output, itemType);
-            } else if (input.getClass().isArray()) {
-                final int length = Array.getLength(input);
-                final Collection<Object> noTypeCollection = new ArrayList<>(length);
-                for (int i = 0; i < length; i++) {
-                    noTypeCollection.add(convertObj(Array.get(input, i), itemType));
+            } else if (input.getClass().isArray() && input instanceof Object[]) {
+                final Collection<Object> noTypeCollection = new ArrayList<>();
+                for (final Object item : (Object[]) input) {
+                    noTypeCollection.add(convertObj(item, itemType));
                 }
                 return collectionOf(noTypeCollection, output, itemType);
             } else {
@@ -159,6 +168,34 @@ public class TypeConverter {
             }
         }
         return ofNullable(output).map(Supplier::get).orElse(null);
+    }
+
+    public <E> E[] arrayOf(final Object object, final E[] typeIndicator, final Class<E> componentType) {
+        ArrayList<E> result = collectionOf(object, ArrayList::new, componentType);
+        result = result == null ? new ArrayList<>() : result;
+        return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
+    }
+
+    public <E> E[] arrayOf(final Object object, final IntFunction<E[]> generator, final Class<E> componentType) {
+        ArrayList<E> result = collectionOf(object, ArrayList::new, componentType);
+        result = result == null ? new ArrayList<>() : result;
+        return result.stream().toArray(generator);
+    }
+
+    public <E> E[] arrayOf(final Object[] array, final E[] typeIndicator, final Class<E> componentType) {
+        return arrayOf(Arrays.stream(array).collect(Collectors.toList()), typeIndicator, componentType);
+    }
+
+    public <E> E[] arrayOf(final Object[] array, final IntFunction<E[]> generator, final Class<E> componentType) {
+        return arrayOf(Arrays.stream(array).collect(Collectors.toList()), generator, componentType);
+    }
+
+    public static <T extends Enum<T>> T enumOf(final String value, final Class<T> enumType) {
+        try {
+            return value != null && enumType != null && enumType.isEnum() ? Enum.valueOf(enumType, value) : null;
+        } catch (final IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     protected static <T> T safeCast(final Object value, final Class<T> targetType) {
@@ -172,9 +209,9 @@ public class TypeConverter {
         if (value instanceof Collection<?>) {
             final Collection<?> collection = (Collection<?>) value;
             return collection.isEmpty() ? null : collection.iterator().next();
-        } else if (value.getClass().isArray()) {
-            final int length = Array.getLength(value);
-            return length == 0 ? null : Array.get(value, 0);
+        } else if (value.getClass().isArray() && value instanceof Object[]) {
+            final Object[] array = (Object[]) value;
+            return array.length == 0 ? null : array[0];
         } else if (value instanceof Map<?, ?>) {
             final Map<?, ?> map = (Map<?, ?>) value;
             return map.isEmpty() ? null : map.entrySet().iterator().next();

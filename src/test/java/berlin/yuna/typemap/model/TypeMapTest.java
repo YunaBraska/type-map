@@ -5,11 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,6 +24,14 @@ class TypeMapTest {
     }
 
     @Test
+    void enumConvert() {
+        final TypeMap typeMap = new TypeMap();
+        typeMap.put("myKey", "BB");
+        final TestEnum testEnum = typeMap.get("myKey", TestEnum.class).orElse(null);
+        assertThat(testEnum).isEqualTo(TestEnum.BB);
+    }
+
+    @Test
     void collectionConvert() {
         final String myTime = new Date().toString();
         final TypeMap typeMap = new TypeMap();
@@ -36,11 +40,15 @@ class TypeMapTest {
         final List<Instant> instantList = typeMap.get("myKey1", ArrayList::new, Instant.class);
         final List<Integer> integerList = typeMap.get("myKey2", ArrayList::new, Integer.class);
         final List<Float> floatList = typeMap.get("myKey2", ArrayList::new, Float.class);
+        final Double[] doubleArray = typeMap.getArray("myKey2", new Double[0], Double.class);
+        final Long[] longArray = typeMap.getArray("myKey2", Long[]::new, Long.class);
 
 
         assertThat(instantList).isNotEmpty();
         assertThat(integerList).isNotEmpty().containsExactly(1, 2, 3);
         assertThat(floatList).isNotEmpty().containsExactly(1f, 2f, 3f);
+        assertThat(doubleArray).isNotEmpty().containsExactly(1d, 2d, 3d);
+        assertThat(longArray).isNotEmpty().containsExactly(1L, 2L, 3L);
     }
 
     @Test
