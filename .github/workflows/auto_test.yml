@@ -12,6 +12,8 @@ jobs:
     # has_changes                 ${{needs.maven_update.outputs.has_changes}}
     # java_version                ${{needs.maven_update.outputs.java_version}}
     # project_version             ${{needs.maven_update.outputs.project_version}}
+    secrets:
+      CI_TOKEN: ${{ secrets.CI_TOKEN || github.token }}
   maven_test:
     needs: maven_update
     name: "maven"
