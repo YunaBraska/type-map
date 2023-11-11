@@ -14,6 +14,8 @@ jobs:
     # has_changes                 ${{needs.maven_update.outputs.has_changes}}
     # java_version                ${{needs.maven_update.outputs.java_version}}
     # project_version             ${{needs.maven_update.outputs.project_version}}
+    secrets:
+      CI_TOKEN: ${{ secrets.CI_TOKEN || github.token }}
   maven_test:
     needs: "maven_update"
     name: "maven"
@@ -37,6 +39,8 @@ jobs:
     # project_version             ${{needs.maven_test.outputs.project_version}}
     # semver_strategy             ${{needs.maven_test.outputs.semver_strategy}}
     # has_publish_to_code_climate ${{needs.maven_test.outputs.has_publish_to_code_climate}}
+    secrets:
+      CI_TOKEN: ${{ secrets.CI_TOKEN || github.token }}
   maven_github_release:
     needs: maven_tag
     if: needs.maven_tag.outputs.semver != ''
