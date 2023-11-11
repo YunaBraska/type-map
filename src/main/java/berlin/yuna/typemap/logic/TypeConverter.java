@@ -3,12 +3,7 @@ package berlin.yuna.typemap.logic;
 
 import berlin.yuna.typemap.model.FunctionOrNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -16,7 +11,6 @@ import java.util.stream.Collectors;
 import static berlin.yuna.typemap.config.TypeConversionRegister.TYPE_CONVERSIONS;
 import static java.util.Optional.ofNullable;
 
-@SuppressWarnings({"UnusedReturnValue", "java:S6548", "unused"})
 public class TypeConverter {
 
     /**
@@ -44,7 +38,7 @@ public class TypeConverter {
     public static <T> T convertObj(final Object value, final Class<T> targetType) {
         if (value == null) return null;
         if (targetType.isInstance(value)) {
-            return safeCast(value, targetType);
+            return targetType.cast(value);
         }
 
         // Handle non-empty arrays, collections, map
@@ -108,28 +102,6 @@ public class TypeConverter {
     }
 
     /**
-     * Creates a new collection of typeId {@code T} from the given {@code input} collection.
-     * The elements are converted to typeId {@code E} and added to the resulting collection.
-     *
-     * @param <T>      The typeId of the resulting collection, which must be a subclass of {@code Collection<E>}.
-     * @param <E>      The typeId of elements in the resulting collection.
-     * @param input    The input collection containing elements to be converted.
-     * @param output   A {@code Supplier} for the output collection of typeId {@code T}.
-     * @param itemType The {@code Class} object representing the typeId of elements to convert to.
-     * @return A new collection of typeId {@code T} with elements converted to typeId {@code E}.
-     * Returns {@code null} if the output collection is {@code null}.
-     */
-    public static <T extends Collection<E>, E> T collectionOf(final Collection<?> input, final Supplier<T> output, final Class<E> itemType) {
-        return ofNullable(input).map(nonNull -> itemType).map(nonNull -> output).map(Supplier::get).map(result -> {
-            input.stream()
-                .map(item -> convertObj(item, itemType))
-                .filter(Objects::nonNull)
-                .forEach(result::add);
-            return result;
-        }).orElseGet(() -> ofNullable(output).map(Supplier::get).orElse(null));
-    }
-
-    /**
      * Creates a collection of a specific typeId containing elements of a specific typeId based on the given input.
      * The function handles three types of input:
      * - A Collection
@@ -170,26 +142,73 @@ public class TypeConverter {
         return ofNullable(output).map(Supplier::get).orElse(null);
     }
 
-    public <E> E[] arrayOf(final Object object, final E[] typeIndicator, final Class<E> componentType) {
+    /**
+     * Converts an object to an array of a specified type. If the object is a collection,
+     * each element is converted to the component type of the array.
+     *
+     * @param <E>            The component type of the array.
+     * @param object         The object to be converted.
+     * @param typeIndicator  An array instance indicating the type of array to return.
+     * @param componentType  The class of the array's component type.
+     * @return an array of the specified component type.
+     */
+    public static <E> E[] arrayOf(final Object object, final E[] typeIndicator, final Class<E> componentType) {
         ArrayList<E> result = collectionOf(object, ArrayList::new, componentType);
         result = result == null ? new ArrayList<>() : result;
         return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
     }
 
-    public <E> E[] arrayOf(final Object object, final IntFunction<E[]> generator, final Class<E> componentType) {
+    /**
+     * Converts an object to an array of a specified type using a generator function.
+     * If the object is a collection, each element is converted to the component type of the array.
+     *
+     * @param <E>           The component type of the array.
+     * @param object        The object to be converted.
+     * @param generator     A function to generate the array of the required size.
+     * @param componentType The class of the array's component type.
+     * @return an array of the specified component type.
+     */
+    public static <E> E[] arrayOf(final Object object, final IntFunction<E[]> generator, final Class<E> componentType) {
         ArrayList<E> result = collectionOf(object, ArrayList::new, componentType);
         result = result == null ? new ArrayList<>() : result;
         return result.stream().toArray(generator);
     }
 
-    public <E> E[] arrayOf(final Object[] array, final E[] typeIndicator, final Class<E> componentType) {
+    /**
+     * Converts an array of objects to an array of a specified type.
+     *
+     * @param <E>            The component type of the target array.
+     * @param array          The array to be converted.
+     * @param typeIndicator  An array instance indicating the type of array to return.
+     * @param componentType  The class of the array's component type.
+     * @return an array of the specified component type.
+     */
+    public static <E> E[] arrayOf(final Object[] array, final E[] typeIndicator, final Class<E> componentType) {
         return arrayOf(Arrays.stream(array).collect(Collectors.toList()), typeIndicator, componentType);
     }
 
-    public <E> E[] arrayOf(final Object[] array, final IntFunction<E[]> generator, final Class<E> componentType) {
+    /**
+     * Converts an array of objects to an array of a specified type using a generator function.
+     *
+     * @param <E>           The component type of the target array.
+     * @param array         The array to be converted.
+     * @param generator     A function to generate the array of the required size.
+     * @param componentType The class of the array's component type.
+     * @return an array of the specified component type.
+     */
+    public static <E> E[] arrayOf(final Object[] array, final IntFunction<E[]> generator, final Class<E> componentType) {
         return arrayOf(Arrays.stream(array).collect(Collectors.toList()), generator, componentType);
     }
 
+    /**
+     * Converts a string value to an enum of a specified type. If the value does not match
+     * any enum constants, or if an error occurs, this method returns null.
+     *
+     * @param <T>       The enum type to which the string is to be converted.
+     * @param value     The string value to be converted to an enum constant.
+     * @param enumType  The class of the enum type.
+     * @return the enum constant corresponding to the given string, or null if no match is found.
+     */
     public static <T extends Enum<T>> T enumOf(final String value, final Class<T> enumType) {
         try {
             return value != null && enumType != null && enumType.isEnum() ? Enum.valueOf(enumType, value) : null;
@@ -198,11 +217,14 @@ public class TypeConverter {
         }
     }
 
-    protected static <T> T safeCast(final Object value, final Class<T> targetType) {
-        if (targetType.isInstance(value)) {
-            return targetType.cast(value);
-        }
-        throw new ClassCastException("Failed to cast " + value + " to " + targetType.getName());
+    private static <T extends Collection<E>, E> T collectionOf(final Collection<?> input, final Supplier<T> output, final Class<E> itemType) {
+        return ofNullable(input).map(nonNull -> itemType).map(nonNull -> output).map(Supplier::get).map(result -> {
+            input.stream()
+                .map(item -> convertObj(item, itemType))
+                .filter(Objects::nonNull)
+                .forEach(result::add);
+            return result;
+        }).orElseGet(() -> ofNullable(output).map(Supplier::get).orElse(null));
     }
 
     private static Object getFirstItem(final Object value) {

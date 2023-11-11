@@ -58,7 +58,9 @@ class TypeMapTest {
         input.put(6, new Date());
         typeMap.put("myKey", input);
         final Map<Long, Instant> instantMap = typeMap.get("myKey", HashMap::new, Long.class, Instant.class);
+        final Map<Long, Instant> instantMap2 = typeMap.get("myKey2", HashMap::new, Long.class, Instant.class);
 
         assertThat(instantMap).isNotEmpty();
+        assertThat(instantMap2).isEmpty();
     }
 }

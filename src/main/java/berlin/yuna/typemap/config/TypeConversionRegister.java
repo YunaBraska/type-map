@@ -6,9 +6,7 @@ import berlin.yuna.typemap.model.FunctionOrNull;
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.net.InetAddress;
-import java.net.URI;
-import java.net.URL;
+import java.net.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Time;
@@ -101,9 +99,9 @@ public class TypeConversionRegister {
 
         // ATOMIC TYPES
         registerTypeConvert(AtomicInteger.class, Integer.class, AtomicInteger::get);
-        registerTypeConvert(Integer.class, AtomicInteger.class, AtomicInteger::new);
+        registerTypeConvert(Number.class, AtomicInteger.class, number -> new AtomicInteger(number.intValue()));
         registerTypeConvert(AtomicLong.class, Long.class, AtomicLong::get);
-        registerTypeConvert(Long.class, AtomicLong.class, AtomicLong::new);
+        registerTypeConvert(Number.class, AtomicLong.class, number -> new AtomicLong(number.longValue()));
         registerTypeConvert(AtomicBoolean.class, Boolean.class, AtomicBoolean::get);
         registerTypeConvert(Boolean.class, AtomicBoolean.class, AtomicBoolean::new);
 
@@ -130,11 +128,11 @@ public class TypeConversionRegister {
         registerTypeConvert(Character.class, String.class, Object::toString);
         registerTypeConvert(UUID.class, String.class, UUID::toString);
         registerTypeConvert(String.class, UUID.class, UUID::fromString);
-        registerTypeConvert(String.class, Boolean.class, Boolean::valueOf);
+        registerTypeConvert(String.class, Boolean.class, string -> Boolean.parseBoolean(string) || "1".equals(string));
         registerTypeConvert(Enum.class, String.class, Enum::name);
         registerTypeConvert(Throwable.class, String.class, TypeConversionRegister::stringOf);
-        registerTypeConvert(String.class, Long.class, Long::valueOf);
         registerTypeConvert(String.class, Integer.class, Integer::valueOf);
+        registerTypeConvert(String.class, Long.class, Long::valueOf);
         registerTypeConvert(String.class, Float.class, Float::valueOf);
         registerTypeConvert(String.class, Double.class, Double::valueOf);
         registerTypeConvert(String.class, Short.class, Short::valueOf);
@@ -142,6 +140,8 @@ public class TypeConversionRegister {
         registerTypeConvert(String.class, BigInteger.class, BigInteger::new);
         registerTypeConvert(String.class, BigDecimal.class, BigDecimal::new);
         registerTypeConvert(String.class, Number.class, Double::valueOf);
+        registerTypeConvert(StringBuilder.class, String.class, StringBuilder::toString);
+        registerTypeConvert(String.class, StringBuilder.class, StringBuilder::new);
 
         // PATH
         registerTypeConvert(Path.class, File.class, Path::toFile);
@@ -162,14 +162,14 @@ public class TypeConversionRegister {
         registerTypeConvert(URL.class, URI.class, URL::toURI);
         registerTypeConvert(String.class, Path.class, Paths::get);
         registerTypeConvert(String.class, File.class, File::new);
-        registerTypeConvert(String.class, URL.class, string -> new URI(string).toURL());
+        registerTypeConvert(String.class, URL.class, string -> Paths.get(string).toUri().toURL());
         registerTypeConvert(String.class, URI.class, URI::new);
 
         // NET
-        registerTypeConvert(StringBuilder.class, String.class, StringBuilder::toString);
-        registerTypeConvert(String.class, StringBuilder.class, StringBuilder::new);
         registerTypeConvert(InetAddress.class, String.class, InetAddress::toString);
-        registerTypeConvert(String.class, InetAddress.class, TypeConversionRegister::inetAddressOf);
+        registerTypeConvert(String.class, InetAddress.class, InetAddress::getByName);
+        registerTypeConvert(String.class, Inet4Address.class, string -> (Inet4Address) InetAddress.getByName(string));
+        registerTypeConvert(String.class, Inet6Address.class, string -> (Inet6Address) InetAddress.getByName(string));
 
         // DATE
         registerTypeConvert(Date.class, Instant.class, Date::toInstant);
@@ -288,7 +288,7 @@ public class TypeConversionRegister {
             final LocalTime localTime = time.toLocalTime();
             return LocalDateTime.of(date, localTime);
         });
-        registerTypeConvert(Time.class, LocalDate.class, time -> LocalDate.ofEpochDay(0));
+        registerTypeConvert(Time.class, LocalDate.class, time -> null);
         registerTypeConvert(Time.class, LocalTime.class, Time::toLocalTime);
         registerTypeConvert(Time.class, OffsetDateTime.class, time -> {
             final LocalDate date = LocalDate.ofEpochDay(0);
@@ -300,7 +300,7 @@ public class TypeConversionRegister {
             final LocalTime localTime = time.toLocalTime();
             return LocalDateTime.of(date, localTime).atZone(ZoneId.systemDefault());
         });
-        registerTypeConvert(Time.class, java.sql.Date.class, time -> java.sql.Date.valueOf(LocalDate.ofEpochDay(0)));
+        registerTypeConvert(Time.class, java.sql.Date.class, time -> null);
         registerTypeConvert(Time.class, Date.class, time -> new Date(time.getTime()));
         registerTypeConvert(Time.class, Timestamp.class, time -> Timestamp.valueOf(time.toLocalTime().atDate(LocalDate.ofEpochDay(0))));
 
@@ -323,7 +323,7 @@ public class TypeConversionRegister {
         registerTypeConvert(String.class, LocalDateTime.class, string -> temporalOf(string).map(LocalDateTime::from).orElse(null));
         registerTypeConvert(String.class, LocalDate.class, string -> temporalOf(string).map(LocalDate::from).orElse(null));
         registerTypeConvert(String.class, LocalTime.class, string -> temporalOf(string).map(LocalTime::from).orElse(null));
-        registerTypeConvert(String.class, OffsetDateTime.class, string -> temporalOf(string).map(OffsetDateTime::from).orElse(null));
+        registerTypeConvert(String.class, OffsetDateTime.class, string -> temporalOf(string).map(ZonedDateTime::from).map(time -> OffsetDateTime.of(time.toLocalDateTime(), time.getOffset())).orElse(null));
         registerTypeConvert(String.class, ZonedDateTime.class, string -> temporalOf(string).map(ZonedDateTime::from).orElse(null));
         registerTypeConvert(String.class, java.sql.Date.class, string -> temporalOf(string).map(time -> java.sql.Date.valueOf(LocalDate.from(time))).orElse(null));
         registerTypeConvert(String.class, Time.class, string -> temporalOf(string).map(time -> Time.valueOf(LocalTime.from(time))).orElse(null));
@@ -339,14 +339,6 @@ public class TypeConversionRegister {
             }
         }
         return Optional.empty();
-    }
-
-    public static InetAddress inetAddressOf(final String string) {
-        try {
-            return InetAddress.getByName(string);
-        } catch (final Exception ignored) {
-            return null;
-        }
     }
 
     public static Calendar calendarOf(final long timeInMs) {
