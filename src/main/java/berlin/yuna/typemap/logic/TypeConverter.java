@@ -9,8 +9,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static berlin.yuna.typemap.config.TypeConversionRegister.TYPE_CONVERSIONS;
-import static java.util.Optional.ofNullable;
 
+@SuppressWarnings("java:S1168")
 public class TypeConverter {
 
     /**
@@ -89,16 +89,25 @@ public class TypeConverter {
      * @return A new map of typeId {@code M} with keys and values converted to types {@code K} and {@code V}. Returns {@code null} if the output map is {@code null}.
      */
     public static <K, V, M extends Map<K, V>> M mapOf(final Map<?, ?> input, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        return ofNullable(input).map(nonNull -> keyType).map(nonNull -> valueType).map(nonNull -> output).map(Supplier::get).map(result -> {
-            input.forEach((key, value) -> {
-                final K convertedKey = convertObj(key, keyType);
-                final V convertedValue = convertObj(value, valueType);
-                if (convertedKey != null && convertedValue != null) {
-                    result.put(convertedKey, convertedValue);
-                }
-            });
-            return result;
-        }).orElse(ofNullable(output).map(Supplier::get).orElse(null));
+        if (output == null) {
+            return null;
+        } else if (input == null || keyType == null || valueType == null) {
+            return output.get();
+        }
+
+        final M result = output.get();
+        if (result == null) {
+            return null;
+        }
+        input.forEach((key, value) -> {
+            final K convertedKey = convertObj(key, keyType);
+            final V convertedValue = convertObj(value, valueType);
+            if (convertedKey != null && convertedValue != null) {
+                result.put(convertedKey, convertedValue);
+            }
+        });
+
+        return result;
     }
 
     /**
@@ -123,7 +132,9 @@ public class TypeConverter {
      * </p>
      */
     public static <T extends Collection<E>, E> T collectionOf(final Object input, final Supplier<? extends T> output, final Class<E> itemType) {
-        if (input != null && output != null && itemType != null) {
+        if (output == null) {
+            return null;
+        } else if (input != null && itemType != null) {
             if (input instanceof Collection<?>) {
                 final Collection<?> noTypeCollection = (Collection<?>) input;
                 return collectionOf(noTypeCollection, output, itemType);
@@ -134,22 +145,28 @@ public class TypeConverter {
                 }
                 return collectionOf(noTypeCollection, output, itemType);
             } else {
-                final T result = output.get();
-                ofNullable(convertObj(input, itemType)).ifPresent(result::add);
-                return result;
+                final E converted = convertObj(input, itemType);
+                if (converted != null) {
+                    final T result = output.get();
+                    if (result == null) {
+                        return null;
+                    }
+                    result.add(converted);
+                    return result;
+                }
             }
         }
-        return ofNullable(output).map(Supplier::get).orElse(null);
+        return output.get();
     }
 
     /**
      * Converts an object to an array of a specified type. If the object is a collection,
      * each element is converted to the component type of the array.
      *
-     * @param <E>            The component type of the array.
-     * @param object         The object to be converted.
-     * @param typeIndicator  An array instance indicating the type of array to return.
-     * @param componentType  The class of the array's component type.
+     * @param <E>           The component type of the array.
+     * @param object        The object to be converted.
+     * @param typeIndicator An array instance indicating the type of array to return.
+     * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
     public static <E> E[] arrayOf(final Object object, final E[] typeIndicator, final Class<E> componentType) {
@@ -177,10 +194,10 @@ public class TypeConverter {
     /**
      * Converts an array of objects to an array of a specified type.
      *
-     * @param <E>            The component type of the target array.
-     * @param array          The array to be converted.
-     * @param typeIndicator  An array instance indicating the type of array to return.
-     * @param componentType  The class of the array's component type.
+     * @param <E>           The component type of the target array.
+     * @param array         The array to be converted.
+     * @param typeIndicator An array instance indicating the type of array to return.
+     * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
     public static <E> E[] arrayOf(final Object[] array, final E[] typeIndicator, final Class<E> componentType) {
@@ -204,9 +221,9 @@ public class TypeConverter {
      * Converts a string value to an enum of a specified type. If the value does not match
      * any enum constants, or if an error occurs, this method returns null.
      *
-     * @param <T>       The enum type to which the string is to be converted.
-     * @param value     The string value to be converted to an enum constant.
-     * @param enumType  The class of the enum type.
+     * @param <T>      The enum type to which the string is to be converted.
+     * @param value    The string value to be converted to an enum constant.
+     * @param enumType The class of the enum type.
      * @return the enum constant corresponding to the given string, or null if no match is found.
      */
     public static <T extends Enum<T>> T enumOf(final String value, final Class<T> enumType) {
@@ -218,13 +235,9 @@ public class TypeConverter {
     }
 
     private static <T extends Collection<E>, E> T collectionOf(final Collection<?> input, final Supplier<T> output, final Class<E> itemType) {
-        return ofNullable(input).map(nonNull -> itemType).map(nonNull -> output).map(Supplier::get).map(result -> {
-            input.stream()
-                .map(item -> convertObj(item, itemType))
-                .filter(Objects::nonNull)
-                .forEach(result::add);
-            return result;
-        }).orElseGet(() -> ofNullable(output).map(Supplier::get).orElse(null));
+        final T result = output.get();
+        input.stream().map(item -> convertObj(item, itemType)).filter(Objects::nonNull).forEach(result::add);
+        return result;
     }
 
     private static Object getFirstItem(final Object value) {

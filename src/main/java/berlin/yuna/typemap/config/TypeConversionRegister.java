@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Function;
 
 
 /**
@@ -317,28 +318,31 @@ public class TypeConversionRegister {
         registerTypeConvert(Timestamp.class, Date.class, timestamp -> new Date(timestamp.getTime()));
 
         // STRING TIME
-        registerTypeConvert(String.class, Date.class, string -> temporalOf(string).map(time -> Date.from(Instant.from(time))).orElse(null));
-        registerTypeConvert(String.class, Instant.class, string -> temporalOf(string).map(Instant::from).orElse(null));
-        registerTypeConvert(String.class, Calendar.class, string -> temporalOf(string).map(time -> GregorianCalendar.from(ZonedDateTime.from(time))).orElse(null));
-        registerTypeConvert(String.class, LocalDateTime.class, string -> temporalOf(string).map(LocalDateTime::from).orElse(null));
-        registerTypeConvert(String.class, LocalDate.class, string -> temporalOf(string).map(LocalDate::from).orElse(null));
-        registerTypeConvert(String.class, LocalTime.class, string -> temporalOf(string).map(LocalTime::from).orElse(null));
-        registerTypeConvert(String.class, OffsetDateTime.class, string -> temporalOf(string).map(ZonedDateTime::from).map(time -> OffsetDateTime.of(time.toLocalDateTime(), time.getOffset())).orElse(null));
-        registerTypeConvert(String.class, ZonedDateTime.class, string -> temporalOf(string).map(ZonedDateTime::from).orElse(null));
-        registerTypeConvert(String.class, java.sql.Date.class, string -> temporalOf(string).map(time -> java.sql.Date.valueOf(LocalDate.from(time))).orElse(null));
-        registerTypeConvert(String.class, Time.class, string -> temporalOf(string).map(time -> Time.valueOf(LocalTime.from(time))).orElse(null));
-        registerTypeConvert(String.class, Timestamp.class, string -> temporalOf(string).map(time -> Timestamp.from(Instant.from(time))).orElse(null));
+        registerTypeConvert(String.class, Date.class, string -> temporalOf(string, time -> Date.from(Instant.from(time))));
+        registerTypeConvert(String.class, Instant.class, string -> temporalOf(string, Instant::from));
+        registerTypeConvert(String.class, Calendar.class, string -> temporalOf(string, time -> GregorianCalendar.from(ZonedDateTime.from(time))));
+        registerTypeConvert(String.class, LocalDateTime.class, string -> temporalOf(string, LocalDateTime::from));
+        registerTypeConvert(String.class, LocalDate.class, string -> temporalOf(string, LocalDate::from));
+        registerTypeConvert(String.class, LocalTime.class, string -> temporalOf(string, LocalTime::from));
+        registerTypeConvert(String.class, OffsetDateTime.class, string -> temporalOf(string, time -> {
+            final ZonedDateTime zonedDateTime = ZonedDateTime.from(time);
+            return OffsetDateTime.of(zonedDateTime.toLocalDateTime(), zonedDateTime.getOffset());
+        }));
+        registerTypeConvert(String.class, ZonedDateTime.class, string -> temporalOf(string, ZonedDateTime::from));
+        registerTypeConvert(String.class, java.sql.Date.class, string -> temporalOf(string, time -> java.sql.Date.valueOf(LocalDate.from(time))));
+        registerTypeConvert(String.class, Time.class, string -> temporalOf(string, time -> Time.valueOf(LocalTime.from(time))));
+        registerTypeConvert(String.class, Timestamp.class, string -> temporalOf(string, time -> Timestamp.from(Instant.from(time))));
     }
 
-    public static Optional<TemporalAccessor> temporalOf(final String string) {
+    public static <T> T temporalOf(final String string, final Function<TemporalAccessor, T> converter) {
         for (final DateTimeFormatter formatter : DATE_TIME_FORMATTERS) {
             try {
-                return Optional.of(formatter.parse(string));
+                return converter.apply(formatter.parse(string));
             } catch (final DateTimeParseException ignored) {
                 // ignored
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     public static Calendar calendarOf(final long timeInMs) {

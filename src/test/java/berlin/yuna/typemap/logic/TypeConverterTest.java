@@ -68,6 +68,11 @@ class TypeConverterTest {
         assertThat(convertObj(input, String.class)).isEqualTo("12=34");
         assertThat(mapOf(input, () -> new HashMap<>(), String.class, String.class)).isEqualTo(input);
         assertThat(mapOf(input, () -> new TreeMap<>(), Integer.class, Long.class)).containsExactlyInAnyOrderEntriesOf(output);
+        assertThat(mapOf(input, () -> new TreeMap<>(), null, Long.class)).isEmpty();
+        final Object nullMap1 = mapOf(input, () -> null, Integer.class, Long.class);
+        final Object nullMap2 = mapOf(input, null, Integer.class, Long.class);
+        assertThat(nullMap1).isNull();
+        assertThat(nullMap2).isNull();
     }
 
     @Test
@@ -77,6 +82,11 @@ class TypeConverterTest {
         assertThat(collectionOf(new String[]{"123", "456"}, () -> new HashSet<>(), Integer.class)).containsExactlyInAnyOrder(123, 456);
         assertThat(collectionOf("123", () -> new ArrayList<>(), Integer.class)).containsExactly(123);
         assertThat(collectionOf(null, () -> new ArrayList<>(), Integer.class)).isEmpty();
+        assertThat(collectionOf("123", () -> new ArrayList<>(), null)).isEmpty();
+        final Object nullCollection1 = collectionOf("123", () -> null, Integer.class);
+        final Object nullCollection2 = collectionOf("123", null, Integer.class);
+        assertThat(nullCollection1).isNull();
+        assertThat(nullCollection2).isNull();
     }
 
     @Test
