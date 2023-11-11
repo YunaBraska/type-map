@@ -1,10 +1,14 @@
 package berlin.yuna.typemap.model;
 
 
+import berlin.yuna.typemap.config.TypeConversionRegister;
+import berlin.yuna.typemap.logic.TypeConverter;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -62,5 +66,28 @@ class TypeMapTest {
 
         assertThat(instantMap).isNotEmpty();
         assertThat(instantMap2).isEmpty();
+    }
+
+    @Test
+    void showCase() {
+
+        // Converter
+        final Date date = TypeConverter.convertObj("Sat Nov 11 16:12:29 CET 2023", Date.class);
+
+        // TypeMap
+        final TypeMap map = new TypeMap();
+        map.put("key", new Date());
+        final Optional<Calendar> calendar = map.get("key", Calendar.class);
+        final Optional<LocalDateTime> localDateTime = map.get("key", LocalDateTime.class);
+        final Optional<ZonedDateTime> zonedDateTime = map.get("key", ZonedDateTime.class);
+
+        // Register custom conversion
+        TypeConversionRegister.registerTypeConvert(UnknownClass.class, Double.class, source -> 99d);
+
+
+
+
+
+        System.out.println(date + calendar.toString() + localDateTime.toString() + zonedDateTime.toString());
     }
 }
