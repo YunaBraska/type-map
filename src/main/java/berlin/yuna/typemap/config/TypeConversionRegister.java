@@ -206,7 +206,25 @@ public class TypeConversionRegister {
         registerTypeConvert(String.class, Inet4Address.class, string -> (Inet4Address) InetAddress.getByName(string));
         registerTypeConvert(String.class, Inet6Address.class, string -> (Inet6Address) InetAddress.getByName(string));
 
+        // TIME LONG
+        registerTypeConvert(Long.class, Date.class, Date::new);
+        registerTypeConvert(Long.class, Instant.class, Instant::ofEpochMilli);
+        registerTypeConvert(Long.class, Calendar.class, timestamp -> {
+            final Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(timestamp);
+            return calendar;
+        });
+        registerTypeConvert(Long.class, LocalDateTime.class, timestamp -> LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()));
+        registerTypeConvert(Long.class, LocalDate.class, timestamp -> Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalDate());
+        registerTypeConvert(Long.class, LocalTime.class, timestamp -> Instant.ofEpochMilli(timestamp).atZone(ZoneId.systemDefault()).toLocalTime());
+        registerTypeConvert(Long.class, OffsetDateTime.class, timestamp -> OffsetDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneOffset.UTC));
+        registerTypeConvert(Long.class, ZonedDateTime.class, timestamp -> ZonedDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault()));
+        registerTypeConvert(Long.class, java.sql.Date.class, java.sql.Date::new);
+        registerTypeConvert(Long.class, Time.class, Time::new);
+        registerTypeConvert(Long.class, Timestamp.class, Timestamp::new);
+
         // DATE
+        registerTypeConvert(Date.class, Long.class, Date::getTime);
         registerTypeConvert(Date.class, Instant.class, Date::toInstant);
         registerTypeConvert(Date.class, Calendar.class, TypeConversionRegister::calendarOf);
         registerTypeConvert(Date.class, LocalDateTime.class, date -> LocalDateTime.ofInstant(date.toInstant(), ZoneId.systemDefault()));
@@ -219,6 +237,7 @@ public class TypeConversionRegister {
         registerTypeConvert(Date.class, Timestamp.class, date -> new Timestamp(date.getTime()));
 
         // INSTANT
+        registerTypeConvert(Instant.class, Long.class, Instant::toEpochMilli);
         registerTypeConvert(Instant.class, Date.class, Date::from);
         registerTypeConvert(Instant.class, Calendar.class, instant -> calendarOf(instant.toEpochMilli()));
         registerTypeConvert(Instant.class, LocalDateTime.class, instant -> instant.atZone(ZoneId.systemDefault()).toLocalDateTime());
@@ -231,6 +250,7 @@ public class TypeConversionRegister {
         registerTypeConvert(Instant.class, Timestamp.class, Timestamp::from);
 
         // CALENDAR
+        registerTypeConvert(Calendar.class, Long.class, Calendar::getTimeInMillis);
         registerTypeConvert(Calendar.class, Instant.class, Calendar::toInstant);
         registerTypeConvert(Calendar.class, Date.class, Calendar::getTime);
         registerTypeConvert(Calendar.class, LocalDateTime.class, calendar -> LocalDateTime.ofInstant(calendar.toInstant(), ZoneId.systemDefault()));
@@ -243,6 +263,7 @@ public class TypeConversionRegister {
         registerTypeConvert(Calendar.class, Timestamp.class, calendar -> new Timestamp(calendar.getTimeInMillis()));
 
         // LOCAL DATE TIME
+        registerTypeConvert(LocalDateTime.class, Long.class, ldt -> ldt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
         registerTypeConvert(LocalDateTime.class, Instant.class, ldt -> ldt.atZone(ZoneId.systemDefault()).toInstant());
         registerTypeConvert(LocalDateTime.class, Calendar.class, ldt -> calendarOf(Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant())));
         registerTypeConvert(LocalDateTime.class, Date.class, ldt -> Date.from(ldt.atZone(ZoneId.systemDefault()).toInstant()));
@@ -256,6 +277,7 @@ public class TypeConversionRegister {
 
 
         // LOCAL DATE
+        registerTypeConvert(LocalDate.class, Long.class, ld -> ld.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli());
         registerTypeConvert(LocalDate.class, Instant.class, ld -> ld.atStartOfDay(ZoneId.systemDefault()).toInstant());
         registerTypeConvert(LocalDate.class, Calendar.class, ld -> calendarOf(Date.from(ld.atStartOfDay(ZoneId.systemDefault()).toInstant())));
         registerTypeConvert(LocalDate.class, LocalDateTime.class, LocalDate::atStartOfDay);
@@ -268,6 +290,7 @@ public class TypeConversionRegister {
         registerTypeConvert(LocalDate.class, Timestamp.class, ld -> Timestamp.valueOf(ld.atStartOfDay()));
 
         // LOCAL TIME
+        registerTypeConvert(LocalTime.class, Long.class, source -> Instant.now().toEpochMilli());
         registerTypeConvert(LocalTime.class, Instant.class, lt -> null);
         registerTypeConvert(LocalTime.class, Calendar.class, TypeConversionRegister::calendarOf);
         registerTypeConvert(LocalTime.class, LocalDateTime.class, lt -> lt.atDate(LocalDate.now()));
@@ -280,6 +303,7 @@ public class TypeConversionRegister {
         registerTypeConvert(LocalTime.class, Timestamp.class, lt -> new Timestamp(calendarOf(lt).getTimeInMillis()));
 
         // OFFSET DATE TIME
+        registerTypeConvert(OffsetDateTime.class, Long.class, odt -> odt.toInstant().toEpochMilli());
         registerTypeConvert(OffsetDateTime.class, Instant.class, OffsetDateTime::toInstant);
         registerTypeConvert(OffsetDateTime.class, Calendar.class, odt -> calendarOf(Date.from(odt.toInstant())));
         registerTypeConvert(OffsetDateTime.class, LocalDateTime.class, OffsetDateTime::toLocalDateTime);
@@ -292,6 +316,7 @@ public class TypeConversionRegister {
         registerTypeConvert(OffsetDateTime.class, Timestamp.class, odt -> Timestamp.from(odt.toInstant()));
 
         // ZONED DATE TIME
+        registerTypeConvert(ZonedDateTime.class, Long.class, zdt -> zdt.toInstant().toEpochMilli());
         registerTypeConvert(ZonedDateTime.class, Instant.class, ChronoZonedDateTime::toInstant);
         registerTypeConvert(ZonedDateTime.class, Calendar.class, zdt -> calendarOf(Date.from(zdt.toInstant())));
         registerTypeConvert(ZonedDateTime.class, LocalDateTime.class, ZonedDateTime::toLocalDateTime);
@@ -304,6 +329,7 @@ public class TypeConversionRegister {
         registerTypeConvert(ZonedDateTime.class, Timestamp.class, zdt -> Timestamp.from(zdt.toInstant()));
 
         // SQL DATE
+        registerTypeConvert(java.sql.Date.class, Long.class, Date::getTime);
         registerTypeConvert(java.sql.Date.class, Instant.class, date -> Instant.ofEpochMilli(date.getTime()));
         registerTypeConvert(java.sql.Date.class, Calendar.class, TypeConversionRegister::calendarOf);
         registerTypeConvert(java.sql.Date.class, LocalDateTime.class, date -> date.toLocalDate().atStartOfDay());
@@ -315,7 +341,8 @@ public class TypeConversionRegister {
         registerTypeConvert(java.sql.Date.class, Time.class, date -> null);
         registerTypeConvert(java.sql.Date.class, Timestamp.class, date -> new Timestamp(date.getTime()));
 
-        // SQL TIME
+        // TIME
+        registerTypeConvert(Time.class, Long.class, Time::getTime);
         registerTypeConvert(Time.class, Instant.class, time -> Instant.ofEpochMilli(time.getTime()));
         registerTypeConvert(Time.class, Calendar.class, time -> calendarOf(time.getTime()));
         registerTypeConvert(Time.class, LocalDateTime.class, time -> {
@@ -340,6 +367,7 @@ public class TypeConversionRegister {
         registerTypeConvert(Time.class, Timestamp.class, time -> Timestamp.valueOf(time.toLocalTime().atDate(LocalDate.ofEpochDay(0))));
 
         // SQL Timestamp
+        registerTypeConvert(Timestamp.class, Long.class, Timestamp::getTime);
         registerTypeConvert(Timestamp.class, Instant.class, Timestamp::toInstant);
         registerTypeConvert(Timestamp.class, Calendar.class, timestamp -> calendarOf(timestamp.getTime()));
         registerTypeConvert(Timestamp.class, LocalDateTime.class, Timestamp::toLocalDateTime);

@@ -107,7 +107,7 @@ class TypeConversionRegisterTest {
     }
 
     @Test
-    void convertThrowable()  {
+    void convertThrowable() {
         final RuntimeException value = new RuntimeException("AA", new RuntimeException("BB"));
         final String expected = stringOf(value);
         assertThat(convertObj(value, String.class)).isEqualTo(expected);
@@ -166,6 +166,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertDate() {
         final Date time = new Date();
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
         assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
@@ -182,6 +183,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertInstant() {
         final Instant time = Instant.now();
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
         assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
@@ -198,6 +200,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertCalendar() {
         final Calendar time = Calendar.getInstance();
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
@@ -214,6 +217,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertLocalDateTime() {
         final LocalDateTime time = LocalDateTime.ofInstant(Instant.now(), ZoneId.systemDefault());
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -230,6 +234,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertLocalDate() {
         final LocalDate time = LocalDate.now(ZoneId.systemDefault());
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -246,6 +251,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertLocalTime() {
         final LocalTime time = LocalTime.now(ZoneId.systemDefault());
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -262,6 +268,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertOffsetDateTime() {
         final OffsetDateTime time = OffsetDateTime.now();
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -278,6 +285,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertZonedDateTime() {
         final ZonedDateTime time = ZonedDateTime.now();
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -294,6 +302,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertSqlDate() {
         final java.sql.Date time = convertObj(new Date(), java.sql.Date.class);
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
         assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
@@ -310,6 +319,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertSqlTime() {
         final java.sql.Time time = convertObj(new Date(), java.sql.Time.class);
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
         assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
@@ -326,6 +336,7 @@ class TypeConversionRegisterTest {
     @Test
     void convertTimestamp() {
         final Timestamp time = Timestamp.from(Instant.now());
+        assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -354,5 +365,22 @@ class TypeConversionRegisterTest {
         assertThat(convertObj(time, Time.class)).isNotNull();
         assertThat(convertObj(time, ZonedDateTime.class)).isNotNull();
         assertThat(convertObj("invalid", ZonedDateTime.class)).isNull();
+    }
+
+    @Test
+    void convertLongToTime() {
+        final Long time = Instant.now().toEpochMilli();
+        assertThat(convertObj(time, Date.class)).isNotNull();
+        assertThat(convertObj(time, Instant.class)).isNotNull();
+        assertThat(convertObj(time, Calendar.class)).isNotNull();
+        assertThat(convertObj(time, LocalDate.class)).isNotNull();
+        assertThat(convertObj(time, LocalTime.class)).isNotNull();
+        assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
+        assertThat(convertObj(time, OffsetDateTime.class)).isNotNull();
+        assertThat(convertObj(time, java.sql.Date.class)).isNotNull();
+        assertThat(convertObj(time, java.sql.Time.class)).isNotNull();
+        assertThat(convertObj(time, Time.class)).isNotNull();
+        assertThat(convertObj(time, ZonedDateTime.class)).isNotNull();
+        assertThat(convertObj(-1L, ZonedDateTime.class)).isNotNull();
     }
 }
