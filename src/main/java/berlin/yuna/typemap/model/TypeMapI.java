@@ -1,37 +1,12 @@
 package berlin.yuna.typemap.model;
 
-
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-import static berlin.yuna.typemap.logic.TypeConverter.*;
-import static java.util.Optional.ofNullable;
-
-/**
- * TypeMap is a specialized implementation of {@link HashMap} that offers enhanced
- * functionality for type-safe data retrieval and manipulation. It is designed for
- * high-performance type conversion while being native-ready for GraalVM. The {@link TypeMap}
- * class provides methods to retrieve data in various forms (single objects, collections,
- * arrays, or maps) while ensuring type safety without the need for reflection.
- */
-public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap> {
-
-    /**
-     * Default constructor for creating an empty TypeMap.
-     */
-    public TypeMap() {
-        this(null);
-    }
-
-    /**
-     * Constructs a new TypeMap with the same mappings as the specified map.
-     *
-     * @param map The initial map to copy mappings from, can be null.
-     */
-    public TypeMap(final Map<?, ?> map) {
-        ofNullable(map).ifPresent(super::putAll);
-    }
+public interface TypeMapI<C extends TypeMapI<C>> {
 
     /**
      * Associates the specified value with the specified key in this map.
@@ -40,11 +15,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param value the value to be associated with the specified key.
      * @return the updated TypeMap instance for chaining.
      */
-    @Override
-    public TypeMap put(final Object key, final Object value) {
-        super.put(key, value);
-        return this;
-    }
+    public C put(final Object key, final Object value);
 
     /**
      * Retrieves the value to which the specified key is mapped, and attempts to
@@ -55,9 +26,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    public <T> Optional<T> get(final Object key, final Class<T> type) {
-        return ofNullable(super.get(key)).map(object -> convertObj(object, type));
-    }
+    <T> Optional<T> get(final Object key, final Class<T> type);
 
     /**
      * Retrieves a collection associated with the specified key and converts it to
@@ -70,9 +39,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param itemType The class of the items in the collection.
      * @return a collection of the specified type and element type.
      */
-    public <T extends Collection<E>, E> T get(final Object key, final Supplier<? extends T> output, final Class<E> itemType) {
-        return collectionOf(super.get(key), output, itemType);
-    }
+    <T extends Collection<E>, E> T get(final Object key, final Supplier<? extends T> output, final Class<E> itemType);
 
     /**
      * Retrieves an array of a specific type associated with the specified key.
@@ -84,10 +51,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
-    public <E> E[] getArray(final Object key, final E[] typeIndicator, final Class<E> componentType) {
-        final ArrayList<E> result = get(key, ArrayList::new, componentType);
-        return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
-    }
+    <E> E[] getArray(final Object key, final E[] typeIndicator, final Class<E> componentType);
 
     /**
      * Retrieves an array of a specific type associated with the specified key.
@@ -99,9 +63,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
-    public <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType) {
-        return get(key, ArrayList::new, componentType).stream().toArray(generator);
-    }
+    <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType);
 
     /**
      * Retrieves a map of a specific type associated with the specified key.
@@ -116,15 +78,6 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
      */
-    public <K, V, M extends Map<K, V>> M get(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        return getMap(super.get(key), output, keyType, valueType);
-    }
+    <K, V, M extends Map<K, V>> M get(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType);
 
-    protected static <K, V, M extends Map<K, V>> M getMap(final Object value, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        if (output != null && keyType != null && valueType != null && value instanceof Map<?, ?>) {
-            final Map<?, ?> input = (Map<?, ?>) value;
-            return mapOf(input, output, keyType, valueType);
-        }
-        return ofNullable(output).map(Supplier::get).orElse(null);
-    }
 }

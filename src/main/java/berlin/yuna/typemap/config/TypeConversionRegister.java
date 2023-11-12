@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
+import static java.util.Arrays.asList;
+
 
 /**
  * Manages type conversions between different classes.
@@ -84,6 +86,38 @@ public class TypeConversionRegister {
     };
 
     public static final String LINE_SEPARATOR = System.lineSeparator();
+
+    /**
+     * A list of common package prefixes for Java and related environments that are typically
+     * excluded from stack traces in custom exception handling. These are used to filter out
+     * stack trace elements that are not directly related to the user's code, such as internal
+     * Java classes, JUnit framework methods, and IntelliJ IDEA's internal classes.
+     * - "java." and "javax." cover the standard Java API classes.
+     * - "sun." includes internal Sun Microsystems-specific classes often used by Java APIs.
+     * - "com.intellij" covers IntelliJ IDEA's internal classes, useful when running or testing code within the IDE.
+     * - "org.junit" is for excluding JUnit-specific classes, especially relevant in testing scenarios.
+     */
+    @SuppressWarnings("java:S2386")
+    public static final List<String> IGNORED_TRACE_ELEMENTS = new ArrayList<>(asList(
+        "sun.",
+        "java.",
+        "javax.",
+        "net.sf",
+        "com.sun.",
+        "org.slf4j.",
+        "org.junit.",
+        "sun.reflect",
+        "com.google.",
+        "org.quartz.",
+        "org.apache.",
+        "com.mongodb.",
+        "org.eclipse.",
+        "jdk.internal.",
+        "com.intellij.",
+        "org.hibernate.",
+        "io.micrometer.",
+        "org.springframework."
+    ));
 
     static {
         // NUMBERS
@@ -368,33 +402,37 @@ public class TypeConversionRegister {
 
     public static String stringOf(final Throwable throwable) {
         final StringBuilder sb = new StringBuilder();
-
-        for (final StackTraceElement ste : throwable.getStackTrace()) {
-            // Check if the class name does not start with 'java.' or 'javax.'
-            if (!ste.getClassName().startsWith("java.") && !ste.getClassName().startsWith("javax.")) {
-                sb.append("\tat ").append(ste).append(LINE_SEPARATOR);
-            }
-        }
-
-        if (sb.length() == 0) {
-            for (final StackTraceElement ste : throwable.getStackTrace()) {
-                sb.append("\tat ").append(ste).append(LINE_SEPARATOR);
-            }
-        }
+        sb.append(throwable).append(LINE_SEPARATOR);
+        extractCause(sb, throwable, false);
 
         // Include cause exceptions in the output
         Throwable cause = throwable.getCause();
         while (cause != null) {
             sb.append("Caused by: ").append(cause).append(LINE_SEPARATOR);
-            for (final StackTraceElement ste : cause.getStackTrace()) {
-                if (!ste.getClassName().startsWith("java.") && !ste.getClassName().startsWith("javax.")) {
-                    sb.append("\tat ").append(ste).append(LINE_SEPARATOR);
-                }
-            }
+            extractCause(sb, cause, false);
             cause = cause.getCause();
         }
 
         return sb.toString();
+    }
+
+    private static void extractCause(final StringBuilder sb, final Throwable throwable, final boolean includeJavaStack) {
+        final int previousLength = sb.length();
+        final int[] counter = new int[]{0};
+        for (final StackTraceElement ste : throwable.getStackTrace()) {
+            // Check if the class name does not start with 'java.' or 'javax.'
+            if (includeJavaStack || (IGNORED_TRACE_ELEMENTS.stream().noneMatch(ignoredElement -> ste.getClassName().startsWith(ignoredElement)))) {
+                sb.append("\tat ").append(ste).append(LINE_SEPARATOR);
+            }
+            if (includeJavaStack && sb.length() != previousLength && counter[0] >= 2) {
+                break;
+            }
+            counter[0] = counter[0] + 1;
+        }
+
+        if (!includeJavaStack && sb.length() == previousLength) {
+            extractCause(sb, throwable, true);
+        }
     }
 
     private TypeConversionRegister() {

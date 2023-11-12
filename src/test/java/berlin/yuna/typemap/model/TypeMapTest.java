@@ -4,21 +4,33 @@ package berlin.yuna.typemap.model;
 import berlin.yuna.typemap.config.TypeConversionRegister;
 import berlin.yuna.typemap.logic.TypeConverter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeMapTest {
 
-    @Test
-    void simpleConvert() {
+    static Stream<Arguments> typeMapProvider() {
+        return Stream.of(
+            Arguments.of("TypeMap", new TypeMap()),
+            Arguments.of("LinkedTypeMap", new LinkedTypeMap()),
+            Arguments.of("ConcurrentTypeMap", new ConcurrentTypeMap())
+        );
+    }
+
+    @ParameterizedTest(name = "[{index}] [{0}]")
+    @MethodSource("typeMapProvider")
+    void simpleConvert(final String mapName, final TypeMapI<?> typeMap) {
         final String myTime = new Date().toString();
-        final TypeMap typeMap = new TypeMap();
         typeMap.put("myKey", myTime);
         final Instant instant = typeMap.get("myKey", Instant.class).orElse(null);
         final LocalTime localTime = typeMap.get("myKey", LocalTime.class).orElse(null);
@@ -27,18 +39,18 @@ class TypeMapTest {
         assertThat(localTime).isNotNull();
     }
 
-    @Test
-    void enumConvert() {
-        final TypeMap typeMap = new TypeMap();
+    @ParameterizedTest
+    @MethodSource("typeMapProvider")
+    void enumConvert(final String mapName, final TypeMapI<?> typeMap) {
         typeMap.put("myKey", "BB");
         final TestEnum testEnum = typeMap.get("myKey", TestEnum.class).orElse(null);
         assertThat(testEnum).isEqualTo(TestEnum.BB);
     }
 
-    @Test
-    void collectionConvert() {
+    @ParameterizedTest
+    @MethodSource("typeMapProvider")
+    void collectionConvert(final String mapName, final TypeMapI<?> typeMap) {
         final String myTime = new Date().toString();
-        final TypeMap typeMap = new TypeMap();
         typeMap.put("myKey1", myTime);
         typeMap.put("myKey2", new String[]{"1", "2", "3"});
         final List<Instant> instantList = typeMap.get("myKey1", ArrayList::new, Instant.class);
@@ -55,9 +67,9 @@ class TypeMapTest {
         assertThat(longArray).isNotEmpty().containsExactly(1L, 2L, 3L);
     }
 
-    @Test
-    void mapConvert() {
-        final TypeMap typeMap = new TypeMap();
+    @ParameterizedTest
+    @MethodSource("typeMapProvider")
+    void mapConvert(final String mapName, final TypeMapI<?> typeMap) {
         final Map<Integer, Date> input = new HashMap<>();
         input.put(6, new Date());
         typeMap.put("myKey", input);

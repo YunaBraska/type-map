@@ -2,25 +2,28 @@ package berlin.yuna.typemap.model;
 
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-import static berlin.yuna.typemap.logic.TypeConverter.*;
+import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
+import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
+import static berlin.yuna.typemap.model.TypeMap.getMap;
 import static java.util.Optional.ofNullable;
 
 /**
- * TypeMap is a specialized implementation of {@link HashMap} that offers enhanced
+ * TypeMap is a specialized implementation of {@link ConcurrentHashMap} that offers enhanced
  * functionality for type-safe data retrieval and manipulation. It is designed for
- * high-performance type conversion while being native-ready for GraalVM. The {@link TypeMap}
+ * high-performance type conversion while being native-ready for GraalVM. The {@link ConcurrentTypeMap}
  * class provides methods to retrieve data in various forms (single objects, collections,
  * arrays, or maps) while ensuring type safety without the need for reflection.
  */
-public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap> {
+public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> implements TypeMapI<ConcurrentTypeMap> {
 
     /**
      * Default constructor for creating an empty TypeMap.
      */
-    public TypeMap() {
+    public ConcurrentTypeMap() {
         this(null);
     }
 
@@ -29,7 +32,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      *
      * @param map The initial map to copy mappings from, can be null.
      */
-    public TypeMap(final Map<?, ?> map) {
+    public ConcurrentTypeMap(final Map<?, ?> map) {
         ofNullable(map).ifPresent(super::putAll);
     }
 
@@ -41,7 +44,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @return the updated TypeMap instance for chaining.
      */
     @Override
-    public TypeMap put(final Object key, final Object value) {
+    public ConcurrentTypeMap put(final Object key, final Object value) {
         super.put(key, value);
         return this;
     }
@@ -118,13 +121,5 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      */
     public <K, V, M extends Map<K, V>> M get(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
         return getMap(super.get(key), output, keyType, valueType);
-    }
-
-    protected static <K, V, M extends Map<K, V>> M getMap(final Object value, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        if (output != null && keyType != null && valueType != null && value instanceof Map<?, ?>) {
-            final Map<?, ?> input = (Map<?, ?>) value;
-            return mapOf(input, output, keyType, valueType);
-        }
-        return ofNullable(output).map(Supplier::get).orElse(null);
     }
 }

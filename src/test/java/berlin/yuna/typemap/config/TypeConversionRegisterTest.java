@@ -93,7 +93,6 @@ class TypeConversionRegisterTest {
         assertThat(convertObj(false, String.class)).isEqualTo("false");
         assertThat(convertObj(TestEnum.BB, String.class)).isEqualTo("BB");
         assertThat(convertObj("BB", TestEnum.class)).isEqualTo(TestEnum.BB);
-        assertThat(convertObj(new RuntimeException("AA"), String.class)).isEqualTo(stringOf(new RuntimeException("AA")));
         assertThat(convertObj("123", Integer.class)).isEqualTo(123);
         assertThat(convertObj("123", Long.class)).isEqualTo(123L);
         assertThat(convertObj("123", Float.class)).isEqualTo(123f);
@@ -103,6 +102,19 @@ class TypeConversionRegisterTest {
         assertThat(convertObj("123", BigInteger.class)).isEqualTo(BigInteger.valueOf(123));
         assertThat(convertObj("123", BigDecimal.class)).isEqualTo(BigDecimal.valueOf(123));
         assertThat(convertObj("123", Number.class)).isEqualTo(123d);
+
+
+    }
+
+    @Test
+    void convertThrowable()  {
+        final RuntimeException value = new RuntimeException("AA", new RuntimeException("BB"));
+        final String expected = stringOf(value);
+        assertThat(convertObj(value, String.class)).isEqualTo(expected);
+
+        TypeConversionRegister.IGNORED_TRACE_ELEMENTS.add("berlin.yuna");
+        assertThat(convertObj(value, String.class)).isNotNull();
+        assertThat(convertObj(value, String.class)).isNotEqualTo(expected);
     }
 
     @Test
