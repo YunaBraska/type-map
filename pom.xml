@@ -10,7 +10,9 @@
     <packaging>jar</packaging>
 
     <name>TypeMap</name>
-    <description>Nats server for testing which starts the original Nats server
+    <description>TypeMap and TypeConverter for a dynamic, extendable, high-performance type conversion library that's
+        native-ready for GraalVM. This robust Java utility provides type-safe retrieval and conversion, leveraging
+        ConcurrentHashMap for thread-safe operations without reflection.
     </description>
     <url>https://github.com/YunaBraska/type-map</url>
 
