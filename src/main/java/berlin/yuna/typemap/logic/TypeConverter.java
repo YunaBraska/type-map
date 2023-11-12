@@ -240,7 +240,7 @@ public class TypeConverter {
         return result;
     }
 
-    private static Object getFirstItem(final Object value) {
+    public static Object getFirstItem(final Object value) {
         if (value instanceof Collection<?>) {
             final Collection<?> collection = (Collection<?>) value;
             return collection.isEmpty() ? null : collection.iterator().next();
