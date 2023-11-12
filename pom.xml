@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>berlin.yuna</groupId>
-    <artifactId>TypeMap</artifactId>
+    <artifactId>type-map</artifactId>
     <version>1.0.3</version>
     <packaging>jar</packaging>
 
-    <name>TypeMap</name>
+    <name>type-map</name>
     <description>TypeMap and TypeConverter for a dynamic, extendable, high-performance type conversion library that's
         native-ready for GraalVM. This robust Java utility provides type-safe retrieval and conversion, leveraging
         ConcurrentHashMap for thread-safe operations without reflection.
