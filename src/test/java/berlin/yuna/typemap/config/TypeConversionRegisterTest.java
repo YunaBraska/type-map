@@ -2,6 +2,7 @@ package berlin.yuna.typemap.config;
 
 import berlin.yuna.typemap.model.TestEnum;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -15,6 +16,7 @@ import java.sql.Timestamp;
 import java.time.*;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,6 +28,12 @@ import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeConversionRegisterTest {
+
+    @BeforeEach
+    void setUp() {
+        System.getProperties().setProperty("user.timezone", "UTC");
+        TimeZone.setDefault(null);
+    }
 
     @AfterEach
     void tearDown() {

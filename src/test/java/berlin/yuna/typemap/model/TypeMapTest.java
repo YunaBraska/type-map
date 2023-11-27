@@ -3,6 +3,7 @@ package berlin.yuna.typemap.model;
 
 import berlin.yuna.typemap.config.TypeConversionRegister;
 import berlin.yuna.typemap.logic.TypeConverter;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -20,6 +21,12 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeMapTest {
+
+    @BeforeEach
+    void setUp() {
+        System.getProperties().setProperty("user.timezone", "UTC");
+        TimeZone.setDefault(null);
+    }
 
     static Stream<Arguments> typeMapProvider() {
         return Stream.of(

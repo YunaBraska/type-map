@@ -1,5 +1,6 @@
 package berlin.yuna.typemap.logic;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -11,6 +12,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("unchecked")
 class JsonEncoderTest {
+
+    @BeforeEach
+    void setUp() {
+        System.getProperties().setProperty("user.timezone", "UTC");
+        TimeZone.setDefault(null);
+    }
 
     @Test
     void toJsonTest() {
@@ -28,7 +35,7 @@ class JsonEncoderTest {
         assertThat(JsonDecoder.jsonMapOf(jsonString)).isEmpty();
 
         // MAP
-        jsonString = "{2:\"Fri Jan 15 09:00:00 CET 2027\"}";
+        jsonString = "{2:\"Fri Jan 15 08:00:00 UTC 2027\"}";
         assertThat(toJson(inputMap)).isEqualTo(jsonString);
         assertThat((Map<Object, Object>) JsonDecoder.jsonOf(jsonString)).containsExactlyInAnyOrderEntriesOf(outputMap);
         assertThat(JsonDecoder.jsonListOf(jsonString)).containsExactly(outputMap);

@@ -3,6 +3,7 @@ package berlin.yuna.typemap.logic;
 import berlin.yuna.typemap.model.TestEnum;
 import berlin.yuna.typemap.model.UnknownClass;
 import berlin.yuna.typemap.model.UnknownNumber;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -13,6 +14,12 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeConverterTest {
+
+    @BeforeEach
+    void setUp() {
+        System.getProperties().setProperty("user.timezone", "UTC");
+        TimeZone.setDefault(null);
+    }
 
     @Test
     void convertNullTest() {

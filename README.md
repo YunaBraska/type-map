@@ -97,6 +97,33 @@ The `TypeConverter` is the core of the `TypeMap` and provides find methods like:
 * `TypeConverter.mapOf`
 * `TypeConverter.convertObj`
 * `TypeConverter.collectionOf`
+* `JsonEncoder.toJson`
+* `JsonDecoder.jsonOf`
+* `JsonDecoder.jsonMapOf`
+* `JsonDecoder.jsonListOf`
+
+### JsonConvert
+
+#### Basic Json conversion and Navigation
+
+```
+final String jsonString = 
+    "{\n"
+    + "  \"outerMap\": {\n"
+    + "    \"innerMap\": {\n"
+    + "      \"timestamp\": 1800000000000,\n"
+    + "    },\n"
+    + "    \"myList\": [\"BB\",1,true,null,1.2]\n"
+    + "  }\n"
+    + "}";
+
+final TypeMap jsonMap = new TypeMap(jsonString);
+final Date myDate = jsonMap.get(Date.class, "outerMap", "innerMap", "timestamp");
+final Long myTimestamp = jsonMap.get(Long.class, "outerMap", "innerMap", "timestamp");
+final TestEnum myEnum = jsonMap.get(TestEnum.class, "outerMap", "myList", 0);
+final Boolean myBoolean = jsonMap.get(Boolean.class, "outerMap", "myList", 2);
+final String backToJson = jsonMap.toJson();
+```
 
 ### Adding Custom Conversions (TypeMap & TypeConverter)
 
@@ -108,30 +135,52 @@ TypeConversionRegister.registerTypeConvert(Path.class, URI.class, Path::toUri);
 TypeConversionRegister.registerTypeConvert(Path.class, URL.class, path -> path.toUri().toURL());
 ```
 
-
-
 [build_shield]: https://github.com/YunaBraska/type-map/workflows/MVN_RELEASE/badge.svg
+
 [build_link]: https://github.com/YunaBraska/type-map/actions?query=workflow%3AMVN_RELEASE
+
 [maintainable_shield]: https://img.shields.io/codeclimate/maintainability/YunaBraska/type-map?style=flat-square
+
 [maintainable_link]: https://codeclimate.com/github/YunaBraska/type-map/maintainability
+
 [coverage_shield]: https://img.shields.io/codeclimate/coverage/YunaBraska/type-map?style=flat-square
+
 [coverage_link]: https://codeclimate.com/github/YunaBraska/type-map/test_coverage
+
 [issues_shield]: https://img.shields.io/github/issues/YunaBraska/type-map?style=flat-square
+
 [issues_link]: https://github.com/YunaBraska/type-map/commits/main
+
 [commit_shield]: https://img.shields.io/github/last-commit/YunaBraska/type-map?style=flat-square
+
 [commit_link]: https://github.com/YunaBraska/type-map/issues
+
 [license_shield]: https://img.shields.io/github/license/YunaBraska/type-map?style=flat-square
+
 [license_link]: https://github.com/YunaBraska/type-map/blob/main/LICENSE
+
 [dependency_shield]: https://img.shields.io/librariesio/github/YunaBraska/type-map?style=flat-square
+
 [dependency_link]: https://libraries.io/github/YunaBraska/type-map
+
 [central_shield]: https://img.shields.io/maven-central/v/berlin.yuna/type-map?style=flat-square
+
 [central_link]:https://search.maven.org/artifact/berlin.yuna/type-map
+
 [tag_shield]: https://img.shields.io/github/v/tag/YunaBraska/type-map?style=flat-square
+
 [tag_link]: https://github.com/YunaBraska/type-map/releases
+
 [javadoc_shield]: https://javadoc.io/badge2/berlin.yuna/type-map/javadoc.svg?style=flat-square
+
 [javadoc_link]: https://javadoc.io/doc/berlin.yuna/type-map
+
 [size_shield]: https://img.shields.io/github/repo-size/YunaBraska/type-map?style=flat-square
+
 [label_shield]: https://img.shields.io/badge/Yuna-QueenInside-blueviolet?style=flat-square
+
 [gitter_shield]: https://img.shields.io/gitter/room/YunaBraska/type-map?style=flat-square
+
 [gitter_link]: https://gitter.im/type-map/Lobby
+
 [java_version]: https://img.shields.io/badge/java-8-blueviolet?style=flat-square
