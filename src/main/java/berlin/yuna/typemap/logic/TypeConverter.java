@@ -4,6 +4,9 @@ package berlin.yuna.typemap.logic;
 import berlin.yuna.typemap.model.FunctionOrNull;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -138,11 +141,9 @@ public class TypeConverter {
             if (input instanceof Collection<?>) {
                 final Collection<?> noTypeCollection = (Collection<?>) input;
                 return collectionOf(noTypeCollection, output, itemType);
-            } else if (input.getClass().isArray() && input instanceof Object[]) {
+            } else if (input.getClass().isArray()) {
                 final Collection<Object> noTypeCollection = new ArrayList<>();
-                for (final Object item : (Object[]) input) {
-                    noTypeCollection.add(convertObj(item, itemType));
-                }
+                iterateOverArray(input, item -> noTypeCollection.add(convertObj(item, itemType)));
                 return collectionOf(noTypeCollection, output, itemType);
             } else {
                 final E converted = convertObj(input, itemType);
@@ -234,28 +235,103 @@ public class TypeConverter {
         }
     }
 
+    /**
+     * Retrieves the first item from a given collection, array, or map.
+     * <p>
+     * This method is designed to abstract the process of obtaining the first element from various data structures,
+     * handling Collections, Arrays (both object and primitive types), and Maps. It returns null if the provided
+     * data structure is empty or if the input is not a Collection, Array, or Map.
+     * <p>
+     * Note: For Maps, this method returns the first Map.Entry object.
+     *
+     * @param value The Collection, Array, or Map from which to retrieve the first element.
+     * @return The first element of the provided Collection, Array, or Map, or null if it's empty or not an instance of these types.
+     */
+    public static Object getFirstItem(final Object value) {
+        if (value instanceof Collection<?>) {
+            final Collection<?> collection = (Collection<?>) value;
+            return collection.isEmpty() ? null : collection.iterator().next();
+        } else if (value.getClass().isArray()) {
+            return getFirstFromArray(value);
+        } else if (value instanceof Map<?, ?>) {
+            final Map<?, ?> map = (Map<?, ?>) value;
+            return map.isEmpty() ? null : map.entrySet().iterator().next().getKey();
+        }
+        return null;
+    }
+
+    /**
+     * Iterates over an array of any type, including all primitive arrays, and applies a given Consumer function to each element.
+     * <p>
+     * This method exists because Java treats primitive arrays differently from object arrays. In Java, primitive arrays (like int[], double[], etc.)
+     * and object arrays (like Integer[], String[], etc.) do not have a common interface or superclass that reflects their array nature.
+     * Therefore, to handle all possible array types (including primitives) without using reflection, we need to explicitly check and handle
+     * each primitive array type. This method provides a unified way to iterate over any array type, applying a Consumer action to each element,
+     * regardless of whether it's an object array or a primitive array.
+     *
+     * @param array    The array to be iterated over. Can be an object array or any primitive array type.
+     * @param consumer The Consumer function to apply to each element of the array.
+     */
+    @SuppressWarnings("java:S3776")
+    public static void iterateOverArray(final Object array, final Consumer<Object> consumer) {
+        if (array instanceof Object[]) {
+            for (final Object item : (Object[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof int[]) {
+            for (final int item : (int[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof long[]) {
+            for (final long item : (long[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof double[]) {
+            for (final double item : (double[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof float[]) {
+            for (final float item : (float[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof boolean[]) {
+            for (final boolean item : (boolean[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof char[]) {
+            for (final char item : (char[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof byte[]) {
+            for (final byte item : (byte[]) array) {
+                consumer.accept(item);
+            }
+        } else if (array instanceof short[]) {
+            for (final short item : (short[]) array) {
+                consumer.accept(item);
+            }
+        }
+    }
+
+    private static Object getFirstFromArray(final Object value) {
+        final AtomicBoolean isFirst = new AtomicBoolean(true);
+        final AtomicReference<Object> result = new AtomicReference<>(null);
+        iterateOverArray(value, item -> {
+            if (isFirst.get()) {
+                isFirst.set(false);
+                result.set(item);
+            }
+        });
+        return result.get();
+    }
+
     private static <T extends Collection<E>, E> T collectionOf(final Collection<?> input, final Supplier<T> output, final Class<E> itemType) {
         final T result = output.get();
         input.stream().map(item -> convertObj(item, itemType)).filter(Objects::nonNull).forEach(result::add);
         return result;
     }
 
-    public static Object getFirstItem(final Object value) {
-        if (value instanceof Collection<?>) {
-            final Collection<?> collection = (Collection<?>) value;
-            return collection.isEmpty() ? null : collection.iterator().next();
-        } else if (value.getClass().isArray() && value instanceof Object[]) {
-            final Object[] array = (Object[]) value;
-            return array.length == 0 ? null : array[0];
-        } else if (value instanceof Map<?, ?>) {
-            final Map<?, ?> map = (Map<?, ?>) value;
-            return map.isEmpty() ? null : map.entrySet().iterator().next();
-        }
-        return null;
-    }
-
     private TypeConverter() {
         // static util class
     }
-
 }
