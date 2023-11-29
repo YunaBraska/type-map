@@ -4,14 +4,20 @@ package berlin.yuna.typemap.model;
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.JsonEncoder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
-import static berlin.yuna.typemap.model.TypeMap.getMap;
+import static berlin.yuna.typemap.model.TypeMap.convertAndMap;
 import static berlin.yuna.typemap.model.TypeMap.treeGet;
 import static java.util.Optional.ofNullable;
 
@@ -54,8 +60,7 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @param value the value to be associated with the specified key.
      * @return the updated {@link ConcurrentTypeMap} instance for chaining.
      */
-    @Override
-    public ConcurrentTypeMap put(final Object key, final Object value) {
+    public ConcurrentTypeMap putt(final Object key, final Object value) {
         super.put(key, value);
         return this;
     }
@@ -65,12 +70,25 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * convert it to the specified type.
      *
      * @param <T>  The target type for conversion.
-     * @param key  the key whose associated value is to be returned.
+     * @param path the key whose associated value is to be returned.
+     * @param type the Class object of the type to convert to.
+     * @return the value if present and convertible, else null.
+     */
+    public <T> T get(final Class<T> type, final Object... path) {
+        return gett(type, path).orElse(null);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped, and attempts to
+     * convert it to the specified type.
+     *
+     * @param <T>  The target type for conversion.
+     * @param path the key whose associated value is to be returned.
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    public <T> Optional<T> get(final Class<T> type, final Object... key) {
-        return ofNullable(treeGet(this, key)).map(object -> convertObj(object, type));
+    public <T> Optional<T> gett(final Class<T> type, final Object... path) {
+        return ofNullable(treeGet(this, path)).map(object -> convertObj(object, type));
     }
 
     /**
@@ -82,23 +100,72 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    public <T> Optional<T> get(final Object key, final Class<T> type) {
+    public <T> T get(final Object key, final Class<T> type) {
+        return gett(key, type).orElse(null);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped, and attempts to
+     * convert it to the specified type.
+     *
+     * @param <T>  The target type for conversion.
+     * @param key  the key whose associated value is to be returned.
+     * @param type the Class object of the type to convert to.
+     * @return an Optional containing the value if present and convertible, else empty.
+     */
+    public <T> Optional<T> gett(final Object key, final Class<T> type) {
         return ofNullable(super.get(key)).map(object -> convertObj(object, type));
     }
 
     /**
+     * This method converts the retrieved map to a list of the specified key and value types.
+     *
+     * @param path The key whose associated value is to be returned.
+     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     */
+    public TypeList getList(final Object... path) {
+        return getList(TypeList::new, Object.class, path);
+    }
+
+    /**
+     * Retrieves a collection associated at the specified index and converts it to
+     * the specified element type.
+     *
+     * @param <E>      The type of elements in the collection.
+     * @param key      The index whose associated value is to be returned.
+     * @param itemType The class of the items in the collection.
+     * @return a collection of the specified type and element type.
+     */
+    public <E> List<E> getList(final Object key, final Class<E> itemType) {
+        return getList(ArrayList::new, itemType, key);
+    }
+
+    /**
+     * Retrieves a collection associated at the specified index and converts it to
+     * the specified element type.
+     *
+     * @param <E>      The type of elements in the collection.
+     * @param path     The index whose associated value is to be returned.
+     * @param itemType The class of the items in the collection.
+     * @return a collection of the specified type and element type.
+     */
+    public <E> List<E> getList(final Class<E> itemType, final Object... path) {
+        return getList(ArrayList::new, itemType, path);
+    }
+
+    /**
      * Retrieves a collection associated with the specified key and converts it to
      * the specified collection type and element type.
      *
      * @param <T>      The type of the collection to be returned.
      * @param <E>      The type of elements in the collection.
-     * @param key      The key whose associated value is to be returned.
+     * @param path     The key whose associated value is to be returned.
      * @param output   The supplier providing a new collection instance.
      * @param itemType The class of the items in the collection.
      * @return a collection of the specified type and element type.
      */
-    public <T extends Collection<E>, E> T get(final Supplier<? extends T> output, final Class<E> itemType, final Object... key) {
-        return collectionOf(treeGet(this, key), output, itemType);
+    public <T extends Collection<E>, E> T getList(final Supplier<? extends T> output, final Class<E> itemType, final Object... path) {
+        return collectionOf(treeGet(this, path), output, itemType);
     }
 
     /**
@@ -112,8 +179,83 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @param itemType The class of the items in the collection.
      * @return a collection of the specified type and element type.
      */
-    public <T extends Collection<E>, E> T get(final Object key, final Supplier<? extends T> output, final Class<E> itemType) {
+    public <T extends Collection<E>, E> T getList(final Object key, final Supplier<? extends T> output, final Class<E> itemType) {
         return collectionOf(super.get(key), output, itemType);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param path The key whose associated value is to be returned.
+     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     */
+    public LinkedTypeMap getMap(final Object... path) {
+        return getMap(LinkedTypeMap::new, Object.class, Object.class, path);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>       The type of keys in the returned map.
+     * @param <V>       The type of values in the returned map.
+     * @param key       The key whose associated value is to be returned.
+     * @param keyType   The class of the map's key type.
+     * @param valueType The class of the map's value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V> Map<K, V> getMap(final Object key, final Class<K> keyType, final Class<V> valueType) {
+        return convertAndMap(treeGet(this, key), LinkedHashMap::new, keyType, valueType);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>       The type of keys in the returned map.
+     * @param <V>       The type of values in the returned map.
+     * @param path      The key whose associated value is to be returned.
+     * @param keyType   The class of the map's key type.
+     * @param valueType The class of the map's value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V> Map<K, V> getMap(final Class<K> keyType, final Class<V> valueType, final Object... path) {
+        return convertAndMap(treeGet(this, path), LinkedHashMap::new, keyType, valueType);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>       The type of keys in the returned map.
+     * @param <V>       The type of values in the returned map.
+     * @param <M>       The type of the map to be returned.
+     * @param path      The key whose associated value is to be returned.
+     * @param output    A supplier providing a new map instance.
+     * @param keyType   The class of the map's key type.
+     * @param valueType The class of the map's value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V, M extends Map<K, V>> M getMap(final Supplier<M> output, final Class<K> keyType, final Class<V> valueType, final Object... path) {
+        return convertAndMap(treeGet(this, path), output, keyType, valueType);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>       The type of keys in the returned map.
+     * @param <V>       The type of values in the returned map.
+     * @param <M>       The type of the map to be returned.
+     * @param key       The key whose associated value is to be returned.
+     * @param output    A supplier providing a new map instance.
+     * @param keyType   The class of the map's key type.
+     * @param valueType The class of the map's value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V, M extends Map<K, V>> M getMap(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
+        return convertAndMap(super.get(key), output, keyType, valueType);
     }
 
     /**
@@ -121,13 +263,13 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * This method is useful for cases where the type indicator is an array instance.
      *
      * @param <E>           The component type of the array.
-     * @param key           The key whose associated value is to be returned.
+     * @param path          The key whose associated value is to be returned.
      * @param typeIndicator An array instance indicating the type of array to return.
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
-    public <E> E[] getArray(final E[] typeIndicator, final Class<E> componentType, final Object... key) {
-        final ArrayList<E> result = get(ArrayList::new, componentType, key);
+    public <E> E[] getArray(final E[] typeIndicator, final Class<E> componentType, final Object... path) {
+        final ArrayList<E> result = getList(ArrayList::new, componentType, path);
         return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
     }
 
@@ -142,7 +284,7 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @return an array of the specified component type.
      */
     public <E> E[] getArray(final Object key, final E[] typeIndicator, final Class<E> componentType) {
-        final ArrayList<E> result = get(key, ArrayList::new, componentType);
+        final ArrayList<E> result = getList(key, ArrayList::new, componentType);
         return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
     }
 
@@ -151,13 +293,13 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * This method allows for custom array generation using a generator function.
      *
      * @param <E>           The component type of the array.
-     * @param key           The key whose associated value is to be returned.
+     * @param path          The key whose associated value is to be returned.
      * @param generator     A function to generate the array of the required size.
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
-    public <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... key) {
-        return get(ArrayList::new, componentType, key).stream().toArray(generator);
+    public <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path) {
+        return getList(ArrayList::new, componentType, path).stream().toArray(generator);
     }
 
     /**
@@ -171,41 +313,7 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @return an array of the specified component type.
      */
     public <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType) {
-        return get(key, ArrayList::new, componentType).stream().toArray(generator);
-    }
-
-    /**
-     * Retrieves a map of a specific type associated with the specified key.
-     * This method converts the retrieved map to a map of the specified key and value types.
-     *
-     * @param <K>       The type of keys in the returned map.
-     * @param <V>       The type of values in the returned map.
-     * @param <M>       The type of the map to be returned.
-     * @param key       The key whose associated value is to be returned.
-     * @param output    A supplier providing a new map instance.
-     * @param keyType   The class of the map's key type.
-     * @param valueType The class of the map's value type.
-     * @return a map of the specified key and value types.
-     */
-    public <K, V, M extends Map<K, V>> M get(final Supplier<M> output, final Class<K> keyType, final Class<V> valueType, final Object... key) {
-        return getMap(treeGet(this, key), output, keyType, valueType);
-    }
-
-    /**
-     * Retrieves a map of a specific type associated with the specified key.
-     * This method converts the retrieved map to a map of the specified key and value types.
-     *
-     * @param <K>       The type of keys in the returned map.
-     * @param <V>       The type of values in the returned map.
-     * @param <M>       The type of the map to be returned.
-     * @param key       The key whose associated value is to be returned.
-     * @param output    A supplier providing a new map instance.
-     * @param keyType   The class of the map's key type.
-     * @param valueType The class of the map's value type.
-     * @return a map of the specified key and value types.
-     */
-    public <K, V, M extends Map<K, V>> M get(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        return getMap(super.get(key), output, keyType, valueType);
+        return getList(key, ArrayList::new, componentType).stream().toArray(generator);
     }
 
     /**
@@ -213,11 +321,11 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * This method intelligently dispatches the conversion task based on the type of the object,
      * handling Maps, Collections, Arrays (both primitive and object types), and other objects.
      *
-     * @param key The key whose associated value is to be returned.
+     * @param path The key whose associated value is to be returned.
      * @return A JSON representation of the key value as a String.
      */
-    public String toJson(final Object... key) {
-        return JsonEncoder.toJson(treeGet(this, key));
+    public String toJson(final Object... path) {
+        return JsonEncoder.toJson(treeGet(this, path));
     }
 
     /**

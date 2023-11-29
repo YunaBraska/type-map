@@ -74,6 +74,8 @@ class TypeConverterTest {
         output.put(12, 34L);
         output.put(56, 78L);
         assertThat(convertObj(input, String.class)).isEqualTo("12");
+        assertThat(mapOf(input)).isEqualTo(input);
+        assertThat(mapOf(input, String.class, String.class)).isEqualTo(input);
         assertThat(mapOf(input, () -> new HashMap<>(), String.class, String.class)).isEqualTo(input);
         assertThat(mapOf(input, () -> new TreeMap<>(), Integer.class, Long.class)).containsExactlyInAnyOrderEntriesOf(output);
         assertThat(mapOf(input, () -> new TreeMap<>(), null, Long.class)).isEmpty();
@@ -86,8 +88,11 @@ class TypeConverterTest {
     @Test
     void convertCollectionTest() {
         assertThat(convertObj(asList("123", "456"), String.class)).isEqualTo("123");
+        assertThat(convertObj(asList("123", "456"), String.class)).isEqualTo("123");
         assertThat(collectionOf(asList("123", "456"), () -> new HashSet<>(), String.class)).containsExactlyInAnyOrder("123", "456");
         assertThat(collectionOf(new String[]{"123", "456"}, () -> new HashSet<>(), Integer.class)).containsExactlyInAnyOrder(123, 456);
+        assertThat(collectionOf("123")).containsExactly("123");
+        assertThat(collectionOf("123", Integer.class)).containsExactly(123);
         assertThat(collectionOf("123", () -> new ArrayList<>(), Integer.class)).containsExactly(123);
         assertThat(collectionOf(null, () -> new ArrayList<>(), Integer.class)).isEmpty();
         assertThat(collectionOf("123", () -> new ArrayList<>(), null)).isEmpty();

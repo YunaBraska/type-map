@@ -173,7 +173,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertDate() {
-        final Date time = new Date();
+        final Date time = new Date(1800000000000L);
         assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -309,7 +309,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertSqlDate() {
-        final java.sql.Date time = convertObj(new Date(), java.sql.Date.class);
+        final java.sql.Date time = convertObj(new Date(1800000000000L), java.sql.Date.class);
         assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -326,7 +326,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertSqlTime() {
-        final java.sql.Time time = convertObj(new Date(), java.sql.Time.class);
+        final java.sql.Time time = convertObj(new Date(1800000000000L), java.sql.Time.class);
         assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -360,7 +360,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertStringToTime() {
-        final String time = new Date().toString();
+        final String time = new Date(1800000000000L).toString();
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();

@@ -27,7 +27,7 @@ public class JsonDecoder {
         if (result instanceof LinkedTypeMap) {
             return (LinkedTypeMap) result;
         } else if (result != null) {
-            return new LinkedTypeMap().put("", result);
+            return new LinkedTypeMap().putt("", result);
         }
         return new LinkedTypeMap();
     }
@@ -88,13 +88,13 @@ public class JsonDecoder {
         } else if ("true".equals(value) || "false".equals(value)) {
             return Boolean.parseBoolean(value);
         } else {
-            Object result;
+            final Object result;
             if (value.contains(".") || value.contains("e") || value.contains("E")) {
                 result = convertObj(value, Double.class);
             } else {
                 result = convertObj(value, Long.class);
             }
-            return result == null? unescapeJson(value) : result;
+            return result == null ? unescapeJson(value) : result;
         }
     }
 
@@ -117,6 +117,7 @@ public class JsonDecoder {
         return map;
     }
 
+    @SuppressWarnings("java:S3776")
     private static String[] splitJson(final String json) {
         final List<String> parts = new ArrayList<>();
         int braceCount = 0;

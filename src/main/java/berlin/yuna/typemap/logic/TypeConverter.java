@@ -2,6 +2,8 @@ package berlin.yuna.typemap.logic;
 
 
 import berlin.yuna.typemap.model.FunctionOrNull;
+import berlin.yuna.typemap.model.TypeList;
+import berlin.yuna.typemap.model.TypeMap;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -82,6 +84,32 @@ public class TypeConverter {
      * Creates a new map of typeId {@code M} from the given {@code input} map. The keys and values are converted
      * to types {@code K} and {@code V} respectively.
      *
+     * @param input The input map containing keys and values to be converted.
+     * @return A new map of typeId {@code M} with keys and values converted to types {@code K} and {@code V}. Returns {@code null} if the output map is {@code null}.
+     */
+    public static TypeMap mapOf(final Map<?, ?> input) {
+        return mapOf(input, TypeMap::new, Object.class, Object.class);
+    }
+
+    /**
+     * Creates a new map of typeId {@code M} from the given {@code input} map. The keys and values are converted
+     * to types {@code K} and {@code V} respectively.
+     *
+     * @param <K>       The typeId of the keys in the output map.
+     * @param <V>       The typeId of the values in the output map.
+     * @param input     The input map containing keys and values to be converted.
+     * @param keyType   The {@code Class} object representing the typeId of key to convert to.
+     * @param valueType The {@code Class} object representing the typeId of value to convert to.
+     * @return A new map of typeId {@code M} with keys and values converted to types {@code K} and {@code V}. Returns {@code null} if the output map is {@code null}.
+     */
+    public static <K, V> Map<K, V> mapOf(final Map<?, ?> input, final Class<K> keyType, final Class<V> valueType) {
+        return mapOf(input, LinkedHashMap::new, keyType, valueType);
+    }
+
+    /**
+     * Creates a new map of typeId {@code M} from the given {@code input} map. The keys and values are converted
+     * to types {@code K} and {@code V} respectively.
+     *
      * @param <K>       The typeId of the keys in the output map.
      * @param <V>       The typeId of the values in the output map.
      * @param <M>       The typeId of the output map, which must be a subclass of {@code Map<K, V>}.
@@ -111,6 +139,50 @@ public class TypeConverter {
         });
 
         return result;
+    }
+
+    /**
+     * Creates a collection of a specific typeId containing elements of a specific typeId based on the given input.
+     * The function handles three types of input:
+     * - A Collection
+     * - An Array
+     * - A single Object
+     *
+     * @param input The input object, which can be an array or a collection.
+     * @return A collection of typeId T containing elements of typeId E, or null if conversion is not possible.
+     *
+     * <p>
+     * The method handles three scenarios:
+     * 1. If the input is already a collection, it converts it to a collection of typeId T containing elements of typeId E.
+     * 2. If the input is an array, it converts it to a collection of typeId T containing elements of typeId E.
+     * 3. If the input is a single object, it converts it to typeId E and returns a collection of typeId T containing that single element.
+     * </p>
+     */
+    public static TypeList collectionOf(final Object input) {
+        return collectionOf(input, TypeList::new, Object.class);
+    }
+
+    /**
+     * Creates a collection of a specific typeId containing elements of a specific typeId based on the given input.
+     * The function handles three types of input:
+     * - A Collection
+     * - An Array
+     * - A single Object
+     *
+     * @param <E>      Type of the elements in the target collection.
+     * @param input    The input object, which can be an array or a collection.
+     * @param itemType The class typeId of the elements to be contained in the output collection.
+     * @return A collection of typeId T containing elements of typeId E, or null if conversion is not possible.
+     *
+     * <p>
+     * The method handles three scenarios:
+     * 1. If the input is already a collection, it converts it to a collection of typeId T containing elements of typeId E.
+     * 2. If the input is an array, it converts it to a collection of typeId T containing elements of typeId E.
+     * 3. If the input is a single object, it converts it to typeId E and returns a collection of typeId T containing that single element.
+     * </p>
+     */
+    public static <E> List<E> collectionOf(final Object input, final Class<E> itemType) {
+        return collectionOf(input, ArrayList::new, itemType);
     }
 
     /**

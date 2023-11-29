@@ -1,4 +1,4 @@
-# TypeMap and TypeConverter
+# TypeMap & TypeList incl. TypeConverter & JsonConverter
 
 [![Build][build_shield]][build_link]
 [![Maintainable][maintainable_shield]][maintainable_link]
@@ -14,85 +14,137 @@
 ![Label][label_shield]
 ![Label][java_version]
 
-Efficient type conversion is pivotal in Java development but often comes with the cost of cumbersome boilerplate code,
-reflection, and performance constraints, particularly when targeting GraalVM native images. Our library, TypeMap and
-TypeConverter, is designed to eliminate these pain points by providing a performant, dynamic, and extensible type
-conversion utility that is native-ready for GraalVM, all while maintaining type safety through a functional,
-reflection-free approach.
+## Introduction
 
-### Motivation
+In modern Java development, managing data types efficiently and effectively can be a complex task, especially when
+dealing with dynamic data sources or preparing for GraalVM native compilation. Our TypeMap & TypeList library, equipped
+with the powerful TypeConverter and JsonConverter, is engineered to simplify these challenges. It's designed for
+developers who seek a hassle-free way to handle diverse data types and conversions, enabling you to focus more on
+business logic rather than boilerplate code.
 
-I often needed type conversion within maps.
-The common libs i could find were reflection or memory heavy and were hard to understand or to extend. So i wrote this
-simple example without any magic happening :)
+## Motivation
 
-### Features
+Working with type conversions in Java, I frequently encountered libraries that were either heavy on reflection, consumed
+substantial memory, or were cumbersome to extend. This inspired me to create a solution that's lightweight, easy to
+understand, and simple to enhance, all without any "magic" under the hood.
 
-- **[TypeMap](src/main/java/berlin/yuna/typemap/model/TypeMap.java)**: Threadsafe map - auto convert values on `get`
-  using _[TypeConverter](src/main/java/berlin/yuna/typemap/logic/TypeConverter.java)_
-- **[TypeConverter](src/main/java/berlin/yuna/typemap/logic/TypeConverter.java)**: Cross conversion between Classes,
-  Arrays, Collections, Maps and Enums using
-  _[TypeConversionRegister](src/main/java/berlin/yuna/typemap/config/TypeConversionRegister.java)_
-- **[TypeConversionRegister](src/main/java/berlin/yuna/typemap/config/TypeConversionRegister.java)**: Extendable
-  register for type conversions
+### Benefits
+
 - **Pure Java**: No external dependencies for a lightweight integration.
 - **Functional Design**: Embraces modern Java functional paradigms.
 - **No Reflection**: Ensures compatibility with GraalVM native images.
 - **High Performance**: Tailored for efficiency in intensive workloads.
 - **Dynamic & Extendable**: Simplifies adding new type conversions.
 - **Type Safety**: Utilizes Java generics for compile-time type checking.
+- **Lazy Loading**: Conversions occur only when needed, enhancing performance and reducing memory usage.
 
-### Installation
+### Classes
 
-Not on maven central yet
+- Core Components:
+    - [TypeList](#basics)
+    - [TypeMap](#basics)
+- Supportive Tools:
+    - [TypeConverter](#typeconverter)
+    - [JsonEncoder](#json)
+    - [JsonDecoder](#json)
+- Extension Mechanism:
+    - [TypeConversionRegister](#register-custom-conversions)
 
 ### Usage
 
-#### TypeMap Basics
+#### Basics
 
-```
-TypeMap typeMap = new TypeMap();
-typeMap.put("key", "value");
-String value = typeMap.get("key", String.class);
-```
+- _[TypeMap](src/main/java/berlin/yuna/typemap/model/TypeMap.java)_
+- _[LinkedTypeMap](src/main/java/berlin/yuna/typemap/model/LinkedTypeMap.java)_
+- _[ConcurrentTypeMap](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeMap.java)_
+- _[TypeList](src/main/java/berlin/yuna/typemap/model/TypeList.java)_
+- _[ConcurrentTypeList](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeList.java)_
 
-#### TypeMap Simple Conversions
-
-```
-String myTime = new Date().toString();
-TypeMap typeMap = new TypeMap();
-typeMap.put("mykey", myTime);
-Instant instant = typeMap.get("mykey", Instant.class);
-LocalTime localTime = typeMap.get("mykey", LocalTime.class);
+```java
+    TypeMap typeMap=new TypeMap().putt("myTime",new Date());
+    OffsetDateTime timeValue=typeMap.get("myTime",OffsetDateTime.class);
 ```
 
-#### TypeMap Collections
-
-```
-String myTime = new Date().toString();
-TypeMap typeMap = new TypeMap();
-typeMap.put("mykey", myTime);
-List<Instant> instantList = typeMap.get("mykey", ArrayList::new, Instant.class);
+```java
+    TypeList typeList=new TypeList().addd(new Date());
+    String timeValue=typeList.get(0,OffsetDateTime.class);
 ```
 
-```
-TypeMap typeMap = new TypeMap();
-typeMap.put("mykey", new String[]{"1","2","3"});
-List<Integer> ingeterList = typeMap.get("mykey", ArrayList::new, Integer.class);
-Float[] floatArray = typeMap.getArray("mykey", Float.class);
+#### Collections
+
+```java
+    TypeMap typeMap=new TypeMap().putt("myKey",new String[]{"1","2","3"});
+
+    TypeList list1=typeMap.getList("myKey");
+    Integer numberThree=typeList.getList("myKey").get(2,Integer.class)
+    List<Integer> list2=typeMap.getList("myKey",Integer.class);
+    List<Integer> list3=typeMap.getList("myKey",ArrayList::new,Integer.class);
 ```
 
-#### TypeMap Maps
+```java
+    TypeList typeList=new TypeList().addd(new String[]{"1","2","3"});
 
+    TypeList list1=typeList.getList(0);
+    Integer numberThree=typeList.getList(0).get(2,Integer.class)
+    List<Integer> list2=typeList.getList(0,Integer.class);
+    List<Integer> list3=typeList.get(0,Integer::new,Integer.class);
 ```
-TypeMap typeMap = new TypeMap();
-typeMap.put("mykey", Map.of(1, new Date()));
-Map<Long, Instant> instantMap = typeMap.get("mykey", HashMap::new, Long.class, Instant.class);
+
+#### Maps
+
+```java
+    TypeMap typeMap=new TypeMap().putt("mykey",Map.of(6,new Date()));
+
+    LinkedTypeMap map1=typeMap.getMap("myKey");
+    Map<Long, Instant> map2=typeMap.getMap("myKey",Long.class,Instant.class)
+    Map<Long, Instant> map2=typeMap.getMap("myKey",()->new HashMap<>(),Long.class)
+```
+
+```java
+    TypeList typeLst=new TypeList().addd(Map.of(6,new Date()));
+
+    LinkedTypeMap map1=typeLst.getMap(0);
+    Map<Long, Instant> map2=typeLst.getMap(0,Long.class,Instant.class);
+    Map<Long, Instant> map3=typeLst.getMap(0,HashMap::new,Long.class,Instant.class);
+```
+
+#### Json
+
+_[JsonEncoder](src/main/java/berlin/yuna/typemap/logic/JsonEncoder.java) & [JsonDecoder](src/main/java/berlin/yuna/typemap/logic/JsonDecoder.java)
+is used internally_
+
+```java
+    final String jsonString=
+    "{\n"
+    +"  \"outerMap\": {\n"
+    +"    \"innerMap\": {\n"
+    +"      \"timestamp\": 1800000000000,\n"
+    +"    },\n"
+    +"    \"myList\": [\"BB\",1,true,null,1.2]\n"
+    +"  }\n"
+    +"}";
+final TypeMap jsonMap=new TypeMap(jsonString);
+
+final LinkedTypeMap map1=jsonMap.getMap("outerMap","innerMap")
+final Map<String, Instant> map2 jsonMap.getMap(String.class,Instant.class,"outerMap","innerMap")
+
+final TypeList list1=jsonMap.getMap("outerMap").getList("myList")
+final TypeList list2=jsonMap.getList("outerMap","myList")
+final List<Object> list3=jsonMap.getList(Object.class,"outerMap","myList")
+final TestEnum enum1=jsonMap.getMap("outerMap").getList("myList").get(0,TestEnum.class)
+final TestEnum enum2=jsonMap.getList("outerMap","myList").get(0,TestEnum.class)
+
+final Date myDate=jsonMap.get(Date.class,"outerMap","innerMap","timestamp");
+final Long myTimestamp=jsonMap.get(Long.class,"outerMap","innerMap","timestamp");
+final TestEnum myEnum=jsonMap.get(TestEnum.class,"outerMap","myList",0);
+final Boolean myBoolean=jsonMap.get(Boolean.class,"outerMap","myList",2);
+final String backToJson=jsonMap.toJson();
 ```
 
 ### TypeConverter
 
-The `TypeConverter` is the core of the `TypeMap` and provides find methods like:
+_[TypeConverter](src/main/java/berlin/yuna/typemap/logic/TypeConverter.java) - The `TypeConverter` is the core of
+the `TypeMap`/`TypeList`_
 
 * `TypeConverter.mapOf`
 * `TypeConverter.convertObj`
@@ -102,37 +154,38 @@ The `TypeConverter` is the core of the `TypeMap` and provides find methods like:
 * `JsonDecoder.jsonMapOf`
 * `JsonDecoder.jsonListOf`
 
-### JsonConvert
+```java
 
-#### Basic Json conversion and Navigation
+// ENUM
+final TestEnum enum2=enumOf("BB",TestEnum.class)
 
-```
-final String jsonString = 
-    "{\n"
-    + "  \"outerMap\": {\n"
-    + "    \"innerMap\": {\n"
-    + "      \"timestamp\": 1800000000000,\n"
-    + "    },\n"
-    + "    \"myList\": [\"BB\",1,true,null,1.2]\n"
-    + "  }\n"
-    + "}";
+// OBJECT
+final TestEnum enum1=convertObj("BB",TestEnum.class)
+final Long long1=convertObj("1800000000000",Long.class)
+final OffsetDateTime time1=convertObj("1800000000000",OffsetDateTime.class)
 
-final TypeMap jsonMap = new TypeMap(jsonString);
-final Date myDate = jsonMap.get(Date.class, "outerMap", "innerMap", "timestamp");
-final Long myTimestamp = jsonMap.get(Long.class, "outerMap", "innerMap", "timestamp");
-final TestEnum myEnum = jsonMap.get(TestEnum.class, "outerMap", "myList", 0);
-final Boolean myBoolean = jsonMap.get(Boolean.class, "outerMap", "myList", 2);
-final String backToJson = jsonMap.toJson();
+// MAP
+final TypeMap map1=mapOf(Map.of("12","34","56","78"))
+final Map<String, Integer> map2=mapOf(Map.of("12","34","56","78"),String.class,Integer.class)
+final Map<String, Integer> map3=mapOf(Map.of("12","34","56","78"),()->new HashMap<>(),String.class,Integer.class)
+
+// COLLECTION
+final TypeList list1=collectionOf(asList("123","456"))
+final Set<Integer.class>list2=collectionOf(asList("123","456"),Integer.class)
+final Set<Integer.class>set1=collectionOf(asList("123","456"),()->new HashSet<>(),Integer.class)
 ```
 
-### Adding Custom Conversions (TypeMap & TypeConverter)
+### Extension Mechanism
 
-Don't worry, any exception is ignored and results in `null`
+### Register custom conversions
 
-```
-TypeConversionRegister.registerTypeConvert(Path.class, File.class, Path::toFile);
-TypeConversionRegister.registerTypeConvert(Path.class, URI.class, Path::toUri);
-TypeConversionRegister.registerTypeConvert(Path.class, URL.class, path -> path.toUri().toURL());
+_[TypeConversionRegister](src/main/java/berlin/yuna/typemap/config/TypeConversionRegister.java) - Exception are ignored
+and results in `null`_
+
+```java
+TypeConversionRegister.registerTypeConvert(Path.class,File.class,Path::toFile);
+    TypeConversionRegister.registerTypeConvert(Path.class,URI.class,Path::toUri);
+    TypeConversionRegister.registerTypeConvert(Path.class,URL.class,path->path.toUri().toURL());
 ```
 
 [build_shield]: https://github.com/YunaBraska/type-map/workflows/MVN_RELEASE/badge.svg
