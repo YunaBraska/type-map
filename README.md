@@ -47,6 +47,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
     - [TypeConverter](#typeconverter)
     - [JsonEncoder](#json)
     - [JsonDecoder](#json)
+    - [ArgsDecoder](#args)
 - Extension Mechanism:
     - [TypeConversionRegister](#register-custom-conversions)
 
@@ -59,6 +60,8 @@ understand, and simple to enhance, all without any "magic" under the hood.
 - _[ConcurrentTypeMap](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeMap.java)_
 - _[TypeList](src/main/java/berlin/yuna/typemap/model/TypeList.java)_
 - _[ConcurrentTypeList](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeList.java)_
+- _[TypeSet](src/main/java/berlin/yuna/typemap/model/TypeSet.java)_
+- _[ConcurrentTypeSet](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeSet.java)_
 
 ```java
     TypeMap typeMap=new TypeMap().putt("myTime",new Date());
@@ -141,6 +144,24 @@ final Boolean myBoolean=jsonMap.get(Boolean.class,"outerMap","myList",2);
 final String backToJson=jsonMap.toJson();
 ```
 
+#### Args
+
+_[ArgsDecoder](src/main/java/berlin/yuna/typemap/logic/ArgsDecoder.java) is used internally_
+
+```java
+final String[]cliArgs={" myCommand1    myCommand2 --help  -v2=\"true\" -v=\"true\" -v=\"true\" --verbose=\"true\"   -Args=\"true\" -param 42   54   -ArgList=\"item 1\" --ArgList=\"item 2\" -v2=\"false\" --ArgList=\"-item 3\"  "};
+final TypeMap map1=new TypeMap(cliArgs);
+
+final Boolean help=map.get("help",Boolean.class);
+final Boolean v=map.get("v",Boolean.class);
+final Boolean v2=map.get("v2",Boolean.class);
+final Boolean verbose=map.get("verbose",Boolean.class);
+final Boolean args=map.get("Args",Boolean.class);
+final List<Boolean> v2List=map.getList("v2",Boolean.class)
+final List<Integer> paramList=map.getList("param",Integer.class);
+final TypeList argList=map.getList("ArgList");
+```
+
 ### TypeConverter
 
 _[TypeConverter](src/main/java/berlin/yuna/typemap/logic/TypeConverter.java) - The `TypeConverter` is the core of
@@ -183,8 +204,8 @@ _[TypeConversionRegister](src/main/java/berlin/yuna/typemap/config/TypeConversio
 and results in `null`_
 
 ```java
-TypeConversionRegister.registerTypeConvert(Path.class,File.class,Path::toFile);
-    TypeConversionRegister.registerTypeConvert(Path.class,URI.class,Path::toUri);
+    conversionFrom(String.class).to(Integer.class).registerPath::toUri);
+    TypeConversionRegister.registerTypeConvert(Path.class,File.class,Path::toFile);
     TypeConversionRegister.registerTypeConvert(Path.class,URL.class,path->path.toUri().toURL());
 ```
 

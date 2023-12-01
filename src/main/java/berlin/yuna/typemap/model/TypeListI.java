@@ -1,6 +1,9 @@
 package berlin.yuna.typemap.model;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -17,6 +20,7 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeCon
     /**
      * Adds the specified value
      *
+     * @param index the index whose associated value is to be returned.
      * @param value the value to be added
      * @return the updated {@link TypeListI} instance for chaining.
      */

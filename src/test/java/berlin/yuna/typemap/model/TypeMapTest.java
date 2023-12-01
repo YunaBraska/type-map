@@ -39,7 +39,11 @@ class TypeMapTest {
     @MethodSource("typeMapProvider")
     void simpleConvertTest(final String mapName, final TypeMapI<?> typeMap) {
         final String myTime = new Date(TEST_TIME).toString();
-        typeMap.put("myKey", myTime);
+        typeMap.addd("myKey", myTime);
+
+        // VALIDATIONS
+        assertThat(typeMap.typeList()).isEmpty();
+        assertThat(typeMap.typeMap()).isPresent();
 
         // TREE MAP
         assertThat(typeMap.gett(Instant.class, "myKey")).contains(Instant.ofEpochMilli(TEST_TIME));
@@ -49,7 +53,7 @@ class TypeMapTest {
         // KEY MAP
         assertThat(typeMap.gett("myKey", Instant.class)).contains(Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeMap.gett("myKey", LocalTime.class)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeMap.get( "myKey", OffsetDateTime.class)).isEqualTo(OffsetDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.get("myKey", OffsetDateTime.class)).isEqualTo(OffsetDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
     }
 
     @ParameterizedTest
@@ -104,7 +108,7 @@ class TypeMapTest {
         typeMap.put("myKey", input);
 
         // TREE MAP
-        assertThat(typeMap.getMap( "myKey")).containsEntry(6, new Date(TEST_TIME));
+        assertThat(typeMap.getMap("myKey")).containsEntry(6, new Date(TEST_TIME));
         assertThat(typeMap.getMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey2")).isEmpty();
@@ -183,6 +187,26 @@ class TypeMapTest {
     }
 
     @Test
+    void argsTest() {
+        final String[] cliArgs = {" myCommand1    myCommand2 --help  -v2=\"true\" -v=\"true\" -v=\"true\" --verbose=\"true\"   -DArgs=\"true\" -param 42   54   -DArgList=\"item 1\" --DArgList=\"item 2\" -v2=\"false\" --DArgList=\"-item 3\"  "};
+        final TypeMap map1 = new TypeMap(cliArgs);
+        final LinkedTypeMap map2 = new LinkedTypeMap(cliArgs);
+        final ConcurrentTypeMap map3 = new ConcurrentTypeMap(cliArgs);
+
+        for (final TypeMapI<?> map : new TypeMapI<?>[]{map1, map2, map3}) {
+            assertThat(map.get("help", Boolean.class)).isTrue();
+            assertThat(map.get("v", Boolean.class)).isTrue();
+            assertThat(map.get("v2", Boolean.class)).isTrue();
+            assertThat(map.get("verbose", Boolean.class)).isTrue();
+            assertThat(map.get("DArgs", Boolean.class)).isTrue();
+            assertThat(map.getList("param", Integer.class)).containsExactly(42, 54);
+            assertThat(map.getList("v2", Boolean.class)).containsExactly(true, false);
+            assertThat(map.getList("DArgList")).containsExactly("item 1", "item 2", "-item 3");
+            assertThat(map.getList("DArgList", String.class)).containsExactly("item 1", "item 2", "-item 3");
+        }
+    }
+
+    @Test
     void showCaseTest() {
 
         // Converter
@@ -209,7 +233,7 @@ class TypeMapTest {
             + "}";
 
         final TypeMap jsonMap = new TypeMap(jsonString);
-        final LinkedTypeMap map1 = jsonMap.getMap( "outerMap", "innerMap");
+        final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap");
         final TestEnum testEnum = jsonMap.getList("outerMap", "myList").get(0, TestEnum.class);
 
 

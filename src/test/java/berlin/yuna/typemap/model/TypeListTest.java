@@ -27,6 +27,8 @@ class TypeListTest {
     static Stream<Arguments> typeMapProvider() {
         return Stream.of(
             Arguments.of(TypeList.class.getSimpleName(), new TypeList()),
+            Arguments.of(TypeSet.class.getSimpleName(), new TypeSet()),
+            Arguments.of(ConcurrentTypeSet.class.getSimpleName(), new ConcurrentTypeSet()),
             Arguments.of(ConcurrentTypeList.class.getSimpleName(), new ConcurrentTypeList())
         );
     }
@@ -35,7 +37,11 @@ class TypeListTest {
     @MethodSource("typeMapProvider")
     void simpleConvertTest(final String mapName, final TypeListI<?> typeList) {
         final String myTime = new Date(TEST_TIME).toString();
-        typeList.addd(myTime).add(null);
+        typeList.addd(null, myTime).add(null);
+
+        // VALIDATIONS
+        assertThat(typeList.typeList()).isPresent();
+        assertThat(typeList.typeMap()).isEmpty();
 
         // TREE MAP
         assertThat(typeList.gett(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
@@ -56,6 +62,19 @@ class TypeListTest {
         assertThat(typeList.gett(1, Instant.class)).contains(Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeList.gett(1, LocalTime.class)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
         assertThat(typeList.gett(2, OffsetDateTime.class)).isEmpty();
+
+
+        if(typeList instanceof TypeSet || typeList instanceof ConcurrentTypeSet){
+            typeList.add(myTime);
+            typeList.add(-1, myTime);
+            typeList.addd(-1, myTime);
+            typeList.adddAll(asList(myTime, myTime));
+            assertThat(typeList.addd(-1, myTime)).hasSize(3);
+            assertThat(typeList.addd((Object) 0, myTime)).hasSize(3);
+        } else {
+            assertThat(typeList.addd(-1, myTime)).hasSize(4);
+            assertThat(typeList.addd((Object) 0, myTime)).hasSize(5);
+        }
     }
 
     @ParameterizedTest(name = "[{index}] [{0}]")
@@ -170,17 +189,27 @@ class TypeListTest {
 
     @Test
     void testDefaultMapMethods() {
-        final String myTime = new Date(TEST_TIME).toString();
+        final String myJson = new Date(TEST_TIME).toString();
 
         // Broken json
         assertThat(new TypeList("{ broken json")).containsExactly("{ broken json");
+        assertThat(new TypeSet("{ broken json")).containsExactly("{ broken json");
+        assertThat(new ConcurrentTypeSet("{ broken json")).containsExactly("{ broken json");
         assertThat(new ConcurrentTypeList("{ broken json")).containsExactly("{ broken json");
 
-        final TypeList list1 = new TypeList().adddAll(singletonList(myTime));
-        final ConcurrentTypeList list2 = new ConcurrentTypeList().adddAll(singletonList(myTime));
+        final TypeList list1 = new TypeList().adddAll(singletonList(myJson));
+        final TypeSet list2 = new TypeSet().adddAll(singletonList(myJson));
+        final ConcurrentTypeSet list3 = new ConcurrentTypeSet().adddAll(singletonList(myJson));
+        final ConcurrentTypeList list4 = new ConcurrentTypeList().adddAll(singletonList(myJson));
+
+        //for coverage, for some reason it doesn't detect this earlier
+        list2.add(-1, "AA");
+        list3.add(-1, "AA");
 
         // Get
-        assertThat(list1.get(0)).isEqualTo(myTime);
-        assertThat(list2.get(0)).isEqualTo(myTime);
+        assertThat(list1.get(0)).isEqualTo(myJson);
+        assertThat(list2.get(0)).isEqualTo(myJson);
+        assertThat(list3.get(0)).isEqualTo(myJson);
+        assertThat(list4.get(0)).isEqualTo(myJson);
     }
 }

@@ -15,7 +15,7 @@ import static berlin.yuna.typemap.model.TypeMap.treeGet;
 import static java.util.Optional.ofNullable;
 
 /**
- * {@link TypeList} is a specialized implementation of {@link HashMap} that offers enhanced
+ * {@link TypeList} is a specialized implementation of {@link ArrayList} that offers enhanced
  * functionality for type-safe data retrieval and manipulation. It is designed for
  * high-performance type conversion while being native-ready for GraalVM. The {@link TypeList}
  * class provides methods to retrieve data in various forms (single objects, collections,
@@ -61,12 +61,33 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     /**
      * Adds the specified value
      *
+     * @param index the index whose associated value is to be returned.
      * @param value the value to be added
-     * @return the updated {@link TypeListI} instance for chaining.
+     * @return the updated {@link TypeList} instance for chaining.
      */
     @Override
     public TypeList addd(final int index, final Object value) {
-        super.add(index, value);
+        if (index >= 0 && index < this.size()) {
+            super.add(index, value);
+        } else {
+            super.add(value);
+        }
+        return this;
+    }
+
+    /**
+     * Adds the specified value
+     *
+     * @param index the index whose associated value is to be returned.
+     * @param value the value to be added
+     * @return the updated {@link TypeList} instance for chaining.
+     */
+    public TypeList addd(final Object index, final Object value) {
+        if (index == null) {
+            super.add(value);
+        } else if (index instanceof Number) {
+            this.addd(((Number) index).intValue(), value);
+        }
         return this;
     }
 
@@ -74,7 +95,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
      * Adds all entries to this specified List
      *
      * @param collection which provides all entries to add
-     * @return the updated {@link TypeListI} instance for chaining.
+     * @return the updated {@link TypeList} instance for chaining.
      */
     @Override
     public TypeList adddAll(final Collection<?> collection) {
@@ -138,7 +159,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
      * This method converts the retrieved map to a list of the specified key and value types.
      *
      * @param path The key whose associated value is to be returned.
-     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     * @return a {@link TypeList} of the specified key and value types.
      */
     public TypeList getList(final Object... path) {
         return getList(TypeList::new, Object.class, path);
@@ -220,7 +241,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
      *
      * @param <K>       The type of keys in the returned map.
      * @param <V>       The type of values in the returned map.
-     * @param index      The key whose associated value is to be returned.
+     * @param index     The key whose associated value is to be returned.
      * @param keyType   The class of the map's key type.
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
@@ -240,7 +261,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
      */
-    public <K, V> Map<K, V> getMap(final Class<K> keyType, final Class<V> valueType, final Object... path){
+    public <K, V> Map<K, V> getMap(final Class<K> keyType, final Class<V> valueType, final Object... path) {
         return convertAndMap(treeGet(this, path), LinkedHashMap::new, keyType, valueType);
     }
 
@@ -339,6 +360,26 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     @Override
     public <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path) {
         return getList(ArrayList::new, componentType, path).stream().toArray(generator);
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
+     */
+    @SuppressWarnings("java:S1452")
+    public Optional<TypeMapI<?>> typeMap() {
+        return Optional.empty();
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
+     */
+    @SuppressWarnings("java:S1452")
+    public Optional<TypeListI<?>> typeList() {
+        return Optional.of(this);
     }
 
     /**

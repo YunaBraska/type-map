@@ -34,7 +34,7 @@ import static java.util.Arrays.asList;
  * between different data types. The class supports registering and applying
  * conversion functions to transform data from a source type to a target type.
  */
-public class TypeConversionRegister {
+public class TypeConversionRegister<S, T> {
 
     /**
      * A map where the key is the target type and the value is another map.
@@ -463,7 +463,48 @@ public class TypeConversionRegister {
         }
     }
 
-    private TypeConversionRegister() {
-        // static util class
+    // ########## FLUENT & REGISTRATION ##########
+    private final Class<S> source;
+    private final Class<T> target;
+
+    /**
+     * Initiates a type conversion registration process from a specified source type.
+     * This is the entry point of the fluent interface for type conversion registration.
+     *
+     * @param <S> The source type to start the conversion from.
+     * @param source The class object representing the source type.
+     * @return An instance of TypeConversionRegister for chaining the next steps.
+     */
+    public static <S> TypeConversionRegister<S, S> conversionFrom(final Class<S> source) {
+        return new TypeConversionRegister<>(source, source);
+    }
+
+    /**
+     * Specifies the target type for the type conversion.
+     *
+     * @param <D> The target type to convert to.
+     * @param target The class object representing the target type.
+     * @return An instance of TypeConversionRegister for chaining the conversion function.
+     */
+    public <D> TypeConversionRegister<S, D> to(final Class<D> target) {
+        return new TypeConversionRegister<>(this.source, target);
+    }
+
+    /**
+     * Registers the conversion function and completes the type conversion registration.
+     * This is the final step in the fluent interface chain.
+     *
+     * @param conversion The function that will perform the conversion.
+     * @return The current instance of TypeConversionRegister, allowing for potential further configuration.
+     */
+    @SuppressWarnings("UnusedReturnValue")
+    public TypeConversionRegister<S, T> register(final FunctionOrNull<S, T> conversion) {
+        registerTypeConvert(source, target, conversion);
+        return this;
+    }
+
+    private TypeConversionRegister(final Class<S> source, final Class<T> target) {
+        this.source = source;
+        this.target = target;
     }
 }

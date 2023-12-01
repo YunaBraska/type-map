@@ -16,7 +16,7 @@ import static berlin.yuna.typemap.model.TypeMap.treeGet;
 import static java.util.Optional.ofNullable;
 
 /**
- * {@link ConcurrentTypeList} is a specialized implementation of {@link HashMap} that offers enhanced
+ * {@link ConcurrentTypeList} is a specialized implementation of {@link CopyOnWriteArrayList} that offers enhanced
  * functionality for type-safe data retrieval and manipulation. It is designed for
  * high-performance type conversion while being native-ready for GraalVM. The {@link ConcurrentTypeList}
  * class provides methods to retrieve data in various forms (single objects, collections,
@@ -62,12 +62,33 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
     /**
      * Adds the specified value
      *
+     * @param index the index whose associated value is to be returned.
      * @param value the value to be added
-     * @return the updated {@link TypeListI} instance for chaining.
+     * @return the updated {@link TypeList} instance for chaining.
      */
     @Override
     public ConcurrentTypeList addd(final int index, final Object value) {
-        super.add(index, value);
+        if (index >= 0 && index < this.size()) {
+            super.add(index, value);
+        } else {
+            super.add(value);
+        }
+        return this;
+    }
+
+    /**
+     * Adds the specified value
+     *
+     * @param index the index whose associated value is to be returned.
+     * @param value the value to be added
+     * @return the updated {@link ConcurrentTypeList} instance for chaining.
+     */
+    public ConcurrentTypeList addd(final Object index, final Object value) {
+        if (index == null) {
+            super.add(value);
+        } else if (index instanceof Number) {
+            this.addd(((Number) index).intValue(), value);
+        }
         return this;
     }
 
@@ -75,7 +96,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * Adds all entries to this specified List
      *
      * @param collection which provides all entries to add
-     * @return the updated {@link TypeListI} instance for chaining.
+     * @return the updated {@link ConcurrentTypeList} instance for chaining.
      */
     @Override
     public ConcurrentTypeList adddAll(final Collection<?> collection) {
@@ -139,7 +160,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * This method converts the retrieved map to a list of the specified key and value types.
      *
      * @param path The key whose associated value is to be returned.
-     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     * @return a {@link TypeList} of the specified key and value types.
      */
     public TypeList getList(final Object... path) {
         return getList(TypeList::new, Object.class, path);
@@ -287,7 +308,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
      */
-    public <K, V> Map<K, V> getMap(final Class<K> keyType, final Class<V> valueType, final Object... path){
+    public <K, V> Map<K, V> getMap(final Class<K> keyType, final Class<V> valueType, final Object... path) {
         return convertAndMap(treeGet(this, path), LinkedHashMap::new, keyType, valueType);
     }
 
@@ -297,7 +318,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      *
      * @param <K>       The type of keys in the returned map.
      * @param <V>       The type of values in the returned map.
-     * @param index      The key whose associated value is to be returned.
+     * @param index     The key whose associated value is to be returned.
      * @param keyType   The class of the map's key type.
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
@@ -340,6 +361,26 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
     @Override
     public <K, V, M extends Map<K, V>> M getMap(final Supplier<M> output, final Class<K> keyType, final Class<V> valueType, final Object... path) {
         return convertAndMap(treeGet(this, path), output, keyType, valueType);
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
+     */
+    @SuppressWarnings("java:S1452")
+    public Optional<TypeMapI<?>> typeMap() {
+        return Optional.empty();
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
+     */
+    @SuppressWarnings("java:S1452")
+    public Optional<TypeListI<?>> typeList() {
+        return Optional.of(this);
     }
 
     /**

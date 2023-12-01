@@ -1,9 +1,7 @@
 package berlin.yuna.typemap.logic;
 
 import berlin.yuna.typemap.model.LinkedTypeMap;
-
-import java.util.ArrayList;
-import java.util.List;
+import berlin.yuna.typemap.model.TypeList;
 
 import static berlin.yuna.typemap.logic.JsonEncoder.unescapeJson;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
@@ -43,19 +41,18 @@ public class JsonDecoder {
      * @param json The JSON string to convert.
      * @return A List of objects representing the JSON array or containing the JSON object, or an empty List if the JSON string is null or invalid.
      */
-    @SuppressWarnings("unchecked")
-    public static List<Object> jsonListOf(final String json) {
+    public static TypeList jsonListOf(final String json) {
         final Object result = jsonOf(json);
-        if (result instanceof List) {
-            return (List<Object>) result;
+        if (result instanceof TypeList) {
+            return (TypeList) result;
         } else if (result instanceof LinkedTypeMap) {
-            final ArrayList<Object> list = new ArrayList<>();
+            final TypeList list = new TypeList();
             list.add(result);
             return list;
         } else if (result != null) {
-            return new ArrayList<>(singletonList(result));
+            return new TypeList(singletonList(result));
         }
-        return new ArrayList<>();
+        return new TypeList();
     }
 
     /**
@@ -74,7 +71,7 @@ public class JsonDecoder {
             final LinkedTypeMap map = toMap(removeWrapper(input).trim());
             return map.size() == 1 && map.containsKey("") ? map.get("") : map;
         } else if (input.startsWith("[") && input.endsWith("]")) {
-            return toArray(removeWrapper(input).trim());
+            return toList(removeWrapper(input).trim());
         } else if (input.startsWith("\"") && input.endsWith("\"")) {
             return unescapeJson(input.substring(1, input.length() - 1));
         } else {
@@ -119,7 +116,7 @@ public class JsonDecoder {
 
     @SuppressWarnings("java:S3776")
     private static String[] splitJson(final String json) {
-        final List<String> parts = new ArrayList<>();
+        final TypeList parts = new TypeList();
         int braceCount = 0;
         int bracketCount = 0;
         boolean inString = false;
@@ -178,8 +175,8 @@ public class JsonDecoder {
         return str.startsWith("\"") && str.endsWith("\"") ? removeWrapper(str) : str;
     }
 
-    private static List<Object> toArray(final String json) {
-        final List<Object> list = new ArrayList<>();
+    private static TypeList toList(final String json) {
+        final TypeList list = new TypeList();
         for (final String element : splitJson(json)) {
             list.add(jsonOf(element.trim())); // Recursively parse each element
         }

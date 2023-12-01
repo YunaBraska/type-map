@@ -1,16 +1,11 @@
 package berlin.yuna.typemap.model;
 
 
+import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.JsonEncoder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
@@ -45,6 +40,13 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
     }
 
     /**
+     * Constructs a new {@link ConcurrentTypeMap} of the specified command line arguments.
+     */
+    public ConcurrentTypeMap(final String[] cliArgs) {
+        this(ArgsDecoder.argsOf(String.join(" ", cliArgs)));
+    }
+
+    /**
      * Constructs a new {@link ConcurrentTypeMap} with the same mappings as the specified map.
      *
      * @param map The initial map to copy mappings from, can be null.
@@ -61,6 +63,18 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @return the updated {@link ConcurrentTypeMap} instance for chaining.
      */
     public ConcurrentTypeMap putt(final Object key, final Object value) {
+        super.put(key, value);
+        return this;
+    }
+
+    /**
+     * Associates the specified value with the specified key in this map.
+     *
+     * @param key   the key with which the specified value is to be associated.
+     * @param value the value to be associated with the specified key.
+     * @return the updated {@link ConcurrentTypeMap} instance for chaining.
+     */
+    public ConcurrentTypeMap addd(final Object key, final Object value) {
         super.put(key, value);
         return this;
     }
@@ -121,7 +135,7 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * This method converts the retrieved map to a list of the specified key and value types.
      *
      * @param path The key whose associated value is to be returned.
-     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     * @return a {@link TypeList} of the specified key and value types.
      */
     public TypeList getList(final Object... path) {
         return getList(TypeList::new, Object.class, path);
@@ -314,6 +328,24 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      */
     public <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType) {
         return getList(key, ArrayList::new, componentType).stream().toArray(generator);
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
+     */
+    public Optional<TypeMapI<?>> typeMap() {
+        return Optional.of(this);
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
+     */
+    public Optional<TypeListI<?>> typeList() {
+        return Optional.empty();
     }
 
     /**

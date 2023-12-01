@@ -1,7 +1,6 @@
 package berlin.yuna.typemap.model;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -15,6 +14,15 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("unused")
 public interface TypeContainer<C extends TypeContainer<C>> {
+
+
+    /**
+     * Adds the specified value
+     *
+     * @param key or index the index whose associated value is to be returned.
+     * @return the updated {@link TypeListI} instance for chaining.
+     */
+    C addd(final Object key, final Object value);
 
     /**
      * Retrieves the value to which the specified key is mapped, and attempts to
@@ -31,7 +39,7 @@ public interface TypeContainer<C extends TypeContainer<C>> {
      * This method converts the retrieved map to a list of the specified key and value types.
      *
      * @param path The key whose associated value is to be returned.
-     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     * @return a {@link TypeList} of the specified key and value types.
      */
     TypeList getList(final Object... path);
 
@@ -119,6 +127,20 @@ public interface TypeContainer<C extends TypeContainer<C>> {
      * @return an array of the specified component type.
      */
     <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path);
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
+     */
+    Optional<TypeMapI<?>> typeMap();
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
+     */
+    Optional<TypeListI<?>> typeList();
 
     /**
      * Converts any object to its JSON representation.

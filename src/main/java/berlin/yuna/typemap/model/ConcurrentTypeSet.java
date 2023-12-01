@@ -1,17 +1,11 @@
 package berlin.yuna.typemap.model;
 
 
-import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.JsonEncoder;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -22,79 +16,198 @@ import static berlin.yuna.typemap.model.TypeMap.treeGet;
 import static java.util.Optional.ofNullable;
 
 /**
- * {@link LinkedTypeMap} is a specialized implementation of {@link LinkedHashMap} that offers enhanced
+ * {@link ConcurrentTypeSet} is a specialized implementation of {@link CopyOnWriteArrayList} that offers enhanced
  * functionality for type-safe data retrieval and manipulation. It is designed for
- * high-performance type conversion while being native-ready for GraalVM. The {@link LinkedTypeMap}
+ * high-performance type conversion while being native-ready for GraalVM. The {@link ConcurrentTypeSet}
  * class provides methods to retrieve data in various forms (single objects, collections,
  * arrays, or maps) while ensuring type safety without the need for reflection.
  */
-public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements TypeMapI<LinkedTypeMap> {
+public class ConcurrentTypeSet extends CopyOnWriteArrayList<Object> implements TypeListI<ConcurrentTypeSet> {
 
     /**
-     * Default constructor for creating an empty {@link LinkedTypeMap}.
+     * Default constructor for creating an empty {@link ConcurrentTypeSet}.
      */
-    public LinkedTypeMap() {
-        this((Map<?, ?>) null);
+    public ConcurrentTypeSet() {
+        this((Collection<?>) null);
     }
 
     /**
-     * Constructs a new {@link LinkedTypeMap} of the specified json.
+     * Constructs a new {@link ConcurrentTypeSet} of the specified json.
      */
-    public LinkedTypeMap(final String json) {
-        this(JsonDecoder.jsonMapOf(json));
+    public ConcurrentTypeSet(final String json) {
+        this(JsonDecoder.jsonListOf(json));
     }
 
     /**
-     * Constructs a new {@link LinkedTypeMap} of the specified command line arguments.
-     */
-    public LinkedTypeMap(final String[] cliArgs) {
-        this(ArgsDecoder.argsOf(String.join(" ", cliArgs)));
-    }
-
-    /**
-     * Constructs a new {@link LinkedTypeMap} with the same mappings as the specified map.
+     * Constructs a new {@link ConcurrentTypeSet} with the same mappings as the specified map.
      *
      * @param map The initial map to copy mappings from, can be null.
      */
-    public LinkedTypeMap(final Map<?, ?> map) {
-        ofNullable(map).ifPresent(super::putAll);
+    public ConcurrentTypeSet(final Collection<?> map) {
+        ofNullable(map).ifPresent(super::addAll);
     }
 
     /**
-     * Associates the specified value with the specified key in this map.
+     * Adds the specified element to this set if it is not already present.
+     * More formally, adds the specified element <tt>e</tt> to this set if
+     * this set contains no element <tt>e2</tt> such that
+     * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt>.
+     * If this set already contains the element, the call leaves the set
+     * unchanged and returns <tt>false</tt>.
      *
-     * @param key   the key with which the specified value is to be associated.
-     * @param value the value to be associated with the specified key.
-     * @return the updated {@link LinkedTypeMap} instance for chaining.
+     * @param value element to be added to this set
+     * @return <tt>true</tt> if this set did not already contain the specified
+     * element
      */
-    public LinkedTypeMap putt(final Object key, final Object value) {
-        super.put(key, value);
+    @Override
+    public boolean add(final Object value) {
+        if (!this.contains(value)) {
+            return super.add(value);
+        }
+        return false;
+    }
+
+    /**
+     * Adds the specified value
+     *
+     * @param index the index whose associated value is to be returned.
+     * @param value the value to be added
+     */
+    @Override
+    public void add(final int index, final Object value) {
+        if (!this.contains(value)) {
+            if (index >= 0 && index < this.size()) {
+                super.add(index, value);
+            } else {
+                super.add(value);
+            }
+        }
+    }
+
+    /**
+     * Adds all the elements in the specified collection to this collection
+     * (optional operation).  The behavior of this operation is undefined if
+     * the specified collection is modified while the operation is in progress.
+     * (This implies that the behavior of this call is undefined if the
+     * specified collection is this collection, and this collection is
+     * nonempty.)
+     *
+     * @param collection collection containing elements to be added to this collection
+     * @return <tt>true</tt> if this collection changed as a result of the call
+     * @throws UnsupportedOperationException if the <tt>addAll</tt> operation
+     *                                       is not supported by this collection
+     * @throws ClassCastException            if the class of an element of the specified
+     *                                       collection prevents it from being added to this collection
+     * @throws NullPointerException          if the specified collection contains a
+     *                                       null element and this collection does not permit null elements,
+     *                                       or if the specified collection is null
+     * @throws IllegalArgumentException      if some property of an element of the
+     *                                       specified collection prevents it from being added to this
+     *                                       collection
+     * @throws IllegalStateException         if not all the elements can be added at
+     *                                       this time due to insertion restrictions
+     * @see #add(Object)
+     */
+    @Override
+    public boolean addAll(final Collection<?> collection) {
+        boolean modified = false;
+        for (final Object value : collection) {
+            if (add(value)) {
+                modified = true;
+            }
+        }
+        return modified;
+    }
+
+    /**
+     * Adds the specified value
+     *
+     * @param value the value to be added
+     * @return the updated TypeList instance for chaining.
+     */
+    @Override
+    public ConcurrentTypeSet addd(final Object value) {
+        this.add(value);
         return this;
     }
 
     /**
-     * Associates the specified value with the specified key in this map.
+     * Adds the specified value
      *
-     * @param key   the key with which the specified value is to be associated.
-     * @param value the value to be associated with the specified key.
-     * @return the updated {@link LinkedTypeMap} instance for chaining.
+     * @param index the index whose associated value is to be returned.
+     * @param value the value to be added
+     * @return the updated {@link ConcurrentTypeSet} instance for chaining.
      */
-    public LinkedTypeMap addd(final Object key, final Object value) {
-        super.put(key, value);
+    @Override
+    public ConcurrentTypeSet addd(final int index, final Object value) {
+        this.add(index, value);
         return this;
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
+     * Adds the specified value
+     *
+     * @param index the index whose associated value is to be returned.
+     * @param value the value to be added
+     * @return the updated {@link ConcurrentTypeSet} instance for chaining.
+     */
+    public ConcurrentTypeSet addd(final Object index, final Object value) {
+        if (index == null) {
+            super.add(value);
+        } else if (index instanceof Number) {
+            this.addd(((Number) index).intValue(), value);
+        }
+        return this;
+    }
+
+    /**
+     * Adds all entries to this specified List
+     *
+     * @param collection which provides all entries to add
+     * @return the updated {@link ConcurrentTypeSet} instance for chaining.
+     */
+    @Override
+    public ConcurrentTypeSet adddAll(final Collection<?> collection) {
+        this.addAll(collection);
+        return this;
+    }
+
+    /**
+     * Returns the element at the specified position in this list.
+     *
+     * @param index index of the element to return
+     * @return the element at the specified position in this list
+     */
+    @Override
+    public Object get(final int index) {
+        return index >= 0 && index < this.size() ? super.get(index) : null;
+    }
+
+    /**
+     * Retrieves the value to which the specified index, and attempts to
      * convert it to the specified type.
      *
-     * @param <T>  The target type for conversion.
-     * @param path the key whose associated value is to be returned.
-     * @param type the Class object of the type to convert to.
-     * @return the value if present and convertible, else null.
+     * @param <T>   The target type for conversion.
+     * @param index the index whose associated value is to be returned.
+     * @param type  the Class object of the type to convert to.
+     * @return value if present and convertible, else null.
      */
-    public <T> T get(final Class<T> type, final Object... path) {
-        return gett(type, path).orElse(null);
+    public <T> T get(final int index, final Class<T> type) {
+        return gett(index, type).orElse(null);
+    }
+
+    /**
+     * Retrieves the value to which the specified index, and attempts to
+     * convert it to the specified type.
+     *
+     * @param <T>   The target type for conversion.
+     * @param index the index whose associated value is to be returned.
+     * @param type  the Class object of the type to convert to.
+     * @return an Optional containing the value if present and convertible, else empty.
+     */
+    @Override
+    public <T> Optional<T> gett(final int index, final Class<T> type) {
+        return ofNullable(treeGet(this, index)).map(object -> convertObj(object, type));
     }
 
     /**
@@ -106,34 +219,9 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
+    @Override
     public <T> Optional<T> gett(final Class<T> type, final Object... path) {
         return ofNullable(treeGet(this, path)).map(object -> convertObj(object, type));
-    }
-
-    /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to the specified type.
-     *
-     * @param <T>  The target type for conversion.
-     * @param key  the key whose associated value is to be returned.
-     * @param type the Class object of the type to convert to.
-     * @return an Optional containing the value if present and convertible, else empty.
-     */
-    public <T> T get(final Object key, final Class<T> type) {
-        return gett(key, type).orElse(null);
-    }
-
-    /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to the specified type.
-     *
-     * @param <T>  The target type for conversion.
-     * @param key  the key whose associated value is to be returned.
-     * @param type the Class object of the type to convert to.
-     * @return an Optional containing the value if present and convertible, else empty.
-     */
-    public <T> Optional<T> gett(final Object key, final Class<T> type) {
-        return ofNullable(super.get(key)).map(object -> convertObj(object, type));
     }
 
     /**
@@ -151,12 +239,12 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * the specified element type.
      *
      * @param <E>      The type of elements in the collection.
-     * @param key      The index whose associated value is to be returned.
+     * @param index    The index whose associated value is to be returned.
      * @param itemType The class of the items in the collection.
      * @return a collection of the specified type and element type.
      */
-    public <E> List<E> getList(final Object key, final Class<E> itemType) {
-        return getList(ArrayList::new, itemType, key);
+    public <E> List<E> getList(final int index, final Class<E> itemType) {
+        return getList(ArrayList::new, itemType, index);
     }
 
     /**
@@ -173,6 +261,22 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
     }
 
     /**
+     * Retrieves a collection associated at the specified index and converts it to
+     * the specified collection type and element type.
+     *
+     * @param <T>      The type of the collection to be returned.
+     * @param <E>      The type of elements in the collection.
+     * @param index    The index whose associated value is to be returned.
+     * @param output   The supplier providing a new collection instance.
+     * @param itemType The class of the items in the collection.
+     * @return a collection of the specified type and element type.
+     */
+    @Override
+    public <T extends Collection<E>, E> T getList(final int index, final Supplier<? extends T> output, final Class<E> itemType) {
+        return collectionOf(super.get(index), output, itemType);
+    }
+
+    /**
      * Retrieves a collection associated with the specified key and converts it to
      * the specified collection type and element type.
      *
@@ -183,23 +287,9 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param itemType The class of the items in the collection.
      * @return a collection of the specified type and element type.
      */
+    @Override
     public <T extends Collection<E>, E> T getList(final Supplier<? extends T> output, final Class<E> itemType, final Object... path) {
         return collectionOf(treeGet(this, path), output, itemType);
-    }
-
-    /**
-     * Retrieves a collection associated with the specified key and converts it to
-     * the specified collection type and element type.
-     *
-     * @param <T>      The type of the collection to be returned.
-     * @param <E>      The type of elements in the collection.
-     * @param key      The key whose associated value is to be returned.
-     * @param output   The supplier providing a new collection instance.
-     * @param itemType The class of the items in the collection.
-     * @return a collection of the specified type and element type.
-     */
-    public <T extends Collection<E>, E> T getList(final Object key, final Supplier<? extends T> output, final Class<E> itemType) {
-        return collectionOf(super.get(key), output, itemType);
     }
 
     /**
@@ -207,8 +297,9 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * This method converts the retrieved map to a map of the specified key and value types.
      *
      * @param path The key whose associated value is to be returned.
-     * @return a {@link LinkedTypeMap} of the specified key and value types.
+     * @return a map of the specified key and value types.
      */
+    @Override
     public LinkedTypeMap getMap(final Object... path) {
         return getMap(LinkedTypeMap::new, Object.class, Object.class, path);
     }
@@ -219,13 +310,13 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      *
      * @param <K>       The type of keys in the returned map.
      * @param <V>       The type of values in the returned map.
-     * @param key       The key whose associated value is to be returned.
+     * @param index     The key whose associated value is to be returned.
      * @param keyType   The class of the map's key type.
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
      */
-    public <K, V> Map<K, V> getMap(final Object key, final Class<K> keyType, final Class<V> valueType) {
-        return convertAndMap(treeGet(this, key), LinkedHashMap::new, keyType, valueType);
+    public <K, V> Map<K, V> getMap(final int index, final Class<K> keyType, final Class<V> valueType) {
+        return convertAndMap(treeGet(this, index), LinkedHashMap::new, keyType, valueType);
     }
 
     /**
@@ -250,14 +341,15 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param <K>       The type of keys in the returned map.
      * @param <V>       The type of values in the returned map.
      * @param <M>       The type of the map to be returned.
-     * @param path      The key whose associated value is to be returned.
+     * @param index     The key whose associated value is to be returned.
      * @param output    A supplier providing a new map instance.
      * @param keyType   The class of the map's key type.
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
      */
-    public <K, V, M extends Map<K, V>> M getMap(final Supplier<M> output, final Class<K> keyType, final Class<V> valueType, final Object... path) {
-        return convertAndMap(treeGet(this, path), output, keyType, valueType);
+    @Override
+    public <K, V, M extends Map<K, V>> M getMap(final int index, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
+        return convertAndMap(treeGet(this, index), output, keyType, valueType);
     }
 
     /**
@@ -267,14 +359,30 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param <K>       The type of keys in the returned map.
      * @param <V>       The type of values in the returned map.
      * @param <M>       The type of the map to be returned.
-     * @param key       The key whose associated value is to be returned.
+     * @param path      The key whose associated value is to be returned.
      * @param output    A supplier providing a new map instance.
      * @param keyType   The class of the map's key type.
      * @param valueType The class of the map's value type.
      * @return a map of the specified key and value types.
      */
-    public <K, V, M extends Map<K, V>> M getMap(final Object key, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        return convertAndMap(super.get(key), output, keyType, valueType);
+    @Override
+    public <K, V, M extends Map<K, V>> M getMap(final Supplier<M> output, final Class<K> keyType, final Class<V> valueType, final Object... path) {
+        return convertAndMap(treeGet(this, path), output, keyType, valueType);
+    }
+
+    /**
+     * Retrieves an array of a specific type associated with the specified key.
+     * This method is useful for cases where the type indicator is an array instance.
+     *
+     * @param <E>           The component type of the array.
+     * @param index         The index whose associated value is to be returned.
+     * @param typeIndicator An array instance indicating the type of array to return.
+     * @param componentType The class of the array's component type.
+     * @return an array of the specified component type.
+     */
+    public <E> E[] getArray(final int index, final E[] typeIndicator, final Class<E> componentType) {
+        final ArrayList<E> result = getList(index, ArrayList::new, componentType);
+        return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
     }
 
     /**
@@ -287,6 +395,7 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
+    @Override
     public <E> E[] getArray(final E[] typeIndicator, final Class<E> componentType, final Object... path) {
         final ArrayList<E> result = getList(ArrayList::new, componentType, path);
         return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
@@ -294,17 +403,17 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
 
     /**
      * Retrieves an array of a specific type associated with the specified key.
-     * This method is useful for cases where the type indicator is an array instance.
+     * This method allows for custom array generation using a generator function.
      *
      * @param <E>           The component type of the array.
-     * @param key           The key whose associated value is to be returned.
-     * @param typeIndicator An array instance indicating the type of array to return.
+     * @param index         The key whose associated value is to be returned.
+     * @param generator     A function to generate the array of the required size.
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
-    public <E> E[] getArray(final Object key, final E[] typeIndicator, final Class<E> componentType) {
-        final ArrayList<E> result = getList(key, ArrayList::new, componentType);
-        return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
+    @Override
+    public <E> E[] getArray(final int index, final IntFunction<E[]> generator, final Class<E> componentType) {
+        return getList(index, ArrayList::new, componentType).stream().toArray(generator);
     }
 
     /**
@@ -317,22 +426,9 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param componentType The class of the array's component type.
      * @return an array of the specified component type.
      */
+    @Override
     public <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path) {
         return getList(ArrayList::new, componentType, path).stream().toArray(generator);
-    }
-
-    /**
-     * Retrieves an array of a specific type associated with the specified key.
-     * This method allows for custom array generation using a generator function.
-     *
-     * @param <E>           The component type of the array.
-     * @param key           The key whose associated value is to be returned.
-     * @param generator     A function to generate the array of the required size.
-     * @param componentType The class of the array's component type.
-     * @return an array of the specified component type.
-     */
-    public <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType) {
-        return getList(key, ArrayList::new, componentType).stream().toArray(generator);
     }
 
     /**
@@ -340,8 +436,9 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
+    @SuppressWarnings("java:S1452")
     public Optional<TypeMapI<?>> typeMap() {
-        return Optional.of(this);
+        return Optional.empty();
     }
 
     /**
@@ -349,8 +446,9 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */
+    @SuppressWarnings("java:S1452")
     public Optional<TypeListI<?>> typeList() {
-        return Optional.empty();
+        return Optional.of(this);
     }
 
     /**
@@ -361,6 +459,7 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param path The key whose associated value is to be returned.
      * @return A JSON representation of the key value as a String.
      */
+    @Override
     public String toJson(final Object... path) {
         return JsonEncoder.toJson(treeGet(this, path));
     }
@@ -372,6 +471,7 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      *
      * @return A JSON representation of itself as a String.
      */
+    @Override
     public String toJson() {
         return JsonEncoder.toJson(this);
     }

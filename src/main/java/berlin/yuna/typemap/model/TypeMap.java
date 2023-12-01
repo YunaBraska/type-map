@@ -1,6 +1,7 @@
 package berlin.yuna.typemap.model;
 
 
+import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.JsonEncoder;
 
@@ -37,6 +38,13 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     }
 
     /**
+     * Constructs a new {@link TypeMap} of the specified command line arguments.
+     */
+    public TypeMap(final String[] cliArgs) {
+        this(ArgsDecoder.argsOf(String.join(" ", cliArgs)));
+    }
+
+    /**
      * Constructs a new {@link TypeMap} with the same mappings as the specified map.
      *
      * @param map The initial map to copy mappings from, can be null.
@@ -66,6 +74,18 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @return the updated {@link TypeMap} instance for chaining.
      */
     public TypeMap putt(final Object key, final Object value) {
+        super.put(key, value);
+        return this;
+    }
+
+    /**
+     * Associates the specified value with the specified key in this map.
+     *
+     * @param key   the key with which the specified value is to be associated.
+     * @param value the value to be associated with the specified key.
+     * @return the updated {@link ConcurrentTypeMap} instance for chaining.
+     */
+    public TypeMap addd(final Object key, final Object value) {
         super.put(key, value);
         return this;
     }
@@ -305,6 +325,24 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      */
     public <E> E[] getArray(final Object key, final IntFunction<E[]> generator, final Class<E> componentType) {
         return getList(key, ArrayList::new, componentType).stream().toArray(generator);
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
+     */
+    public Optional<TypeMapI<?>> typeMap() {
+        return Optional.of(this);
+    }
+
+    /**
+     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     *
+     * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
+     */
+    public Optional<TypeListI<?>> typeList() {
+        return Optional.empty();
     }
 
     /**

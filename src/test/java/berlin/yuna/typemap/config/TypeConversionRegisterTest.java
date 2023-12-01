@@ -22,8 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import static berlin.yuna.typemap.config.TypeConversionRegister.registerTypeConvert;
-import static berlin.yuna.typemap.config.TypeConversionRegister.stringOf;
+import static berlin.yuna.typemap.config.TypeConversionRegister.*;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,6 +44,8 @@ class TypeConversionRegisterTest {
         assertThat(convertObj("123", Integer.class)).isEqualTo(123);
         registerTypeConvert(String.class, Integer.class, source -> 999);
         assertThat(convertObj("123", Integer.class)).isEqualTo(999);
+        conversionFrom(String.class).to(Integer.class).register(source -> 567);
+        assertThat(convertObj("123", Integer.class)).isEqualTo(567);
     }
 
     @Test
