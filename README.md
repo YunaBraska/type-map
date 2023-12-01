@@ -204,7 +204,7 @@ _[TypeConversionRegister](src/main/java/berlin/yuna/typemap/config/TypeConversio
 and results in `null`_
 
 ```java
-    conversionFrom(String.class).to(Integer.class).registerPath::toUri);
+    conversionFrom(String.class).to(Integer.class).register(Path::toUri);
     TypeConversionRegister.registerTypeConvert(Path.class,File.class,Path::toFile);
     TypeConversionRegister.registerTypeConvert(Path.class,URL.class,path->path.toUri().toURL());
 ```
