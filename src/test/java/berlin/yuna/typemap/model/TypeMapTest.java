@@ -13,6 +13,7 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -232,10 +233,9 @@ class TypeMapTest {
             + "  }\n"
             + "}";
 
-        final TypeMap jsonMap = new TypeMap(jsonString);
+        final TypeContainer<?> jsonMap = jsonTypeOf(jsonString);
         final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap");
         final TestEnum testEnum = jsonMap.getList("outerMap", "myList").get(TestEnum.class, 0);
-
 
         final Optional<Date> myDate = jsonMap.getOpt(Date.class, "outerMap", "innerMap", "timestamp");
         final Optional<Long> myTimestamp = jsonMap.getOpt(Long.class, "outerMap", "innerMap", "timestamp");
