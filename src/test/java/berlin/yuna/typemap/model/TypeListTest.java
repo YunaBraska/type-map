@@ -37,43 +37,43 @@ class TypeListTest {
     @MethodSource("typeMapProvider")
     void simpleConvertTest(final String mapName, final TypeListI<?> typeList) {
         final String myTime = new Date(TEST_TIME).toString();
-        typeList.addd(null, myTime).add(null);
+        typeList.addReturn(null, myTime).add(null);
 
         // VALIDATIONS
-        assertThat(typeList.typeList()).isPresent();
-        assertThat(typeList.typeMap()).isEmpty();
+        assertThat(typeList.typeListOpt()).isPresent();
+        assertThat(typeList.typeMapOpt()).isEmpty();
 
         // TREE MAP
-        assertThat(typeList.gett(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.gett(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.gett(OffsetDateTime.class, 1)).isEmpty();
+        assertThat(typeList.getOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.getOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
+        assertThat(typeList.getOpt(OffsetDateTime.class, 1)).isEmpty();
         assertThat(typeList.get(0)).isEqualTo(myTime);
 
         // KEY MAP
-        assertThat(typeList.gett(0, Instant.class)).contains(Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.gett(0, LocalTime.class)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.gett(1, OffsetDateTime.class)).isEmpty();
+        assertThat(typeList.getOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.getOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
+        assertThat(typeList.getOpt(OffsetDateTime.class, 1)).isEmpty();
         assertThat(typeList.get(0)).isEqualTo(myTime);
         assertThat(typeList.get(1)).isNull();
 
         // ADD AT INDEX
-        typeList.addd(0, "true");
-        assertThat(typeList.get(0, Boolean.class)).isTrue();
-        assertThat(typeList.gett(1, Instant.class)).contains(Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.gett(1, LocalTime.class)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.gett(2, OffsetDateTime.class)).isEmpty();
+        typeList.addReturn(0, "true");
+        assertThat(typeList.get(Boolean.class, 0)).isTrue();
+        assertThat(typeList.getOpt(Instant.class, 1)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.getOpt(LocalTime.class, 1)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
+        assertThat(typeList.getOpt(OffsetDateTime.class, 2)).isEmpty();
 
 
-        if(typeList instanceof TypeSet || typeList instanceof ConcurrentTypeSet){
+        if (typeList instanceof TypeSet || typeList instanceof ConcurrentTypeSet) {
             typeList.add(myTime);
             typeList.add(-1, myTime);
-            typeList.addd(-1, myTime);
-            typeList.adddAll(asList(myTime, myTime));
-            assertThat(typeList.addd(-1, myTime)).hasSize(3);
-            assertThat(typeList.addd((Object) 0, myTime)).hasSize(3);
+            typeList.addReturn(-1, myTime);
+            typeList.addAllReturn(asList(myTime, myTime));
+            assertThat(typeList.addReturn(-1, myTime)).hasSize(3);
+            assertThat(typeList.addReturn((Object) 0, myTime)).hasSize(3);
         } else {
-            assertThat(typeList.addd(-1, myTime)).hasSize(4);
-            assertThat(typeList.addd((Object) 0, myTime)).hasSize(5);
+            assertThat(typeList.addReturn(-1, myTime)).hasSize(4);
+            assertThat(typeList.addReturn((Object) 0, myTime)).hasSize(5);
         }
     }
 
@@ -81,14 +81,14 @@ class TypeListTest {
     @MethodSource("typeMapProvider")
     void enumConvertTest(final String mapName, final TypeListI<?> typeList) {
         typeList.add("BB");
-        assertThat(typeList.gett(TestEnum.class, 0)).contains(TestEnum.BB);
+        assertThat(typeList.getOpt(TestEnum.class, 0)).contains(TestEnum.BB);
     }
 
     @ParameterizedTest(name = "[{index}] [{0}]")
     @MethodSource("typeMapProvider")
     void collectionConvertTest(final String mapName, final TypeListI<?> typeList) {
         final String myTime = new Date(TEST_TIME).toString();
-        typeList.addd(myTime).add(new String[]{"1", "2", "3"});
+        typeList.addReturn(myTime).add(new String[]{"1", "2", "3"});
 
         // TREE MAP
         final List<Instant> instantList1 = typeList.getList(ArrayList::new, Instant.class, 0);
@@ -106,12 +106,12 @@ class TypeListTest {
         assertThat(typeList.getList(Integer.class, 1)).isNotEmpty().containsExactly(1, 2, 3);
 
         // KEY MAP
-        final List<Instant> instantList2 = typeList.getList(0, ArrayList::new, Instant.class);
-        final List<Integer> integerList2 = typeList.getList(1, ArrayList::new, Integer.class);
-        final List<Float> floatList2 = typeList.getList(1, ArrayList::new, Float.class);
-        final Double[] doubleArray2 = typeList.getArray(1, new Double[0], Double.class);
-        final Long[] longArray2 = typeList.getArray(1, Long[]::new, Long.class);
-        assertThat(typeList.getList(1, Integer.class)).isNotEmpty().containsExactly(1, 2, 3);
+        final List<Instant> instantList2 = typeList.getList(ArrayList::new, Instant.class, 0);
+        final List<Integer> integerList2 = typeList.getList(ArrayList::new, Integer.class, 1);
+        final List<Float> floatList2 = typeList.getList(ArrayList::new, Float.class, 1);
+        final Double[] doubleArray2 = typeList.getArray(new Double[0], Double.class, 1);
+        final Long[] longArray2 = typeList.getArray(Long[]::new, Long.class, 1);
+        assertThat(typeList.getList(Integer.class, 1)).isNotEmpty().containsExactly(1, 2, 3);
 
         assertThat(instantList2).isNotEmpty();
         assertThat(integerList2).isNotEmpty().containsExactly(1, 2, 3);
@@ -134,9 +134,9 @@ class TypeListTest {
         assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
 
         // KEY MAP
-        assertThat(typeList.getMap(0, Long.class, Instant.class)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getMap(0, () -> new HashMap<>(), Long.class, Instant.class)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getMap(1, () -> new HashMap<>(), Long.class, Instant.class)).isEmpty();
+        assertThat(typeList.getMap(Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
     }
 
     @ParameterizedTest(name = "[{index}] [{0}]")
@@ -173,18 +173,18 @@ class TypeListTest {
         innerMap.put("FF", new Object[]{anObject});
         typeList.add(innerMap);
 
-        assertThat(typeList.gett(Object.class)).isEmpty();
-        assertThat(typeList.gett(Object.class, (Object) null)).isEmpty();
-        assertThat(typeList.gett(Object.class, new Object[]{null})).isEmpty();
-        assertThat(typeList.gett(Object.class, 0)).contains(innerMap);
-        assertThat(typeList.gett(Object.class, 0, "BB")).contains(asList("11", "22"));
-        assertThat(typeList.gett(Object.class, 0, "CC")).contains(new Object[]{"33", "44"});
-        assertThat(typeList.gett(Object.class, 0, "BB", 0)).contains("11");
-        assertThat(typeList.gett(Object.class, 0, "BB", 1)).contains("22");
-        assertThat(typeList.gett(Object.class, 0, "CC", 0)).contains("33");
-        assertThat(typeList.gett(Object.class, 0, "CC", 1)).contains("44");
-        assertThat(typeList.gett(UnknownClass.class, 0, "DD")).contains(anObject);
-        assertThat(typeList.gett(UnknownClass.class, 0, "DD", anObject)).isEmpty();
+        assertThat(typeList.getOpt(Object.class)).isEmpty();
+        assertThat(typeList.getOpt(Object.class, (Object) null)).isEmpty();
+        assertThat(typeList.getOpt(Object.class, new Object[]{null})).isEmpty();
+        assertThat(typeList.getOpt(Object.class, 0)).contains(innerMap);
+        assertThat(typeList.getOpt(Object.class, 0, "BB")).contains(asList("11", "22"));
+        assertThat(typeList.getOpt(Object.class, 0, "CC")).contains(new Object[]{"33", "44"});
+        assertThat(typeList.getOpt(Object.class, 0, "BB", 0)).contains("11");
+        assertThat(typeList.getOpt(Object.class, 0, "BB", 1)).contains("22");
+        assertThat(typeList.getOpt(Object.class, 0, "CC", 0)).contains("33");
+        assertThat(typeList.getOpt(Object.class, 0, "CC", 1)).contains("44");
+        assertThat(typeList.getOpt(UnknownClass.class, 0, "DD")).contains(anObject);
+        assertThat(typeList.getOpt(UnknownClass.class, 0, "DD", anObject)).isEmpty();
     }
 
     @Test
@@ -197,10 +197,10 @@ class TypeListTest {
         assertThat(new ConcurrentTypeSet("{ broken json")).containsExactly("{ broken json");
         assertThat(new ConcurrentTypeList("{ broken json")).containsExactly("{ broken json");
 
-        final TypeList list1 = new TypeList().adddAll(singletonList(myJson));
-        final TypeSet list2 = new TypeSet().adddAll(singletonList(myJson));
-        final ConcurrentTypeSet list3 = new ConcurrentTypeSet().adddAll(singletonList(myJson));
-        final ConcurrentTypeList list4 = new ConcurrentTypeList().adddAll(singletonList(myJson));
+        final TypeList list1 = new TypeList().addAllReturn(singletonList(myJson));
+        final TypeSet list2 = new TypeSet().addAllReturn(singletonList(myJson));
+        final ConcurrentTypeSet list3 = new ConcurrentTypeSet().addAllReturn(singletonList(myJson));
+        final ConcurrentTypeList list4 = new ConcurrentTypeList().addAllReturn(singletonList(myJson));
 
         //for coverage, for some reason it doesn't detect this earlier
         list2.add(-1, "AA");

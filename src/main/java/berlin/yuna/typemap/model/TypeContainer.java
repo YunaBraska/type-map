@@ -15,6 +15,16 @@ import java.util.function.Supplier;
 @SuppressWarnings("unused")
 public interface TypeContainer<C extends TypeContainer<C>> {
 
+    /**
+     * Retrieves the value to which the specified key is mapped, and attempts to
+     * convert it to the specified type.
+     *
+     * @param <T>  The target type for conversion.
+     * @param path the key whose associated value is to be returned.
+     * @param type the Class object of the type to convert to.
+     * @return an Optional containing the value if present and convertible, else empty.
+     */
+    <T> T get(final Class<T> type, final Object... path);
 
     /**
      * Adds the specified value
@@ -22,7 +32,7 @@ public interface TypeContainer<C extends TypeContainer<C>> {
      * @param key or index the index whose associated value is to be returned.
      * @return the updated {@link TypeListI} instance for chaining.
      */
-    C addd(final Object key, final Object value);
+    C addReturn(final Object key, final Object value);
 
     /**
      * Retrieves the value to which the specified key is mapped, and attempts to
@@ -33,7 +43,7 @@ public interface TypeContainer<C extends TypeContainer<C>> {
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    <T> Optional<T> gett(final Class<T> type, final Object... path);
+    <T> Optional<T> getOpt(final Class<T> type, final Object... path);
 
     /**
      * This method converts the retrieved map to a list of the specified key and value types.
@@ -129,18 +139,18 @@ public interface TypeContainer<C extends TypeContainer<C>> {
     <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path);
 
     /**
-     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     * Fluent type-check if the current {@link TypeContainer} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
-    Optional<TypeMapI<?>> typeMap();
+    Optional<TypeMapI<?>> typeMapOpt();
 
     /**
-     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     * Fluent type-check if the current {@link TypeContainer} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */
-    Optional<TypeListI<?>> typeList();
+    Optional<TypeListI<?>> typeListOpt();
 
     /**
      * Converts any object to its JSON representation.

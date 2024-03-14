@@ -34,9 +34,9 @@ public class ArgsDecoder {
 
     protected static TypeList handleValue(final String value) {
         if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") && value.endsWith("\""))) {
-            return new TypeList().addd(convertToType(value.substring(1, value.length() - 1)));
+            return new TypeList().addReturn(convertToType(value.substring(1, value.length() - 1)));
         }
-        return new TypeList().adddAll(Arrays.stream(value.split("\\s+", -1)).map(ArgsDecoder::convertToType).collect(Collectors.toList()));
+        return new TypeList().addAllReturn(Arrays.stream(value.split("\\s+", -1)).map(ArgsDecoder::convertToType).collect(Collectors.toList()));
     }
 
     private static Object convertToType(final String string) {

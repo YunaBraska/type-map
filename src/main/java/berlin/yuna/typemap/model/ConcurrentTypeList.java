@@ -54,7 +54,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return the updated TypeList instance for chaining.
      */
     @Override
-    public ConcurrentTypeList addd(final Object value) {
+    public ConcurrentTypeList addReturn(final Object value) {
         super.add(value);
         return this;
     }
@@ -67,7 +67,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return the updated {@link TypeList} instance for chaining.
      */
     @Override
-    public ConcurrentTypeList addd(final int index, final Object value) {
+    public ConcurrentTypeList addReturn(final int index, final Object value) {
         if (index >= 0 && index < this.size()) {
             super.add(index, value);
         } else {
@@ -83,11 +83,11 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @param value the value to be added
      * @return the updated {@link ConcurrentTypeList} instance for chaining.
      */
-    public ConcurrentTypeList addd(final Object index, final Object value) {
+    public ConcurrentTypeList addReturn(final Object index, final Object value) {
         if (index == null) {
             super.add(value);
         } else if (index instanceof Number) {
-            this.addd(((Number) index).intValue(), value);
+            this.addReturn(((Number) index).intValue(), value);
         }
         return this;
     }
@@ -99,7 +99,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return the updated {@link ConcurrentTypeList} instance for chaining.
      */
     @Override
-    public ConcurrentTypeList adddAll(final Collection<?> collection) {
+    public ConcurrentTypeList addAllReturn(final Collection<?> collection) {
         super.addAll(collection);
         return this;
     }
@@ -119,27 +119,13 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * Retrieves the value to which the specified index, and attempts to
      * convert it to the specified type.
      *
-     * @param <T>   The target type for conversion.
-     * @param index the index whose associated value is to be returned.
-     * @param type  the Class object of the type to convert to.
+     * @param <T>  The target type for conversion.
+     * @param type the Class object of the type to convert to.
+     * @param path the key or index whose associated value is to be returned.
      * @return value if present and convertible, else null.
      */
-    public <T> T get(final int index, final Class<T> type) {
-        return gett(index, type).orElse(null);
-    }
-
-    /**
-     * Retrieves the value to which the specified index, and attempts to
-     * convert it to the specified type.
-     *
-     * @param <T>   The target type for conversion.
-     * @param index the index whose associated value is to be returned.
-     * @param type  the Class object of the type to convert to.
-     * @return an Optional containing the value if present and convertible, else empty.
-     */
-    @Override
-    public <T> Optional<T> gett(final int index, final Class<T> type) {
-        return ofNullable(treeGet(this, index)).map(object -> convertObj(object, type));
+    public <T> T get(final Class<T> type, final Object... path) {
+        return getOpt(type, path).orElse(null);
     }
 
     /**
@@ -152,7 +138,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return an Optional containing the value if present and convertible, else empty.
      */
     @Override
-    public <T> Optional<T> gett(final Class<T> type, final Object... path) {
+    public <T> Optional<T> getOpt(final Class<T> type, final Object... path) {
         return ofNullable(treeGet(this, path)).map(object -> convertObj(object, type));
     }
 
@@ -180,35 +166,6 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
     }
 
     /**
-     * Retrieves a collection associated at the specified index and converts it to
-     * the specified element type.
-     *
-     * @param <E>      The type of elements in the collection.
-     * @param index    The index whose associated value is to be returned.
-     * @param itemType The class of the items in the collection.
-     * @return a collection of the specified type and element type.
-     */
-    public <E> List<E> getList(final int index, final Class<E> itemType) {
-        return getList(ArrayList::new, itemType, index);
-    }
-
-    /**
-     * Retrieves a collection associated at the specified index and converts it to
-     * the specified collection type and element type.
-     *
-     * @param <T>      The type of the collection to be returned.
-     * @param <E>      The type of elements in the collection.
-     * @param index    The index whose associated value is to be returned.
-     * @param output   The supplier providing a new collection instance.
-     * @param itemType The class of the items in the collection.
-     * @return a collection of the specified type and element type.
-     */
-    @Override
-    public <T extends Collection<E>, E> T getList(final int index, final Supplier<? extends T> output, final Class<E> itemType) {
-        return collectionOf(super.get(index), output, itemType);
-    }
-
-    /**
      * Retrieves a collection associated with the specified key and converts it to
      * the specified collection type and element type.
      *
@@ -229,21 +186,6 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * This method is useful for cases where the type indicator is an array instance.
      *
      * @param <E>           The component type of the array.
-     * @param index         The index whose associated value is to be returned.
-     * @param typeIndicator An array instance indicating the type of array to return.
-     * @param componentType The class of the array's component type.
-     * @return an array of the specified component type.
-     */
-    public <E> E[] getArray(final int index, final E[] typeIndicator, final Class<E> componentType) {
-        final ArrayList<E> result = getList(index, ArrayList::new, componentType);
-        return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
-    }
-
-    /**
-     * Retrieves an array of a specific type associated with the specified key.
-     * This method is useful for cases where the type indicator is an array instance.
-     *
-     * @param <E>           The component type of the array.
      * @param path          The key whose associated value is to be returned.
      * @param typeIndicator An array instance indicating the type of array to return.
      * @param componentType The class of the array's component type.
@@ -253,21 +195,6 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
     public <E> E[] getArray(final E[] typeIndicator, final Class<E> componentType, final Object... path) {
         final ArrayList<E> result = getList(ArrayList::new, componentType, path);
         return result.toArray(Arrays.copyOf(typeIndicator, result.size()));
-    }
-
-    /**
-     * Retrieves an array of a specific type associated with the specified key.
-     * This method allows for custom array generation using a generator function.
-     *
-     * @param <E>           The component type of the array.
-     * @param index         The key whose associated value is to be returned.
-     * @param generator     A function to generate the array of the required size.
-     * @param componentType The class of the array's component type.
-     * @return an array of the specified component type.
-     */
-    @Override
-    public <E> E[] getArray(final int index, final IntFunction<E[]> generator, final Class<E> componentType) {
-        return getList(index, ArrayList::new, componentType).stream().toArray(generator);
     }
 
     /**
@@ -318,39 +245,6 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      *
      * @param <K>       The type of keys in the returned map.
      * @param <V>       The type of values in the returned map.
-     * @param index     The key whose associated value is to be returned.
-     * @param keyType   The class of the map's key type.
-     * @param valueType The class of the map's value type.
-     * @return a map of the specified key and value types.
-     */
-    public <K, V> Map<K, V> getMap(final int index, final Class<K> keyType, final Class<V> valueType) {
-        return convertAndMap(treeGet(this, index), LinkedHashMap::new, keyType, valueType);
-    }
-
-    /**
-     * Retrieves a map of a specific type associated with the specified key.
-     * This method converts the retrieved map to a map of the specified key and value types.
-     *
-     * @param <K>       The type of keys in the returned map.
-     * @param <V>       The type of values in the returned map.
-     * @param <M>       The type of the map to be returned.
-     * @param index     The key whose associated value is to be returned.
-     * @param output    A supplier providing a new map instance.
-     * @param keyType   The class of the map's key type.
-     * @param valueType The class of the map's value type.
-     * @return a map of the specified key and value types.
-     */
-    @Override
-    public <K, V, M extends Map<K, V>> M getMap(final int index, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
-        return convertAndMap(treeGet(this, index), output, keyType, valueType);
-    }
-
-    /**
-     * Retrieves a map of a specific type associated with the specified key.
-     * This method converts the retrieved map to a map of the specified key and value types.
-     *
-     * @param <K>       The type of keys in the returned map.
-     * @param <V>       The type of values in the returned map.
      * @param <M>       The type of the map to be returned.
      * @param path      The key whose associated value is to be returned.
      * @param output    A supplier providing a new map instance.
@@ -369,7 +263,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
     @SuppressWarnings("java:S1452")
-    public Optional<TypeMapI<?>> typeMap() {
+    public Optional<TypeMapI<?>> typeMapOpt() {
         return Optional.empty();
     }
 
@@ -379,7 +273,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */
     @SuppressWarnings("java:S1452")
-    public Optional<TypeListI<?>> typeList() {
+    public Optional<TypeListI<?>> typeListOpt() {
         return Optional.of(this);
     }
 

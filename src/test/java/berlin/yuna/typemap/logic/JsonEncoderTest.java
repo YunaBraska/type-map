@@ -64,5 +64,6 @@ class JsonEncoderTest {
         assertThat((JsonDecoder.jsonOf(jsonString))).isEqualTo(expectedString);
         assertThat(JsonDecoder.jsonListOf(jsonString)).isEqualTo(singletonList(expectedString));
         assertThat(JsonDecoder.jsonMapOf(jsonString)).containsEntry("", expectedString);
+        assertThat(JsonDecoder.jsonTypeOf(jsonString).get(String.class,0)).isEqualTo(expectedString);
     }
 }

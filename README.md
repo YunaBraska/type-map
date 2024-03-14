@@ -64,13 +64,13 @@ understand, and simple to enhance, all without any "magic" under the hood.
 - _[ConcurrentTypeSet](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeSet.java)_
 
 ```java
-    TypeMap typeMap=new TypeMap().putt("myTime",new Date());
-    OffsetDateTime timeValue=typeMap.get("myTime",OffsetDateTime.class);
+    TypeMap typeMap=new TypeMap().putt(new Date(), "myTime");
+    OffsetDateTime timeValue=typeMap.get(OffsetDateTime.class, "myTime");
 ```
 
 ```java
     TypeList typeList=new TypeList().addd(new Date());
-    String timeValue=typeList.get(0,OffsetDateTime.class);
+    String timeValue=typeList.get(OffsetDateTime.class, 0);
 ```
 
 #### Collections
@@ -80,17 +80,17 @@ understand, and simple to enhance, all without any "magic" under the hood.
 
     TypeList list1=typeMap.getList("myKey");
     Integer numberThree=typeList.getList("myKey").get(2,Integer.class)
-    List<Integer> list2=typeMap.getList("myKey",Integer.class);
-    List<Integer> list3=typeMap.getList("myKey",ArrayList::new,Integer.class);
+    List<Integer> list2=typeMap.getList(Integer.class, "myKey");
+    List<Integer> list3=typeMap.getList(ArrayList::new,Integer.class, "myKey");
 ```
 
 ```java
     TypeList typeList=new TypeList().addd(new String[]{"1","2","3"});
 
     TypeList list1=typeList.getList(0);
-    Integer numberThree=typeList.getList(0).get(2,Integer.class)
-    List<Integer> list2=typeList.getList(0,Integer.class);
-    List<Integer> list3=typeList.get(0,Integer::new,Integer.class);
+    Integer numberThree=typeList.getList(0).get(Integer.class, 2)
+    List<Integer> list2=typeList.getList(Integer.class, 0);
+    List<Integer> list3=typeList.get(Integer::new,Integer.class, 0);
 ```
 
 #### Maps
@@ -98,17 +98,17 @@ understand, and simple to enhance, all without any "magic" under the hood.
 ```java
     TypeMap typeMap=new TypeMap().putt("mykey",Map.of(6,new Date()));
 
-    LinkedTypeMap map1=typeMap.getMap("myKey");
-    Map<Long, Instant> map2=typeMap.getMap("myKey",Long.class,Instant.class)
-    Map<Long, Instant> map2=typeMap.getMap("myKey",()->new HashMap<>(),Long.class)
+LinkedTypeMap map1 = typeMap.getMap("myKey");
+Map<Long, Instant> map2 = typeMap.getMap(Long.class, Instant.class, "mykey")
+Map<Long, Instant> map2 = typeMap.getMap(() -> new HashMap<>(), Long.class, "mykey")
 ```
 
 ```java
-    TypeList typeLst=new TypeList().addd(Map.of(6,new Date()));
+    TypeList typeLst = new TypeList().addd(Map.of(6, new Date()));
 
-    LinkedTypeMap map1=typeLst.getMap(0);
-    Map<Long, Instant> map2=typeLst.getMap(0,Long.class,Instant.class);
-    Map<Long, Instant> map3=typeLst.getMap(0,HashMap::new,Long.class,Instant.class);
+LinkedTypeMap map1 = typeLst.getMap(0);
+Map<Long, Instant> map2 = typeLst.getMap(Long.class, Instant.class, 0);
+Map<Long, Instant> map3 = typeLst.getMap(HashMap::new, Long.class, Instant.class, 0);
 ```
 
 #### Json
@@ -117,31 +117,31 @@ _[JsonEncoder](src/main/java/berlin/yuna/typemap/logic/JsonEncoder.java) & [Json
 is used internally_
 
 ```java
-    final String jsonString=
+    final String jsonString =
     "{\n"
-    +"  \"outerMap\": {\n"
-    +"    \"innerMap\": {\n"
-    +"      \"timestamp\": 1800000000000,\n"
-    +"    },\n"
-    +"    \"myList\": [\"BB\",1,true,null,1.2]\n"
-    +"  }\n"
-    +"}";
-final TypeMap jsonMap=new TypeMap(jsonString);
+        + "  \"outerMap\": {\n"
+        + "    \"innerMap\": {\n"
+        + "      \"timestamp\": 1800000000000,\n"
+        + "    },\n"
+        + "    \"myList\": [\"BB\",1,true,null,1.2]\n"
+        + "  }\n"
+        + "}";
+final TypeMap jsonMap = new TypeMap(jsonString);
 
-final LinkedTypeMap map1=jsonMap.getMap("outerMap","innerMap")
-final Map<String, Instant> map2 jsonMap.getMap(String.class,Instant.class,"outerMap","innerMap")
+final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap")
+final Map<String, Instant> map2 jsonMap.getMap(String .class, Instant .class,"outerMap","innerMap")
 
-final TypeList list1=jsonMap.getMap("outerMap").getList("myList")
-final TypeList list2=jsonMap.getList("outerMap","myList")
-final List<Object> list3=jsonMap.getList(Object.class,"outerMap","myList")
-final TestEnum enum1=jsonMap.getMap("outerMap").getList("myList").get(0,TestEnum.class)
-final TestEnum enum2=jsonMap.getList("outerMap","myList").get(0,TestEnum.class)
+final TypeList list1 = jsonMap.getMap("outerMap").getList("myList")
+final TypeList list2 = jsonMap.getList("outerMap", "myList")
+final List<Object> list3 = jsonMap.getList(Object.class, "outerMap", "myList")
+final TestEnum enum1 = jsonMap.getMap("outerMap").getList("myList").get(TestEnum.class, 0)
+final TestEnum enum2 = jsonMap.getList("outerMap", "myList").get(TestEnum.class, 0)
 
-final Date myDate=jsonMap.get(Date.class,"outerMap","innerMap","timestamp");
-final Long myTimestamp=jsonMap.get(Long.class,"outerMap","innerMap","timestamp");
-final TestEnum myEnum=jsonMap.get(TestEnum.class,"outerMap","myList",0);
-final Boolean myBoolean=jsonMap.get(Boolean.class,"outerMap","myList",2);
-final String backToJson=jsonMap.toJson();
+final Date myDate = jsonMap.get(Date.class, "outerMap", "innerMap", "timestamp");
+final Long myTimestamp = jsonMap.get(Long.class, "outerMap", "innerMap", "timestamp");
+final TestEnum myEnum = jsonMap.get(TestEnum.class, "outerMap", "myList", 0);
+final Boolean myBoolean = jsonMap.get(Boolean.class, "outerMap", "myList", 2);
+final String backToJson = jsonMap.toJson();
 ```
 
 #### Args
@@ -149,17 +149,17 @@ final String backToJson=jsonMap.toJson();
 _[ArgsDecoder](src/main/java/berlin/yuna/typemap/logic/ArgsDecoder.java) is used internally_
 
 ```java
-final String[]cliArgs={" myCommand1    myCommand2 --help  -v2=\"true\" -v=\"true\" -v=\"true\" --verbose=\"true\"   -Args=\"true\" -param 42   54   -ArgList=\"item 1\" --ArgList=\"item 2\" -v2=\"false\" --ArgList=\"-item 3\"  "};
-final TypeMap map1=new TypeMap(cliArgs);
+final String[] cliArgs = {" myCommand1    myCommand2 --help  -v2=\"true\" -v=\"true\" -v=\"true\" --verbose=\"true\"   -Args=\"true\" -param 42   54   -ArgList=\"item 1\" --ArgList=\"item 2\" -v2=\"false\" --ArgList=\"-item 3\"  "};
+final TypeMap map1 = new TypeMap(cliArgs);
 
-final Boolean help=map.get("help",Boolean.class);
-final Boolean v=map.get("v",Boolean.class);
-final Boolean v2=map.get("v2",Boolean.class);
-final Boolean verbose=map.get("verbose",Boolean.class);
-final Boolean args=map.get("Args",Boolean.class);
-final List<Boolean> v2List=map.getList("v2",Boolean.class)
-final List<Integer> paramList=map.getList("param",Integer.class);
-final TypeList argList=map.getList("ArgList");
+final Boolean help = map.get(Boolean.class, "help");
+final Boolean v = map.get(Boolean.class, "v");
+final Boolean v2 = map.get(Boolean.class, "v2");
+final Boolean verbose = map.get(Boolean.class, "verbose");
+final Boolean args = map.get(Boolean.class, "Args");
+final List<Boolean> v2List = map.getList("v2", Boolean.class)
+final List<Integer> paramList = map.getList("param", Integer.class);
+final TypeList argList = map.getList("ArgList");
 ```
 
 ### TypeConverter
