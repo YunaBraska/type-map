@@ -45,8 +45,8 @@ understand, and simple to enhance, all without any "magic" under the hood.
     - [TypeMap](#basics)
 - Supportive Tools:
     - [TypeConverter](#typeconverter)
-    - [JsonEncoder & XmlEncoder](#json)
-    - [JsonDecoder & XmlDecoder](#json)
+    - [JsonEncoder & XmlEncoder](#json--xml)
+    - [JsonDecoder & XmlDecoder](#json--xml)
     - [ArgsDecoder](#args)
 - Extension Mechanism:
     - [TypeConversionRegister](#register-custom-conversions)
