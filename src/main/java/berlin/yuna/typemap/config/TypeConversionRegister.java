@@ -1,12 +1,14 @@
 package berlin.yuna.typemap.config;
 
 
+import berlin.yuna.typemap.logic.TypeConverter;
 import berlin.yuna.typemap.model.FunctionOrNull;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.*;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Time;
@@ -177,6 +179,7 @@ public class TypeConversionRegister<S, T> {
         registerTypeConvert(String.class, Number.class, Double::valueOf);
         registerTypeConvert(StringBuilder.class, String.class, StringBuilder::toString);
         registerTypeConvert(String.class, StringBuilder.class, StringBuilder::new);
+        registerTypeConvert(String.class, Charset.class, Charset::forName);
 
         // PATH
         registerTypeConvert(Path.class, File.class, Path::toFile);
@@ -380,27 +383,35 @@ public class TypeConversionRegister<S, T> {
         registerTypeConvert(Timestamp.class, Date.class, timestamp -> new Date(timestamp.getTime()));
 
         // STRING TIME
-        registerTypeConvert(String.class, Date.class, string -> temporalOf(string, time -> Date.from(Instant.from(time))));
-        registerTypeConvert(String.class, Instant.class, string -> temporalOf(string, Instant::from));
-        registerTypeConvert(String.class, Calendar.class, string -> temporalOf(string, time -> GregorianCalendar.from(ZonedDateTime.from(time))));
-        registerTypeConvert(String.class, LocalDateTime.class, string -> temporalOf(string, LocalDateTime::from));
-        registerTypeConvert(String.class, LocalDate.class, string -> temporalOf(string, LocalDate::from));
-        registerTypeConvert(String.class, LocalTime.class, string -> temporalOf(string, LocalTime::from));
-        registerTypeConvert(String.class, OffsetDateTime.class, string -> temporalOf(string, time -> {
+        registerTypeConvert(String.class, Date.class, string -> temporalOf(Date.class, string, time -> Date.from(Instant.from(time))));
+        registerTypeConvert(String.class, Instant.class, string -> temporalOf(Instant.class, string, Instant::from));
+        registerTypeConvert(String.class, Calendar.class, string -> temporalOf(Calendar.class, string, time -> GregorianCalendar.from(ZonedDateTime.from(time))));
+        registerTypeConvert(String.class, LocalDateTime.class, string -> temporalOf(LocalDateTime.class, string, LocalDateTime::from));
+        registerTypeConvert(String.class, LocalDate.class, string -> temporalOf(LocalDate.class, string, LocalDate::from));
+        registerTypeConvert(String.class, LocalTime.class, string -> temporalOf(LocalTime.class, string, LocalTime::from));
+        registerTypeConvert(String.class, OffsetDateTime.class, string -> temporalOf(OffsetDateTime.class, string, time -> {
             final ZonedDateTime zonedDateTime = ZonedDateTime.from(time);
             return OffsetDateTime.of(zonedDateTime.toLocalDateTime(), zonedDateTime.getOffset());
         }));
-        registerTypeConvert(String.class, ZonedDateTime.class, string -> temporalOf(string, ZonedDateTime::from));
-        registerTypeConvert(String.class, java.sql.Date.class, string -> temporalOf(string, time -> java.sql.Date.valueOf(LocalDate.from(time))));
-        registerTypeConvert(String.class, Time.class, string -> temporalOf(string, time -> Time.valueOf(LocalTime.from(time))));
-        registerTypeConvert(String.class, Timestamp.class, string -> temporalOf(string, time -> Timestamp.from(Instant.from(time))));
+        registerTypeConvert(String.class, ZonedDateTime.class, string -> temporalOf(ZonedDateTime.class, string, ZonedDateTime::from));
+        registerTypeConvert(String.class, java.sql.Date.class, string -> temporalOf(java.sql.Date.class, string, time -> java.sql.Date.valueOf(LocalDate.from(time))));
+        registerTypeConvert(String.class, Time.class, string -> temporalOf(Time.class, string, time -> Time.valueOf(LocalTime.from(time))));
+        registerTypeConvert(String.class, Timestamp.class, string -> temporalOf(Timestamp.class, string, time -> Timestamp.from(Instant.from(time))));
     }
 
-    public static <T> T temporalOf(final String string, final Function<TemporalAccessor, T> converter) {
+    public static <T> T temporalOf(final Class<T> target, final String string, final Function<TemporalAccessor, T> converter) {
         for (final DateTimeFormatter formatter : DATE_TIME_FORMATTERS) {
             try {
                 return converter.apply(formatter.parse(string));
             } catch (final DateTimeParseException ignored) {
+                // ignored
+            }
+
+            // Try convert to timestamp
+            // careful with `convertObj` at this place can lead to loops
+            try {
+                return TypeConverter.convertObj(Long.valueOf(string), target);
+            } catch (final Exception ignored) {
                 // ignored
             }
         }
@@ -471,7 +482,7 @@ public class TypeConversionRegister<S, T> {
      * Initiates a type conversion registration process from a specified source type.
      * This is the entry point of the fluent interface for type conversion registration.
      *
-     * @param <S> The source type to start the conversion from.
+     * @param <S>    The source type to start the conversion from.
      * @param source The class object representing the source type.
      * @return An instance of TypeConversionRegister for chaining the next steps.
      */
@@ -482,7 +493,7 @@ public class TypeConversionRegister<S, T> {
     /**
      * Specifies the target type for the type conversion.
      *
-     * @param <D> The target type to convert to.
+     * @param <D>    The target type to convert to.
      * @param target The class object representing the target type.
      * @return An instance of TypeConversionRegister for chaining the conversion function.
      */

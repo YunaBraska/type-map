@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
+import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -247,5 +248,22 @@ class TypeMapTest {
 
         System.out.println(date + calendar.toString() + localDateTime.toString() + zonedDateTime.toString());
         System.out.println(jsonMap.toString() + myDate + myTimestamp + myEnum + myBoolean + myJson + map1 + testEnum);
+
+    }
+
+    @Test
+    void showCaseXml() {
+        final String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<error>\n"
+            + "  <code>red</code>\n"
+            + "  <details>\n"
+            + "    <http-status>418</http-status>\n"
+            + "    <date-time>Fri Jan 15 08:00:00 UTC 2027</date-time>\n"
+            + "  </details>\n"
+            + "</error>";
+        final TypeList xml = xmlTypeOf(xmlString);
+        assertThat(xml.get(String.class, "error", "code")).isEqualTo("red");
+        assertThat(xml.get(Integer.class, "error", "details", "http-status")).isEqualTo(418);
+        assertThat(xml.get(Date.class, "error", "details", "date-time")).isEqualTo(new Date(1800000000000L));
     }
 }
