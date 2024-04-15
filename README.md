@@ -1,4 +1,4 @@
-# TypeMap & TypeList incl. TypeConverter & JsonConverter
+# TypeMap & TypeList incl. TypeConverter
 
 [![Build][build_shield]][build_link]
 [![Maintainable][maintainable_shield]][maintainable_link]
