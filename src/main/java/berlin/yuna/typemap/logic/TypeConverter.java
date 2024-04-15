@@ -2,6 +2,7 @@ package berlin.yuna.typemap.logic;
 
 
 import berlin.yuna.typemap.model.FunctionOrNull;
+import berlin.yuna.typemap.model.Pair;
 import berlin.yuna.typemap.model.TypeList;
 import berlin.yuna.typemap.model.TypeMap;
 
@@ -327,7 +328,13 @@ public class TypeConverter {
             return getFirstFromArray(value);
         } else if (value instanceof Map<?, ?>) {
             final Map<?, ?> map = (Map<?, ?>) value;
-            return map.isEmpty() ? null : map.entrySet().iterator().next().getKey();
+            if (!map.isEmpty()) {
+                final Map.Entry<?, ?> first = map.entrySet().iterator().next();
+                return first.getKey() == null || "".equals(first.getKey()) ? first.getValue() : first.getKey();
+            }
+        } else if (value instanceof Pair<?, ?>) {
+            final Pair<?, ?> pair = (Pair<?, ?>) value;
+            return pair.key() == null || "".equals(pair.key()) ? pair.value() : pair.key();
         }
         return null;
     }

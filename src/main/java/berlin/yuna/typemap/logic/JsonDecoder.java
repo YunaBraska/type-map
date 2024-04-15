@@ -20,14 +20,15 @@ public class JsonDecoder {
      * a consistent interface for further operations. This approach allows for flexible processing of JSON data, enabling
      * easy extraction and manipulation of nested structures.
      *
-     * @param json The JSON string to be analyzed and converted. Can represent a JSON object, array, or primitive type.
+     * @param jsonOrXml The JSON string to be analyzed and converted. Can represent a JSON object, array, or primitive type.
      * @return A {@link TypeContainer} instance representing the structured data of the JSON input. If the input is
      *         a JSON object or array, the returned {@link TypeContainer} will be a {@link TypeMap} or {@link TypeList},
      *         respectively. For primitive JSON types, a {@link TypeList} containing the single value is returned.
      *         In cases where the input cannot be parsed or is null, a new {@link TypeList} with no elements is returned.
      */
-    public static TypeContainer<?> jsonTypeOf(final String json) {
-        final Object result = jsonOf(json);
+    @SuppressWarnings("java:S1452")
+    public static TypeContainer<?> jsonTypeOf(final String jsonOrXml) {
+        final Object result = jsonOrXml != null && jsonOrXml.startsWith("<")? XmlDecoder.xmlTypeOf(jsonOrXml) : jsonOf(jsonOrXml);
         return result instanceof TypeContainer? (TypeContainer<?>) result : new TypeList().addReturn(result);
     }
 

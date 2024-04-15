@@ -4,6 +4,7 @@ package berlin.yuna.typemap.model;
 import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.JsonEncoder;
+import berlin.yuna.typemap.logic.XmlDecoder;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -270,7 +271,9 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                     final List<?> list = (List<?>) value;
                     value = (index >= 0 && index < list.size()) ? list.get(index) : null;
                 } else {
-                    value = ((Collection<?>) value).stream().filter(item -> Objects.equals(item, key)).findFirst().orElse(null);
+                    value = ((Collection<?>) value).stream().filter(item -> Objects.equals(item, key)
+                        || (item instanceof Pair && Objects.equals(((Pair<?, ?>) item).key(), key))
+                    ).map(o -> o instanceof Pair? ((Pair<?,?>) o).value() : o).findFirst().orElse(null);
                 }
             } else if (value.getClass().isArray()) {
                 final int index = key instanceof Number ? ((Number) key).intValue() : -1;
@@ -281,6 +284,10 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                         result.set(item);
                 });
                 return result.get();
+            } else if (value instanceof Pair) {
+                final Pair<?, ?> pair = (Pair<?, ?>) value;
+                if (Objects.equals(pair.key(), key))
+                    value = pair.value();
             } else {
                 value = null;
             }

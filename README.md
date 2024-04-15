@@ -45,8 +45,8 @@ understand, and simple to enhance, all without any "magic" under the hood.
     - [TypeMap](#basics)
 - Supportive Tools:
     - [TypeConverter](#typeconverter)
-    - [JsonEncoder](#json)
-    - [JsonDecoder](#json)
+    - [JsonEncoder & XmlEncoder](#json)
+    - [JsonDecoder & XmlDecoder](#json)
     - [ArgsDecoder](#args)
 - Extension Mechanism:
     - [TypeConversionRegister](#register-custom-conversions)
@@ -111,7 +111,7 @@ Map<Long, Instant> map2 = typeLst.getMap(Long.class, Instant.class, 0);
 Map<Long, Instant> map3 = typeLst.getMap(HashMap::new, Long.class, Instant.class, 0);
 ```
 
-#### Json
+#### Json & XML
 
 _[JsonEncoder](src/main/java/berlin/yuna/typemap/logic/JsonEncoder.java) & [JsonDecoder](src/main/java/berlin/yuna/typemap/logic/JsonDecoder.java)
 is used internally_
@@ -126,7 +126,9 @@ is used internally_
         + "    \"myList\": [\"BB\",1,true,null,1.2]\n"
         + "  }\n"
         + "}";
+
 final TypeMap jsonMap = new TypeMap(jsonString);
+// or xmlTypeOf(xmlString); jsonTypeOf(jsonOrXml); new TypeList(jsonOrXmlString);
 
 final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap")
 final Map<String, Instant> map2 jsonMap.getMap(String .class, Instant .class,"outerMap","innerMap")

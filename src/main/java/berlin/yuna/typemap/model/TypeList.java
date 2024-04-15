@@ -3,6 +3,7 @@ package berlin.yuna.typemap.model;
 
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.JsonEncoder;
+import berlin.yuna.typemap.logic.XmlDecoder;
 
 import java.util.*;
 import java.util.function.IntFunction;
@@ -33,8 +34,8 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     /**
      * Constructs a new {@link TypeList} of the specified json.
      */
-    public TypeList(final String json) {
-        this(JsonDecoder.jsonListOf(json));
+    public TypeList(final String jsonOrXml) {
+        this(jsonOrXml != null && jsonOrXml.startsWith("<")? XmlDecoder.xmlTypeOf(jsonOrXml) :JsonDecoder.jsonListOf(jsonOrXml));
     }
 
     /**
