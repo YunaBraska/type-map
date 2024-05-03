@@ -2,7 +2,6 @@ package berlin.yuna.typemap.model;
 
 
 import berlin.yuna.typemap.config.TypeConversionRegister;
-import berlin.yuna.typemap.logic.TypeConverter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -11,13 +10,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.time.*;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
+import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
+import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 class TypeMapTest {
 
@@ -110,6 +113,7 @@ class TypeMapTest {
         typeMap.put("myKey", input);
 
         // TREE MAP
+        assertThat(typeMap.getMap(String.class, Object.class)).containsOnlyKeys("myKey");
         assertThat(typeMap.getMap("myKey")).containsEntry(6, new Date(TEST_TIME));
         assertThat(typeMap.getMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
@@ -119,6 +123,29 @@ class TypeMapTest {
         assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeMap.getMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey2")).isEmpty();
+    }
+
+    @ParameterizedTest
+    @MethodSource("typeMapProvider")
+    void mapFunctionalConvertTest(final String mapName, final TypeMapI<?> typeMap) {
+        typeMap.put("1", "AA");
+        typeMap.put("2", Arrays.asList("BB", "CC"));
+        typeMap.put("3", new String[]{"DD", "EE"});
+
+        // TREE MAP
+        assertThat(typeMap.getMap(Integer.class, value -> value)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeMap.getMap(key -> convertObj(key, Integer.class), value -> value)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeMap.getMap(key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).containsExactly(
+            entry(1, singletonList("AA")),
+            entry(2, Arrays.asList("BB", "CC")),
+            entry(3, Arrays.asList("DD", "EE"))
+        );
+        assertThat(typeMap.getMap(() -> new LinkedHashMap<>(), key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).containsExactly(
+            entry(1, singletonList("AA")),
+            entry(2, Arrays.asList("BB", "CC")),
+            entry(3, Arrays.asList("DD", "EE"))
+        );
+        assertThat(typeMap.getMap((Supplier<? extends Map<Integer, List<String>>>) null, key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).isEmpty();
     }
 
     @ParameterizedTest
@@ -155,7 +182,7 @@ class TypeMapTest {
         innerMap.put("FF", new Object[]{anObject});
         typeMap.put("AA", innerMap);
 
-        assertThat(typeMap.getOpt(Object.class)).isEmpty();
+        assertThat(typeMap.getOpt(Object.class)).contains(typeMap);
         assertThat(typeMap.getOpt(Object.class, (Object) null)).isEmpty();
         assertThat(typeMap.getOpt(Object.class, new Object[]{null})).isEmpty();
         assertThat(typeMap.getOpt(Object.class, "AA")).contains(innerMap);
@@ -212,7 +239,7 @@ class TypeMapTest {
     void showCaseTest() {
 
         // Converter
-        final Date date = TypeConverter.convertObj("Sat Nov 11 16:12:29 CET 2023", Date.class);
+        final Date date = convertObj("Sat Nov 11 16:12:29 CET 2023", Date.class);
 
         // TypeMap
         final TypeMap map = new TypeMap();

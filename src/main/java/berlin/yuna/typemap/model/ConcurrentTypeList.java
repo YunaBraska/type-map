@@ -6,6 +6,7 @@ import berlin.yuna.typemap.logic.JsonEncoder;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
@@ -255,6 +256,52 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
     @Override
     public <K, V, M extends Map<K, V>> M getMap(final Supplier<M> output, final Class<K> keyType, final Class<V> valueType, final Object... path) {
         return convertAndMap(treeGet(this, path), output, keyType, valueType);
+    }
+
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>         The type of keys in the returned map.
+     * @param <V>         The type of values in the returned map.
+     * @param path        The key whose associated value is to be returned.
+     * @param keyType     The class of the map's key type.
+     * @param valueMapper A function that maps the input values to the desired value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V> Map<K, V> getMap(final Class<K> keyType, final Function<Object, V> valueMapper, final Object... path) {
+        return getMap(key -> convertObj(key, keyType), valueMapper, path);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>         The type of keys in the returned map.
+     * @param <V>         The type of values in the returned map.
+     * @param path        The key whose associated value is to be returned.
+     * @param keyMapper   A function that maps the input keys to the desired key type.
+     * @param valueMapper A function that maps the input values to the desired value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V> Map<K, V> getMap(final Function<Object, K> keyMapper, final Function<Object, V> valueMapper, final Object... path) {
+        return getMap(LinkedHashMap::new, keyMapper, valueMapper, path);
+    }
+
+    /**
+     * Retrieves a map of a specific type associated with the specified key.
+     * This method converts the retrieved map to a map of the specified key and value types.
+     *
+     * @param <K>         The type of keys in the returned map.
+     * @param <V>         The type of values in the returned map.
+     * @param path        The key whose associated value is to be returned.
+     * @param keyMapper   A function that maps the input keys to the desired key type.
+     * @param valueMapper A function that maps the input values to the desired value type.
+     * @return a map of the specified key and value types.
+     */
+    public <K, V, M extends Map<K, V>> M getMap(final Supplier<M> output, final Function<Object, K> keyMapper, final Function<Object, V> valueMapper, final Object... path) {
+        return convertAndMap(treeGet(this, path), output, keyMapper, valueMapper);
     }
 
     /**

@@ -10,9 +10,12 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
+import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 class TypeListTest {
 
@@ -139,6 +142,26 @@ class TypeListTest {
         assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
     }
 
+    @ParameterizedTest
+    @MethodSource("typeMapProvider")
+    void mapFunctionalConvertTest(final String mapName, final TypeListI<?> typeList) {
+        final Map<Object, Object> map = new LinkedHashMap<>();
+        map.put("1", "AA");
+        map.put("2", Arrays.asList("BB", "CC"));
+        map.put("3", new String[]{"DD", "EE"});
+        typeList.add(map);
+
+        // TREE MAP
+        assertThat(typeList.getMap(Integer.class, value -> value)).isEmpty();
+        assertThat(typeList.getMap(Integer.class, value -> value, 0)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeList.getMap(key -> convertObj(key, Integer.class), value -> value, 0)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeList.getMap(key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class), 0)).containsExactly(
+            entry(1, singletonList("AA")),
+            entry(2, Arrays.asList("BB", "CC")),
+            entry(3, Arrays.asList("DD", "EE"))
+        );
+    }
+
     @ParameterizedTest(name = "[{index}] [{0}]")
     @MethodSource("typeMapProvider")
     void jsonConvertTest(final String mapName, final TypeListI<?> typeList) {
@@ -173,7 +196,7 @@ class TypeListTest {
         innerMap.put("FF", new Object[]{anObject});
         typeList.add(innerMap);
 
-        assertThat(typeList.getOpt(Object.class)).isEmpty();
+        assertThat(typeList.getOpt(Object.class)).contains(typeList);
         assertThat(typeList.getOpt(Object.class, (Object) null)).isEmpty();
         assertThat(typeList.getOpt(Object.class, new Object[]{null})).isEmpty();
         assertThat(typeList.getOpt(Object.class, 0)).contains(innerMap);
