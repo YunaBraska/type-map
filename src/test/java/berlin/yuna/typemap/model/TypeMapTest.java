@@ -64,8 +64,21 @@ class TypeMapTest {
     @ParameterizedTest
     @MethodSource("typeMapProvider")
     void enumConvertTest(final String mapName, final TypeMapI<?> typeMap) {
-        typeMap.put("myKey", "BB");
-        assertThat(typeMap.getOpt(TestEnum.class, "myKey")).contains(TestEnum.BB);
+        TypeConversionRegister.registerTypeConvert(Number.class, TestEnum.class, source -> source.intValue() == 5 ? TestEnum.AA : null);
+        typeMap.put("key1", "BB");
+        typeMap.put("key2", "1");
+        typeMap.put("key3", 0);
+        typeMap.put("key4", 1);
+        typeMap.put("key5", 3);
+        typeMap.put("key6", 5D);
+        typeMap.put("key7", -1);
+        assertThat(typeMap.getOpt(TestEnum.class, "key1")).contains(TestEnum.BB);
+        assertThat(typeMap.getOpt(TestEnum.class, "key2")).isEmpty();
+        assertThat(typeMap.getOpt(TestEnum.class, "key3")).contains(TestEnum.AA);
+        assertThat(typeMap.getOpt(TestEnum.class, "key4")).contains(TestEnum.BB);
+        assertThat(typeMap.getOpt(TestEnum.class, "key5")).isEmpty();
+        assertThat(typeMap.getOpt(TestEnum.class, "key6")).contains(TestEnum.AA);
+        assertThat(typeMap.getOpt(TestEnum.class, "key7")).isEmpty();
     }
 
     @ParameterizedTest

@@ -24,12 +24,11 @@ public class XmlEncoder {
      *
      * @param collection the collection of {@link Pair} objects representing the XML structure.
      * @return a formatted XML string representing the content of the collection.
-     * @throws IllegalArgumentException if the collection is null or does not contain {@link Pair} elements.
-     * @throws IllegalStateException    if an error occurs during XML generation.
+     * @throws IllegalStateException if an error occurs during XML generation.
      */
     public static String toXml(final Collection<?> collection) {
-        if (collection == null || (!collection.isEmpty() && !(collection.iterator().next() instanceof Pair))) {
-            throw new IllegalArgumentException("Collection must not be null and must contain Pair elements");
+        if (collection == null || collection.isEmpty() || (!(collection.iterator().next() instanceof Pair))) {
+            return "";
         }
         try {
             final Document doc = documentBuilder().newDocument();

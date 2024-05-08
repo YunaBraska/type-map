@@ -48,4 +48,14 @@ class XmlDecoderTest {
         assertThat(encode1).isNotNull().isNotBlank().isNotEmpty().isEqualTo(encode2);
         assertThat(xml1).isEqualTo(xml2);
     }
+
+    @Test
+    void decodeEncode_withInvalidSource() {
+        assertThat(XmlEncoder.toXml(null)).isEmpty();
+        assertThat(XmlEncoder.toXml(new TypeList())).isEmpty();
+        assertThat(XmlDecoder.xmlTypeOf("")).isEqualTo(new TypeList());
+        assertThat(XmlDecoder.xmlTypeOf((File) null)).isEqualTo(new TypeList());
+        assertThat(XmlDecoder.xmlTypeOf((String) null)).isEqualTo(new TypeList());
+        assertThat(XmlDecoder.xmlTypeOf((InputStream) null)).isEqualTo(new TypeList());
+    }
 }

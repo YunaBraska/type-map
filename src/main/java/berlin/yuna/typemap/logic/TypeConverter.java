@@ -55,7 +55,10 @@ public class TypeConverter {
 
         // Enums
         if (targetType.isEnum()) {
-            return (T) enumOf(String.valueOf(value), (Class<Enum>) targetType);
+            final Enum anEnum = enumOf(value, (Class<Enum>) targetType);
+            if (anEnum != null) {
+                return (T) anEnum;
+            }
         }
 
         final Class<?> sourceType = value.getClass();
@@ -300,9 +303,18 @@ public class TypeConverter {
      * @param enumType The class of the enum type.
      * @return the enum constant corresponding to the given string, or null if no match is found.
      */
-    public static <T extends Enum<T>> T enumOf(final String value, final Class<T> enumType) {
+    public static <T extends Enum<T>> T enumOf(final Object value, final Class<T> enumType) {
         try {
-            return value != null && enumType != null && enumType.isEnum() ? Enum.valueOf(enumType, value) : null;
+            if(value instanceof Number) {
+                final int ordinal = ((Number) value).intValue();
+                final T[] enumConstants = enumType.getEnumConstants();
+                if (ordinal >= 0 && ordinal < enumConstants.length) {
+                    return enumConstants[ordinal];
+                }
+                return null;
+            } else {
+                return Enum.valueOf(enumType, String.valueOf(value));
+            }
         } catch (final IllegalArgumentException ignored) {
             return null;
         }

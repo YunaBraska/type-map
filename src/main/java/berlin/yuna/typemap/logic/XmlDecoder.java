@@ -3,6 +3,9 @@ package berlin.yuna.typemap.logic;
 import berlin.yuna.typemap.model.Pair;
 import berlin.yuna.typemap.model.TypeList;
 import org.w3c.dom.*;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -89,6 +92,7 @@ public class XmlDecoder {
     public static DocumentBuilder documentBuilder() {
         try {
             final DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            dbFactory.setValidating(false);
             // Prevent XXE
             dbFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             dbFactory.setFeature("http://xml.org/sax/features/external-general-entities", false);
@@ -97,7 +101,24 @@ public class XmlDecoder {
             dbFactory.setXIncludeAware(false);
             dbFactory.setExpandEntityReferences(false);
 
-            return dbFactory.newDocumentBuilder();
+            final DocumentBuilder documentBuilder = dbFactory.newDocumentBuilder();
+            documentBuilder.setErrorHandler(new ErrorHandler() {
+                @Override
+                public void warning(final SAXParseException exception) {
+                    // ignored
+                }
+
+                @Override
+                public void error(final SAXParseException exception) {
+                    // ignored
+                }
+
+                @Override
+                public void fatalError(final SAXParseException exception) {
+                    // ignored
+                }
+            });
+            return documentBuilder;
         } catch (final ParserConfigurationException e) {
             throw new IllegalStateException(e);
         }
