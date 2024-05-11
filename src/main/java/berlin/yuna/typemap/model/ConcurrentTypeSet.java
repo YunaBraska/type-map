@@ -373,7 +373,7 @@ public class ConcurrentTypeSet extends CopyOnWriteArrayList<Object> implements T
     }
 
     /**
-     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeMapI}
+     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
@@ -383,7 +383,7 @@ public class ConcurrentTypeSet extends CopyOnWriteArrayList<Object> implements T
     }
 
     /**
-     * Fluent typecheck if the current {@link TypeContainer} is a {@link TypeListI}
+     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */

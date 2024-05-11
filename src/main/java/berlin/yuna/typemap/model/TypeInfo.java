@@ -14,7 +14,7 @@ import java.util.function.Supplier;
  * @param <C> {@link TypeMapI} or {@link TypeListI}
  */
 @SuppressWarnings("unused")
-public interface TypeContainer<C extends TypeContainer<C>> {
+public interface TypeInfo<C extends TypeInfo<C>> {
 
     /**
      * Retrieves the value to which the specified key is mapped, and attempts to
@@ -180,14 +180,14 @@ public interface TypeContainer<C extends TypeContainer<C>> {
     <E> E[] getArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path);
 
     /**
-     * Fluent type-check if the current {@link TypeContainer} is a {@link TypeMapI}
+     * Fluent type-check if the current {@link TypeInfo} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
     Optional<TypeMapI<?>> typeMapOpt();
 
     /**
-     * Fluent type-check if the current {@link TypeContainer} is a {@link TypeListI}
+     * Fluent type-check if the current {@link TypeInfo} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */

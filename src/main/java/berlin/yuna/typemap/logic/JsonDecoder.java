@@ -1,7 +1,7 @@
 package berlin.yuna.typemap.logic;
 
 import berlin.yuna.typemap.model.LinkedTypeMap;
-import berlin.yuna.typemap.model.TypeContainer;
+import berlin.yuna.typemap.model.TypeInfo;
 import berlin.yuna.typemap.model.TypeList;
 import berlin.yuna.typemap.model.TypeMap;
 
@@ -13,23 +13,23 @@ public class JsonDecoder {
 
 
     /**
-     * Determines the type of the given JSON string and converts it into a corresponding {@link TypeContainer} instance.
+     * Determines the type of the given JSON string and converts it into a corresponding {@link TypeInfo} instance.
      * This method utilizes the {@link #jsonOf(String)} method to parse the JSON string and then checks the resulting
-     * object's type to appropriately wrap it within a {@link TypeContainer}. If the result is already an instance of
-     * {@link TypeContainer}, it is returned directly. Otherwise, the result is wrapped in a {@link TypeList} to maintain
+     * object's type to appropriately wrap it within a {@link TypeInfo}. If the result is already an instance of
+     * {@link TypeInfo}, it is returned directly. Otherwise, the result is wrapped in a {@link TypeList} to maintain
      * a consistent interface for further operations. This approach allows for flexible processing of JSON data, enabling
      * easy extraction and manipulation of nested structures.
      *
      * @param jsonOrXml The JSON string to be analyzed and converted. Can represent a JSON object, array, or primitive type.
-     * @return A {@link TypeContainer} instance representing the structured data of the JSON input. If the input is
-     *         a JSON object or array, the returned {@link TypeContainer} will be a {@link TypeMap} or {@link TypeList},
+     * @return A {@link TypeInfo} instance representing the structured data of the JSON input. If the input is
+     *         a JSON object or array, the returned {@link TypeInfo} will be a {@link TypeMap} or {@link TypeList},
      *         respectively. For primitive JSON types, a {@link TypeList} containing the single value is returned.
      *         In cases where the input cannot be parsed or is null, a new {@link TypeList} with no elements is returned.
      */
     @SuppressWarnings("java:S1452")
-    public static TypeContainer<?> jsonTypeOf(final String jsonOrXml) {
+    public static TypeInfo<?> jsonTypeOf(final String jsonOrXml) {
         final Object result = jsonOrXml != null && jsonOrXml.startsWith("<")? XmlDecoder.xmlTypeOf(jsonOrXml) : jsonOf(jsonOrXml);
-        return result instanceof TypeContainer? (TypeContainer<?>) result : new TypeList().addReturn(result);
+        return result instanceof TypeInfo ? (TypeInfo<?>) result : new TypeList().addReturn(result);
     }
 
     /**

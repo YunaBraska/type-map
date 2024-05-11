@@ -2,7 +2,7 @@ package berlin.yuna.typemap.model;
 
 import java.util.Map;
 
-public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, TypeContainer<C> {
+public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, TypeInfo<C> {
 
     /**
      * Associates the specified value with the specified key in this map.

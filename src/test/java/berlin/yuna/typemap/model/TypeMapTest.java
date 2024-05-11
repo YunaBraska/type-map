@@ -274,7 +274,7 @@ class TypeMapTest {
             + "  }\n"
             + "}";
 
-        final TypeContainer<?> jsonMap = jsonTypeOf(jsonString);
+        final TypeInfo<?> jsonMap = jsonTypeOf(jsonString);
         final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap");
         final TestEnum testEnum = jsonMap.getList("outerMap", "myList").get(TestEnum.class, 0);
 

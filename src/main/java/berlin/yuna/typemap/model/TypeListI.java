@@ -3,7 +3,7 @@ package berlin.yuna.typemap.model;
 import java.util.Collection;
 import java.util.List;
 
-public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeContainer<C> {
+public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInfo<C> {
 
     /**
      * Adds the specified value
