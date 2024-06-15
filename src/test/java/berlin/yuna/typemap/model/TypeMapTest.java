@@ -19,10 +19,9 @@ import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.*;
 
-class TypeMapTest {
+public class TypeMapTest {
 
     public static final long TEST_TIME = 1800000000000L;
 
@@ -252,7 +251,7 @@ class TypeMapTest {
     void showCaseTest() {
 
         // Converter
-        final Date date = convertObj("Sat Nov 11 16:12:29 CET 2023", Date.class);
+        final Date date = convertObj("Fri Jan 15 08:00:00 UTC 2027", Date.class);
 
         // TypeMap
         final TypeMap map = new TypeMap();
@@ -265,30 +264,44 @@ class TypeMapTest {
         TypeConversionRegister.registerTypeConvert(UnknownClass.class, Double.class, source -> 99d);
 
         // JSON - Encode/Decode & Convert
-        final String jsonString = "{\n"
+        final String jsonInput = "{\n"
             + "  \"outerMap\": {\n"
-            + "    \"innerMap\": {\n"
-            + "      \"timestamp\": 1800000000000,\n"
+            + "    \"times\": {\n"
+            + "      \"timestamp1\": 1800000000000,\n"
+            + "      \"timestamp2\": 1800000000,\n"
+            + "      \"date\": \"Fri Jan 15 08:00:00 UTC 2027\",\n"
             + "    },\n"
             + "    \"myList\": [\"BB\",1,true,null,1.2]\n"
             + "  }\n"
             + "}";
 
-        final TypeInfo<?> jsonMap = jsonTypeOf(jsonString);
-        final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap");
+        final TypeInfo<?> jsonMap = jsonTypeOf(jsonInput);
+        final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "times");
         final TestEnum testEnum = jsonMap.getList("outerMap", "myList").get(TestEnum.class, 0);
 
-        final Optional<Date> myDate = jsonMap.getOpt(Date.class, "outerMap", "innerMap", "timestamp");
-        final Optional<Long> myTimestamp = jsonMap.getOpt(Long.class, "outerMap", "innerMap", "timestamp");
+        final Optional<Date> myDate1 = jsonMap.getOpt(Date.class, "outerMap", "times", "timestamp1");
+        final Optional<Date> myDate2 = jsonMap.getOpt(Date.class, "outerMap", "times", "timestamp2");
+        final Optional<Date> myDate3 = jsonMap.getOpt(Date.class, "outerMap", "times", "date");
+        final Optional<Long> myTimestamp = jsonMap.getOpt(Long.class, "outerMap", "times", "timestamp1");
         final Optional<TestEnum> myEnum = jsonMap.getOpt(TestEnum.class, "outerMap", "myList", 0);
         final Optional<Boolean> myBoolean = jsonMap.getOpt(Boolean.class, "outerMap", "myList", 2);
 
         final String myJson = jsonMap.toJson();
 
-
-        System.out.println(date + calendar.toString() + localDateTime.toString() + zonedDateTime.toString());
-        System.out.println(jsonMap.toString() + myDate + myTimestamp + myEnum + myBoolean + myJson + map1 + testEnum);
-
+        // Assertions
+        assertThat(calendar).isPresent();
+        assertThat(localDateTime).isPresent();
+        assertThat(zonedDateTime).isPresent();
+        assertThat(map1).hasSize(3);
+        assertThat(testEnum).isEqualTo(TestEnum.BB);
+        assertThat(date).isEqualTo(new Date(TEST_TIME));
+        assertThat(myDate1).contains(new Date(TEST_TIME));
+        assertThat(myDate2).contains(new Date(TEST_TIME));
+        assertThat(myDate3).contains(new Date(TEST_TIME));
+        assertThat(myTimestamp).contains(TEST_TIME);
+        assertThat(myEnum).contains(TestEnum.BB);
+        assertThat(myBoolean).contains(true);
+        assertThat(myJson).isNotNull();
     }
 
     @Test

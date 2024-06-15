@@ -12,14 +12,13 @@ import java.util.stream.Stream;
 
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
+import static berlin.yuna.typemap.model.TypeMapTest.TEST_TIME;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
 class TypeListTest {
-
-    public static final long TEST_TIME = 1800000000000L;
 
     @BeforeEach
     void setUp() {

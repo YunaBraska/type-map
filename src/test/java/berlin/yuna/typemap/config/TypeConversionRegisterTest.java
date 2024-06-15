@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static berlin.yuna.typemap.config.TypeConversionRegister.*;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
+import static berlin.yuna.typemap.model.TypeMapTest.TEST_TIME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TypeConversionRegisterTest {
@@ -174,7 +175,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertDate() {
-        final Date time = new Date(1800000000000L);
+        final Date time = new Date(TEST_TIME);
         assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -310,7 +311,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertSqlDate() {
-        final java.sql.Date time = convertObj(new Date(1800000000000L), java.sql.Date.class);
+        final java.sql.Date time = convertObj(new Date(TEST_TIME), java.sql.Date.class);
         assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -327,7 +328,7 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertSqlTime() {
-        final java.sql.Time time = convertObj(new Date(1800000000000L), java.sql.Time.class);
+        final java.sql.Time time = convertObj(new Date(TEST_TIME), java.sql.Time.class);
         assertThat(convertObj(time, Long.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
@@ -361,7 +362,26 @@ class TypeConversionRegisterTest {
 
     @Test
     void convertStringToTime() {
-        final String time = new Date(1800000000000L).toString();
+        final String time = new Date(TEST_TIME).toString();
+        assertThat(convertObj(time, Date.class)).isNotNull();
+        assertThat(convertObj(time, Instant.class)).isNotNull();
+        assertThat(convertObj(time, Calendar.class)).isNotNull();
+        assertThat(convertObj(time, LocalDate.class)).isNotNull();
+        assertThat(convertObj(time, LocalTime.class)).isNotNull();
+        assertThat(convertObj(time, LocalDateTime.class)).isNotNull();
+        assertThat(convertObj(time, OffsetDateTime.class)).isNotNull();
+        assertThat(convertObj(time, java.sql.Date.class)).isNotNull();
+        assertThat(convertObj(time, java.sql.Time.class)).isNotNull();
+        assertThat(convertObj(time, Time.class)).isNotNull();
+        assertThat(convertObj(time, ZonedDateTime.class)).isNotNull();
+        assertThat(convertObj("invalid", ZonedDateTime.class)).isNull();
+    }
+
+    @Test
+    void convertStringTimestampToTime() {
+        final String time = "1800000000000";
+        final String time2 = "1800000000";
+        assertThat(convertObj(time, Date.class)).isEqualTo(convertObj(time2, Date.class));
         assertThat(convertObj(time, Date.class)).isNotNull();
         assertThat(convertObj(time, Instant.class)).isNotNull();
         assertThat(convertObj(time, Calendar.class)).isNotNull();
