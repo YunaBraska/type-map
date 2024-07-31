@@ -64,7 +64,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 - _[ConcurrentTypeSet](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeSet.java)_
 
 ```java
-    TypeMap typeMap = new TypeMap().putt(new Date(), "myTime");
+    TypeMap typeMap = new TypeMap().putReturn(new Date(), "myTime");
     OffsetDateTime timeValue = typeMap.asOffsetDateTime("myTime");
     OffsetDateTime timeValue = typeMap.as(OffsetDateTime.class, "myTime");
 ```
@@ -78,7 +78,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 #### Collections
 
 ```java
-    TypeMap typeMap=new TypeMap().putt("myKey",new String[]{"1","2","3"});
+    TypeMap typeMap=new TypeMap().putReturn("myKey",new String[]{"1","2","3"});
 
     TypeList list1=typeMap.asList("myKey");
     Integer numberThree=typeList.asList("myKey").get(2,Integer.class)
@@ -98,7 +98,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 #### Maps
 
 ```java
-    TypeMap typeMap=new TypeMap().putt("mykey",Map.of(6,new Date()));
+    TypeMap typeMap=new TypeMap().putReturn("mykey",Map.of(6,new Date()));
 
 LinkedTypeMap map1 = typeMap.asMap("myKey");
 Map<Long, Instant> map2 = typeMap.asMap(Long.class, Instant.class, "mykey")
