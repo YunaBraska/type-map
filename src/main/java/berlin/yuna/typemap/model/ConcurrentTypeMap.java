@@ -3,18 +3,10 @@ package berlin.yuna.typemap.model;
 
 import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
-import berlin.yuna.typemap.logic.JsonEncoder;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
 
-import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
-import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
-import static berlin.yuna.typemap.model.TypeMap.convertAndMap;
-import static berlin.yuna.typemap.model.TypeMap.treeGet;
 import static java.util.Optional.ofNullable;
 
 /**

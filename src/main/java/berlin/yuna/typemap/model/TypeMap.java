@@ -3,16 +3,15 @@ package berlin.yuna.typemap.model;
 
 import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
-import berlin.yuna.typemap.logic.JsonEncoder;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
-import static berlin.yuna.typemap.logic.TypeConverter.*;
+import static berlin.yuna.typemap.logic.TypeConverter.iterateOverArray;
+import static berlin.yuna.typemap.logic.TypeConverter.mapOf;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
