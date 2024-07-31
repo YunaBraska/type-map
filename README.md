@@ -81,7 +81,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
     TypeMap typeMap=new TypeMap().putReturn("myKey",new String[]{"1","2","3"});
 
     TypeList list1=typeMap.asList("myKey");
-    Integer numberThree=typeList.asList("myKey").get(2,Integer.class)
+    Integer numberThree=typeList.asList("myKey").as(2,Integer.class)
     List<Integer> list2=typeMap.asList(Integer.class, "myKey");
     List<Integer> list3=typeMap.asList(ArrayList::new,Integer.class, "myKey");
 ```
@@ -108,7 +108,7 @@ Map<Long, Instant> map2 = typeMap.asMap(() -> new HashMap<>(), Long.class, "myke
 ```java
     TypeList typeLst = new TypeList().addd(Map.of(6, new Date()));
 
-LinkedTypeMap map1 = typeLst.getMap(0);
+LinkedTypeMap map1 = typeLst.asMap(0);
 Map<Long, Instant> map2 = typeLst.asMap(Long.class, Instant.class, 0);
 Map<Long, Instant> map3 = typeLst.asMap(HashMap::new, Long.class, Instant.class, 0);
 ```
@@ -132,14 +132,14 @@ is used internally_
 final TypeMap jsonMap = new TypeMap(jsonString);
 // or xmlTypeOf(xmlString); jsonTypeOf(jsonOrXml); new TypeList(jsonOrXmlString);
 
-final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "innerMap")
-final Map<String, Instant> map2 jsonMap.getMap(String .class, Instant .class,"outerMap","innerMap")
+final LinkedTypeMap map1 = jsonMap.asMap("outerMap", "innerMap")
+final Map<String, Instant> map2 jsonMap.asMap(String .class, Instant .class,"outerMap","innerMap")
 
-final TypeList list1 = jsonMap.asMap("outerMap").getList("myList")
+final TypeList list1 = jsonMap.asMap("outerMap").asList("myList")
 final TypeList list2 = jsonMap.asList("outerMap", "myList")
-final List<Object> list3 = jsonMap.getList(Object.class, "outerMap", "myList")
-final TestEnum enum1 = jsonMap.asMap("outerMap").getList("myList").get(TestEnum.class, 0)
-final TestEnum enum2 = jsonMap.asList("outerMap", "myList").get(TestEnum.class, 0)
+final List<Object> list3 = jsonMap.asList(Object.class, "outerMap", "myList")
+final TestEnum enum1 = jsonMap.asMap("outerMap").asList("myList").as(TestEnum.class, 0)
+final TestEnum enum2 = jsonMap.asList("outerMap", "myList").as(TestEnum.class, 0)
 
 final Date myDate = jsonMap.asLong("outerMap", "innerMap", "timestamp");
 final Long myTimestamp = jsonMap.asLong(, "outerMap", "innerMap", "timestamp");
