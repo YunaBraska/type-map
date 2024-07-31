@@ -405,7 +405,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<String> asStrings(final Object... path) {
         return asList(String.class, path);
@@ -415,7 +415,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Long> asLongs(final Object... path) {
         return asList(Long.class, path);
@@ -425,7 +425,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Integer> asInts(final Object... path) {
         return asList(Integer.class, path);
@@ -435,7 +435,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Double> asDoubles(final Object... path) {
         return asList(Double.class, path);
@@ -445,7 +445,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Float> asFloats(final Object... path) {
         return asList(Float.class, path);
@@ -455,7 +455,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Short> asShorts(final Object... path) {
         return asList(Short.class, path);
@@ -465,7 +465,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Byte> asBytes(final Object... path) {
         return asList(Byte.class, path);
@@ -475,7 +475,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Number> asNumbers(final Object... path) {
         return asList(Number.class, path);
@@ -485,7 +485,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<UUID> asUUIDs(final Object... path) {
         return asList(UUID.class, path);
@@ -495,7 +495,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Character> asCharacters(final Object... path) {
         return asList(Character.class, path);
@@ -505,7 +505,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Boolean> asBooleans(final Object... path) {
         return asList(Boolean.class, path);
@@ -515,7 +515,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Throwable> asThrowables(final Object... path) {
         return asList(Throwable.class, path);
@@ -525,7 +525,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Charset> asCharsets(final Object... path) {
         return asList(Charset.class, path);
@@ -535,7 +535,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<File> asFiles(final Object... path) {
         return asList(File.class, path);
@@ -545,7 +545,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Path> asPaths(final Object... path) {
         return asList(Path.class, path);
@@ -555,7 +555,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<URI> asURIs(final Object... path) {
         return asList(URI.class, path);
@@ -565,7 +565,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<URL> asURLs(final Object... path) {
         return asList(URL.class, path);
@@ -575,7 +575,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<InetAddress> asInetAddresses(final Object... path) {
         return asList(InetAddress.class, path);
@@ -585,7 +585,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Inet4Address> asInet4Addresses(final Object... path) {
         return asList(Inet4Address.class, path);
@@ -595,7 +595,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Inet6Address> asInet6Addresses(final Object... path) {
         return asList(Inet6Address.class, path);
@@ -605,7 +605,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Date> asDates(final Object... path) {
         return asList(Date.class, path);
@@ -615,7 +615,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Instant> asInstants(final Object... path) {
         return asList(Instant.class, path);
@@ -625,7 +625,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Calendar> asCalendars(final Object... path) {
         return asList(Calendar.class, path);
@@ -635,7 +635,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<LocalDateTime> asLocalDateTimes(final Object... path) {
         return asList(LocalDateTime.class, path);
@@ -645,7 +645,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<LocalDate> asLocalDates(final Object... path) {
         return asList(LocalDate.class, path);
@@ -655,7 +655,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<LocalTime> asLocalTimes(final Object... path) {
         return asList(LocalTime.class, path);
@@ -665,7 +665,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<OffsetDateTime> asOffsetDateTimes(final Object... path) {
         return asList(OffsetDateTime.class, path);
@@ -675,7 +675,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<ZonedDateTime> asZonedDateTimes(final Object... path) {
         return asList(ZonedDateTime.class, path);
@@ -685,7 +685,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<java.sql.Date> asSqlDates(final Object... path) {
         return asList(java.sql.Date.class, path);
@@ -695,7 +695,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Time> asTimes(final Object... path) {
         return asList(Time.class, path);
@@ -705,7 +705,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
-     * @return the value if present and convertible, else null.
+     * @return the value if present and convertible, else empty list.
      */
     default List<Timestamp> asTimestamps(final Object... path) {
         return asList(Timestamp.class, path);
