@@ -42,8 +42,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     C addReturn(final Object key, final Object value);
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -53,8 +52,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -64,8 +62,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -75,8 +72,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -86,8 +82,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -97,8 +92,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -108,8 +102,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -119,8 +112,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -130,8 +122,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -141,8 +132,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -152,8 +142,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -163,8 +152,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -174,8 +162,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -185,8 +172,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -196,8 +182,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -207,8 +192,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -218,8 +202,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -229,8 +212,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -240,8 +222,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -251,8 +232,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -262,8 +242,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -273,8 +252,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -284,8 +262,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -295,8 +272,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -306,8 +282,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -317,8 +292,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -328,8 +302,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -339,8 +312,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -350,8 +322,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -361,8 +332,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -372,8 +342,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -383,8 +352,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -394,8 +362,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -405,8 +372,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -416,8 +382,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -427,8 +392,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -438,8 +402,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -449,8 +412,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -460,8 +422,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -471,8 +432,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -482,8 +442,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -493,8 +452,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -504,8 +462,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -515,8 +472,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -526,8 +482,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -537,8 +492,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -548,8 +502,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -559,8 +512,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -570,8 +522,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -581,8 +532,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -592,8 +542,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -603,8 +552,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -614,8 +562,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -625,8 +572,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -636,8 +582,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -647,8 +592,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -658,8 +602,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -669,8 +612,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -680,8 +622,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -691,8 +632,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -702,8 +642,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -713,8 +652,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -724,8 +662,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -735,8 +672,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -746,8 +682,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -757,8 +692,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
@@ -768,8 +702,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Retrieves the value to which the specified key is mapped, and attempts to
-     * convert it to a String.
+     * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
