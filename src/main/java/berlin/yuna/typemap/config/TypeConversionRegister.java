@@ -141,6 +141,9 @@ public class TypeConversionRegister<S, T> {
         registerTypeConvert(Number.class, AtomicLong.class, number -> new AtomicLong(number.longValue()));
         registerTypeConvert(AtomicBoolean.class, Boolean.class, AtomicBoolean::get);
         registerTypeConvert(Boolean.class, AtomicBoolean.class, AtomicBoolean::new);
+        registerTypeConvert(String.class, AtomicBoolean.class, string -> new AtomicBoolean(Boolean.parseBoolean(string) || "1".equals(string)));
+        registerTypeConvert(String.class, AtomicInteger.class, string -> new AtomicInteger(Integer.parseInt(string)));
+        registerTypeConvert(String.class, AtomicLong.class, string -> new AtomicLong(Long.parseLong(string)));
 
         // PRIMITIVES TO WRAPPERS
         registerTypeConvert(int.class, Integer.class, Integer::valueOf);
@@ -200,7 +203,13 @@ public class TypeConversionRegister<S, T> {
         registerTypeConvert(URL.class, URI.class, URL::toURI);
         registerTypeConvert(String.class, Path.class, Paths::get);
         registerTypeConvert(String.class, File.class, File::new);
-        registerTypeConvert(String.class, URL.class, string -> Paths.get(string).toUri().toURL());
+        registerTypeConvert(String.class, URL.class, string -> {
+            try {
+                return new URL(string);
+            } catch (final Exception ignored) {
+                return Paths.get(string).toUri().toURL();
+            }
+        });
         registerTypeConvert(String.class, URI.class, URI::new);
 
         // NET

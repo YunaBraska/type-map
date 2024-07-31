@@ -93,27 +93,27 @@ class TypeListTest {
         typeList.addReturn(myTime).add(new String[]{"1", "2", "3"});
 
         // TREE MAP
-        final List<Instant> instantList1 = typeList.getList(ArrayList::new, Instant.class, 0);
-        final List<Integer> integerList1 = typeList.getList(ArrayList::new, Integer.class, 1);
-        final List<Float> floatList1 = typeList.getList(ArrayList::new, Float.class, 1);
-        final Double[] doubleArray1 = typeList.getArray(new Double[0], Double.class, 1);
-        final Long[] longArray1 = typeList.getArray(Long[]::new, Long.class, 1);
+        final List<Instant> instantList1 = typeList.asList(ArrayList::new, Instant.class, 0);
+        final List<Integer> integerList1 = typeList.asList(ArrayList::new, Integer.class, 1);
+        final List<Float> floatList1 = typeList.asList(ArrayList::new, Float.class, 1);
+        final Double[] doubleArray1 = typeList.asArray(new Double[0], Double.class, 1);
+        final Long[] longArray1 = typeList.asArray(Long[]::new, Long.class, 1);
 
         assertThat(instantList1).isNotEmpty();
         assertThat(integerList1).isNotEmpty().containsExactly(1, 2, 3);
         assertThat(floatList1).isNotEmpty().containsExactly(1f, 2f, 3f);
         assertThat(doubleArray1).isNotEmpty().containsExactly(1d, 2d, 3d);
         assertThat(longArray1).isNotEmpty().containsExactly(1L, 2L, 3L);
-        assertThat(typeList.getList(1)).isNotEmpty().containsExactly("1", "2", "3");
-        assertThat(typeList.getList(Integer.class, 1)).isNotEmpty().containsExactly(1, 2, 3);
+        assertThat(typeList.asList(1)).isNotEmpty().containsExactly("1", "2", "3");
+        assertThat(typeList.asList(Integer.class, 1)).isNotEmpty().containsExactly(1, 2, 3);
 
         // KEY MAP
-        final List<Instant> instantList2 = typeList.getList(ArrayList::new, Instant.class, 0);
-        final List<Integer> integerList2 = typeList.getList(ArrayList::new, Integer.class, 1);
-        final List<Float> floatList2 = typeList.getList(ArrayList::new, Float.class, 1);
-        final Double[] doubleArray2 = typeList.getArray(new Double[0], Double.class, 1);
-        final Long[] longArray2 = typeList.getArray(Long[]::new, Long.class, 1);
-        assertThat(typeList.getList(Integer.class, 1)).isNotEmpty().containsExactly(1, 2, 3);
+        final List<Instant> instantList2 = typeList.asList(ArrayList::new, Instant.class, 0);
+        final List<Integer> integerList2 = typeList.asList(ArrayList::new, Integer.class, 1);
+        final List<Float> floatList2 = typeList.asList(ArrayList::new, Float.class, 1);
+        final Double[] doubleArray2 = typeList.asArray(new Double[0], Double.class, 1);
+        final Long[] longArray2 = typeList.asArray(Long[]::new, Long.class, 1);
+        assertThat(typeList.asList(Integer.class, 1)).isNotEmpty().containsExactly(1, 2, 3);
 
         assertThat(instantList2).isNotEmpty();
         assertThat(integerList2).isNotEmpty().containsExactly(1, 2, 3);
@@ -130,15 +130,15 @@ class TypeListTest {
         typeList.add(input);
 
         // TREE MAP
-        assertThat(typeList.getMap(0)).containsEntry(6, new Date(TEST_TIME));
-        assertThat(typeList.getMap(Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
+        assertThat(typeList.asMap(0)).containsEntry(6, new Date(TEST_TIME));
+        assertThat(typeList.asMap(Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asMap(() -> new HashMap<>(), Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
 
         // KEY MAP
-        assertThat(typeList.getMap(Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
+        assertThat(typeList.asMap(Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asMap(() -> new HashMap<>(), Long.class, Instant.class, 0)).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asMap(() -> new HashMap<>(), Long.class, Instant.class, 1)).isEmpty();
     }
 
     @ParameterizedTest
@@ -151,10 +151,10 @@ class TypeListTest {
         typeList.add(map);
 
         // TREE MAP
-        assertThat(typeList.getMap(Integer.class, value -> value)).isEmpty();
-        assertThat(typeList.getMap(Integer.class, value -> value, 0)).containsOnlyKeys(1, 2, 3);
-        assertThat(typeList.getMap(key -> convertObj(key, Integer.class), value -> value, 0)).containsOnlyKeys(1, 2, 3);
-        assertThat(typeList.getMap(key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class), 0)).containsExactly(
+        assertThat(typeList.asMap(Integer.class, value -> value)).isEmpty();
+        assertThat(typeList.asMap(Integer.class, value -> value, 0)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeList.asMap(key -> convertObj(key, Integer.class), value -> value, 0)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeList.asMap(key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class), 0)).containsExactly(
             entry(1, singletonList("AA")),
             entry(2, Arrays.asList("BB", "CC")),
             entry(3, Arrays.asList("DD", "EE"))
