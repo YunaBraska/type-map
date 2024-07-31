@@ -8,6 +8,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.*;
+import java.nio.file.Paths;
+import java.sql.Time;
+import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 import java.util.function.Supplier;
@@ -17,9 +24,11 @@ import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 
 public class TypeMapTest {
 
@@ -88,33 +97,33 @@ public class TypeMapTest {
         typeMap.put("myKey2", new String[]{"1", "2", "3"});
 
         // TREE MAP
-        final List<Instant> instantList1 = typeMap.getList(ArrayList::new, Instant.class, "myKey1");
-        final List<Integer> integerList1 = typeMap.getList(ArrayList::new, Integer.class, "myKey2");
-        final List<Float> floatList1 = typeMap.getList(ArrayList::new, Float.class, "myKey2");
-        final Double[] doubleArray1 = typeMap.getArray(new Double[0], Double.class, "myKey2");
-        final Long[] longArray1 = typeMap.getArray(Long[]::new, Long.class, "myKey2");
+        final List<Instant> instantList1 = typeMap.asList(ArrayList::new, Instant.class, "myKey1");
+        final List<Integer> integerList1 = typeMap.asList(ArrayList::new, Integer.class, "myKey2");
+        final List<Float> floatList1 = typeMap.asList(ArrayList::new, Float.class, "myKey2");
+        final Double[] doubleArray1 = typeMap.asArray(new Double[0], Double.class, "myKey2");
+        final Long[] longArray1 = typeMap.asArray(Long[]::new, Long.class, "myKey2");
 
         assertThat(instantList1).isNotEmpty();
         assertThat(integerList1).isNotEmpty().containsExactly(1, 2, 3);
         assertThat(floatList1).isNotEmpty().containsExactly(1f, 2f, 3f);
         assertThat(doubleArray1).isNotEmpty().containsExactly(1d, 2d, 3d);
         assertThat(longArray1).isNotEmpty().containsExactly(1L, 2L, 3L);
-        assertThat(typeMap.getList("myKey2")).isNotEmpty().containsExactly("1", "2", "3");
-        assertThat(typeMap.getList(Integer.class, "myKey2")).isNotEmpty().containsExactly(1, 2, 3);
+        assertThat(typeMap.asList("myKey2")).isNotEmpty().containsExactly("1", "2", "3");
+        assertThat(typeMap.asList(Integer.class, "myKey2")).isNotEmpty().containsExactly(1, 2, 3);
 
         // KEY MAP
-        final List<Instant> instantList2 = typeMap.getList(ArrayList::new, Instant.class, "myKey1");
-        final List<Integer> integerList2 = typeMap.getList(ArrayList::new, Integer.class, "myKey2");
-        final List<Float> floatList2 = typeMap.getList(ArrayList::new, Float.class, "myKey2");
-        final Double[] doubleArray2 = typeMap.getArray(new Double[0], Double.class, "myKey2");
-        final Long[] longArray2 = typeMap.getArray(Long[]::new, Long.class, "myKey2");
+        final List<Instant> instantList2 = typeMap.asList(ArrayList::new, Instant.class, "myKey1");
+        final List<Integer> integerList2 = typeMap.asList(ArrayList::new, Integer.class, "myKey2");
+        final List<Float> floatList2 = typeMap.asList(ArrayList::new, Float.class, "myKey2");
+        final Double[] doubleArray2 = typeMap.asArray(new Double[0], Double.class, "myKey2");
+        final Long[] longArray2 = typeMap.asArray(Long[]::new, Long.class, "myKey2");
 
         assertThat(instantList2).isNotEmpty();
         assertThat(integerList2).isNotEmpty().containsExactly(1, 2, 3);
         assertThat(floatList2).isNotEmpty().containsExactly(1f, 2f, 3f);
         assertThat(doubleArray2).isNotEmpty().containsExactly(1d, 2d, 3d);
         assertThat(longArray2).isNotEmpty().containsExactly(1L, 2L, 3L);
-        assertThat(typeMap.getList(Integer.class, "myKey2")).isNotEmpty().containsExactly(1, 2, 3);
+        assertThat(typeMap.asList(Integer.class, "myKey2")).isNotEmpty().containsExactly(1, 2, 3);
     }
 
     @ParameterizedTest
@@ -125,16 +134,16 @@ public class TypeMapTest {
         typeMap.put("myKey", input);
 
         // TREE MAP
-        assertThat(typeMap.getMap(String.class, Object.class)).containsOnlyKeys("myKey");
-        assertThat(typeMap.getMap("myKey")).containsEntry(6, new Date(TEST_TIME));
-        assertThat(typeMap.getMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey2")).isEmpty();
+        assertThat(typeMap.asMap(String.class, Object.class)).containsOnlyKeys("myKey");
+        assertThat(typeMap.asMap("myKey")).containsEntry(6, new Date(TEST_TIME));
+        assertThat(typeMap.asMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeMap.asMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeMap.asMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey2")).isEmpty();
 
         // KEY MAP
-        assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeMap.getMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeMap.getMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey2")).isEmpty();
+        assertThat(typeMap.asMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeMap.asMap(Long.class, Instant.class, "myKey")).containsEntry(6L, Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeMap.asMap(() -> new HashMap<>(), Long.class, Instant.class, "myKey2")).isEmpty();
     }
 
     @ParameterizedTest
@@ -145,19 +154,19 @@ public class TypeMapTest {
         typeMap.put("3", new String[]{"DD", "EE"});
 
         // TREE MAP
-        assertThat(typeMap.getMap(Integer.class, value -> value)).containsOnlyKeys(1, 2, 3);
-        assertThat(typeMap.getMap(key -> convertObj(key, Integer.class), value -> value)).containsOnlyKeys(1, 2, 3);
-        assertThat(typeMap.getMap(key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).containsExactly(
+        assertThat(typeMap.asMap(Integer.class, value -> value)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeMap.asMap(key -> convertObj(key, Integer.class), value -> value)).containsOnlyKeys(1, 2, 3);
+        assertThat(typeMap.asMap(key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).containsExactly(
             entry(1, singletonList("AA")),
             entry(2, Arrays.asList("BB", "CC")),
             entry(3, Arrays.asList("DD", "EE"))
         );
-        assertThat(typeMap.getMap(() -> new LinkedHashMap<>(), key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).containsExactly(
+        assertThat(typeMap.asMap(() -> new LinkedHashMap<>(), key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).containsExactly(
             entry(1, singletonList("AA")),
             entry(2, Arrays.asList("BB", "CC")),
             entry(3, Arrays.asList("DD", "EE"))
         );
-        assertThat(typeMap.getMap((Supplier<? extends Map<Integer, List<String>>>) null, key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).isEmpty();
+        assertThat(typeMap.asMap((Supplier<? extends Map<Integer, List<String>>>) null, key -> convertObj(key, Integer.class), value -> collectionOf(value, String.class))).isEmpty();
     }
 
     @ParameterizedTest
@@ -240,11 +249,101 @@ public class TypeMapTest {
             assertThat(map.get(Boolean.class, "v2")).isTrue();
             assertThat(map.get(Boolean.class, "verbose")).isTrue();
             assertThat(map.get(Boolean.class, "DArgs")).isTrue();
-            assertThat(map.getList(Integer.class, "param")).containsExactly(42, 54);
-            assertThat(map.getList(Boolean.class, "v2")).containsExactly(true, false);
-            assertThat(map.getList("DArgList")).containsExactly("item 1", "item 2", "-item 3");
-            assertThat(map.getList(String.class, "DArgList")).containsExactly("item 1", "item 2", "-item 3");
+            assertThat(map.asList(Integer.class, "param")).containsExactly(42, 54);
+            assertThat(map.asList(Boolean.class, "v2")).containsExactly(true, false);
+            assertThat(map.asList("DArgList")).containsExactly("item 1", "item 2", "-item 3");
+            assertThat(map.asList(String.class, "DArgList")).containsExactly("item 1", "item 2", "-item 3");
         }
+    }
+
+    @ParameterizedTest(name = "[{index}] [{0}]")
+    @MethodSource("typeMapProvider")
+    void testDefaultMethods(final String mapName, final TypeMapI<?> typeMap) throws Exception {
+        final String testKey = "testKey";
+        final String testPath = "/path/to/file";
+        final String testUr = "http://example.com";
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(new Date(TEST_TIME));
+
+        assertThat(typeMap.putReturn(testKey, "testString").as(String.class, testKey)).isEqualTo("testString");
+        assertThat(typeMap.putReturn(testKey, "testString").asString(testKey)).isEqualTo("testString");
+        assertThat(typeMap.putReturn(testKey, "testString").asStrings(testKey)).contains("testString");
+        assertThat(typeMap.putReturn(testKey, "123456789").asLong(testKey)).isEqualTo(123456789L);
+        assertThat(typeMap.putReturn(testKey, "123456789").asLongs(testKey)).contains(123456789L);
+        assertThat(typeMap.putReturn(testKey, "123456789").asNumber(testKey)).isEqualTo(123456789d);
+        assertThat(typeMap.putReturn(testKey, "123456789").asNumbers(testKey)).contains(123456789d);
+        assertThat(typeMap.putReturn(testKey, "42").asInt(testKey)).isEqualTo(42);
+        assertThat(typeMap.putReturn(testKey, "42").asInts(testKey)).contains(42);
+        assertThat(typeMap.putReturn(testKey, "42.42").asDouble(testKey)).isEqualTo(42.42);
+        assertThat(typeMap.putReturn(testKey, "42.42").asDoubles(testKey)).contains(42.42);
+        assertThat(typeMap.putReturn(testKey, "42.42").asFloat(testKey)).isEqualTo(42.42f);
+        assertThat(typeMap.putReturn(testKey, "42.42").asFloats(testKey)).contains(42.42f);
+        assertThat(typeMap.putReturn(testKey, "32000").asShort(testKey)).isEqualTo((short) 32000);
+        assertThat(typeMap.putReturn(testKey, "32000").asShorts(testKey)).contains((short) 32000);
+        assertThat(typeMap.putReturn(testKey, "127").asByte(testKey)).isEqualTo((byte) 127);
+        assertThat(typeMap.putReturn(testKey, "127").asBytes(testKey)).contains((byte) 127);
+        assertThat(typeMap.putReturn(testKey, "12345678901234567890").asBigInteger(testKey)).isEqualTo(new BigInteger("12345678901234567890"));
+        assertThat(typeMap.putReturn(testKey, "12345.67890").asBigDecimal(testKey)).isEqualTo(new BigDecimal("12345.67890"));
+        assertThat(typeMap.putReturn(testKey, "42").asAtomicInteger(testKey)).hasValue(42);
+        assertThat(typeMap.putReturn(testKey, "123456789").asAtomicLong(testKey)).hasValue(123456789L);
+        assertThat(typeMap.putReturn(testKey, "true").asAtomicBoolean(testKey)).isTrue();
+        assertThat(typeMap.putReturn(testKey, "1").asAtomicBoolean(testKey)).isTrue();
+        assertThat(typeMap.putReturn(testKey, "false").asAtomicBoolean(testKey)).isFalse();
+        assertThat(typeMap.putReturn(testKey, "0").asAtomicBoolean(testKey)).isFalse();
+        assertThat(typeMap.putReturn(testKey, UUID.randomUUID().toString()).asUUID(testKey)).isNotNull();
+        assertThat(typeMap.putReturn(testKey, UUID.randomUUID().toString()).asUUIDs(testKey)).isNotNull().hasSize(1);
+        assertThat(typeMap.putReturn(testKey, "A").asCharacter(testKey)).isEqualTo('A');
+        assertThat(typeMap.putReturn(testKey, "A").asCharacters(testKey)).contains('A');
+        assertThat(typeMap.putReturn(testKey, "true").asBoolean(testKey)).isTrue();
+        assertThat(typeMap.putReturn(testKey, "true").asBooleans(testKey)).contains(true);
+        assertThat(typeMap.putReturn(testKey, "false").asBoolean(testKey)).isFalse();
+        assertThat(typeMap.putReturn(testKey, "false").asBooleans(testKey)).contains(false);
+        assertThat(typeMap.putReturn(testKey, "1").asBoolean(testKey)).isTrue();
+        assertThat(typeMap.putReturn(testKey, "1").asBooleans(testKey)).contains(true);
+        assertThat(typeMap.putReturn(testKey, "0").asBoolean(testKey)).isFalse();
+        assertThat(typeMap.putReturn(testKey, "0").asBooleans(testKey)).contains(false);
+        assertThat(typeMap.putReturn(testKey, new IllegalStateException("Test Throwable")).asThrowable(testKey)).isInstanceOf(Throwable.class).hasMessage("Test Throwable");
+        assertThat(typeMap.putReturn(testKey, new IllegalStateException("Test Throwable")).asThrowables(testKey)).hasSize(1);
+        assertThat(typeMap.putReturn(testKey, "UTF-8").asCharset(testKey)).isEqualTo(UTF_8);
+        assertThat(typeMap.putReturn(testKey, "UTF-8").asCharsets(testKey)).contains(UTF_8);
+        assertThat(typeMap.putReturn(testKey, testPath).asFile(testKey)).isEqualTo(new File(testPath));
+        assertThat(typeMap.putReturn(testKey, testPath).asFiles(testKey)).contains(new File(testPath));
+        assertThat(typeMap.putReturn(testKey, testPath).asPath(testKey)).isEqualTo(Paths.get(testPath));
+        assertThat(typeMap.putReturn(testKey, testPath).asPaths(testKey)).contains(Paths.get(testPath));
+        assertThat(typeMap.putReturn(testKey, testUr).asURI(testKey)).isEqualTo(URI.create(testUr));
+        assertThat(typeMap.putReturn(testKey, testUr).asURIs(testKey)).contains(URI.create(testUr));
+        assertThat(typeMap.putReturn(testKey, testUr).asURL(testKey)).isEqualTo(new URL(testUr));
+        assertThat(typeMap.putReturn(testKey, testUr).asURLs(testKey)).contains(new URL(testUr));
+        assertThat(typeMap.putReturn(testKey, "localhost").asInetAddress(testKey)).isEqualTo(InetAddress.getByName("localhost"));
+        assertThat(typeMap.putReturn(testKey, "localhost").asInetAddresses(testKey)).contains(InetAddress.getByName("localhost"));
+        assertThat(typeMap.putReturn(testKey, "127.0.0.1").asInet4Address(testKey)).isEqualTo(Inet4Address.getByName("127.0.0.1"));
+        assertThat(typeMap.putReturn(testKey, "127.0.0.1").asInet4Addresses(testKey)).contains((Inet4Address) Inet4Address.getByName("127.0.0.1"));
+        assertThat(typeMap.putReturn(testKey, "::1").asInet6Address(testKey)).isEqualTo(Inet6Address.getByName("::1"));
+        assertThat(typeMap.putReturn(testKey, "::1").asInet6Addresses(testKey)).contains((Inet6Address) Inet6Address.getByName("::1"));
+        assertThat(typeMap.putReturn(testKey, String.valueOf(TEST_TIME)).asDate(testKey)).isEqualTo(new Date(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, String.valueOf(TEST_TIME)).asDates(testKey)).contains(new Date(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, String.valueOf(TEST_TIME)).asInstant(testKey)).isEqualTo(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, String.valueOf(TEST_TIME)).asInstants(testKey)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, calendar).asCalendar(testKey)).isEqualTo(calendar);
+        assertThat(typeMap.putReturn(testKey, calendar).asCalendars(testKey)).hasSize(1);
+        assertThat(typeMap.putReturn(testKey, calendar.getTime().toString()).asCalendar(testKey)).isEqualByComparingTo(calendar);
+        assertThat(typeMap.putReturn(testKey, calendar.getTime().toString()).asCalendars(testKey)).hasSize(1);
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asLocalDateTime(testKey)).isEqualTo(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asLocalDateTimes(testKey)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asLocalDate(testKey)).isEqualTo(LocalDate.ofEpochDay(Instant.ofEpochMilli(TEST_TIME).toEpochMilli() / (24 * 60 * 60 * 1000)));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asLocalDates(testKey)).contains(LocalDate.ofEpochDay(Instant.ofEpochMilli(TEST_TIME).toEpochMilli() / (24 * 60 * 60 * 1000)));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asLocalTime(testKey)).isEqualTo(LocalTime.ofNanoOfDay(Instant.ofEpochMilli(TEST_TIME).toEpochMilli() % (24 * 60 * 60 * 1000) * 1000000));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asLocalTimes(testKey)).contains(LocalTime.ofNanoOfDay(Instant.ofEpochMilli(TEST_TIME).toEpochMilli() % (24 * 60 * 60 * 1000) * 1000000));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asOffsetDateTime(testKey)).isEqualTo(OffsetDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asOffsetDateTimes(testKey)).contains(OffsetDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asZonedDateTime(testKey)).isEqualTo(ZonedDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asZonedDateTimes(testKey)).contains(ZonedDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asSqlDate(testKey)).isEqualTo(new java.sql.Date(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asSqlDates(testKey)).contains(new java.sql.Date(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asTime(testKey)).isEqualTo(new Time(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asTimes(testKey)).contains(new Time(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asTimestamp(testKey)).isEqualTo(new Timestamp(TEST_TIME));
+        assertThat(typeMap.putReturn(testKey, TEST_TIME).asTimestamps(testKey)).contains(new Timestamp(TEST_TIME));
     }
 
     @Test
@@ -276,8 +375,8 @@ public class TypeMapTest {
             + "}";
 
         final TypeInfo<?> jsonMap = jsonTypeOf(jsonInput);
-        final LinkedTypeMap map1 = jsonMap.getMap("outerMap", "times");
-        final TestEnum testEnum = jsonMap.getList("outerMap", "myList").get(TestEnum.class, 0);
+        final LinkedTypeMap map1 = jsonMap.asMap("outerMap", "times");
+        final TestEnum testEnum = jsonMap.asList("outerMap", "myList").get(TestEnum.class, 0);
 
         final Optional<Date> myDate1 = jsonMap.getOpt(Date.class, "outerMap", "times", "timestamp1");
         final Optional<Date> myDate2 = jsonMap.getOpt(Date.class, "outerMap", "times", "timestamp2");
