@@ -358,7 +358,7 @@ public class TypeMapTest {
         assertThat(concurrentMapOf("key1", 1, "key2", true)).containsExactly(entry("key1", 1), entry("key2", true));
 
         assertThatThrownBy(() -> TypeMap.mapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
-        assertThatThrownBy(() -> concurrentMapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
+        assertThatThrownBy(() -> linkedMapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
         assertThatThrownBy(() -> concurrentMapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
     }
 
