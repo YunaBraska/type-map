@@ -58,4 +58,23 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
     public LinkedTypeMap addReturn(final Object key, final Object value) {
         return putReturn(key, value);
     }
+
+    /**
+     * Returns a {@link LinkedTypeMap} containing mappings.
+     *
+     * @param input key and value pairs
+     * @return a new {@link LinkedTypeMap} containing the specified mappings.
+     */
+    public static LinkedTypeMap linkedMapOf(final Object... input) {
+        if (input == null)
+            return new LinkedTypeMap();
+        if ((input.length & 1) != 0)
+            throw new InternalError("length is odd");
+
+        final LinkedTypeMap result = new LinkedTypeMap();
+        for (int i = 0; i < input.length; i += 2) {
+            result.put(input[i], input[i + 1]);
+        }
+        return result;
+    }
 }

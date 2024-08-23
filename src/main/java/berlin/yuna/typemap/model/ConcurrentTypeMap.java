@@ -58,4 +58,23 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
     public ConcurrentTypeMap addReturn(final Object key, final Object value) {
         return putReturn(key, value);
     }
+
+    /**
+     * Returns a {@link ConcurrentTypeMap} containing mappings.
+     *
+     * @param input key and value pairs
+     * @return a new {@link ConcurrentTypeMap} containing the specified mappings.
+     */
+    public static ConcurrentTypeMap concurrentMapOf(final Object... input) {
+        if (input == null)
+            return new ConcurrentTypeMap();
+        if ((input.length & 1) != 0)
+            throw new InternalError("length is odd");
+
+        final ConcurrentTypeMap result = new ConcurrentTypeMap();
+        for (int i = 0; i < input.length; i += 2) {
+            result.put(input[i], input[i + 1]);
+        }
+        return result;
+    }
 }

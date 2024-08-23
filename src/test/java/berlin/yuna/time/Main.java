@@ -9,7 +9,7 @@ import static java.util.Arrays.asList;
 
 public class Main {
 
-    protected static final Score[] DATE_SCORES = new Score[]{
+    public static final Score[] DATE_SCORES = new Score[]{
         Score.YEAR,
         Score.MONTH,
         Score.DAY,
@@ -20,7 +20,7 @@ public class Main {
         Score.DAY_NAME_ORDINAL
     };
 
-    protected static final Score[] TIME_SCORES = new Score[]{
+    public static final Score[] TIME_SCORES = new Score[]{
         Score.HOURS_24,
         Score.HOURS_12,
         Score.MINUTES,
@@ -28,7 +28,7 @@ public class Main {
         Score.MILLISECONDS
     };
 
-    protected static final List<Score> EXCLUSIVITY_SCORES = asList(
+    public static final List<Score> EXCLUSIVITY_SCORES = asList(
         Score.AM,
         Score.PM,
         Score.ERA,

@@ -15,7 +15,7 @@ public class ContextItem {
     final Item item;
     final int index;
 
-    protected static final List<String> DAY_INDICATORS = asList("st", "nd", "rd", "th");
+    public static final List<String> DAY_INDICATORS = asList("st", "nd", "rd", "th");
 
     public static void scoreInContext(final Item[] items, final int index, final Item item) {
         // 'T' == DATE + 'T' + TIME

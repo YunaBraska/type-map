@@ -32,7 +32,7 @@ public class ArgsDecoder {
         return (str != null && !str.isEmpty() && containsText(str));
     }
 
-    protected static TypeList handleValue(final String value) {
+    public static TypeList handleValue(final String value) {
         if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") && value.endsWith("\""))) {
             return new TypeList().addReturn(convertToType(value.substring(1, value.length() - 1)));
         }

@@ -24,11 +24,12 @@ import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
+import static berlin.yuna.typemap.model.ConcurrentTypeMap.concurrentMapOf;
+import static berlin.yuna.typemap.model.LinkedTypeMap.linkedMapOf;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.entry;
+import static org.assertj.core.api.Assertions.*;
 
 public class TypeMapTest {
 
@@ -344,6 +345,21 @@ public class TypeMapTest {
         assertThat(typeMap.putReturn(testKey, TEST_TIME).asTimes(testKey)).contains(new Time(TEST_TIME));
         assertThat(typeMap.putReturn(testKey, TEST_TIME).asTimestamp(testKey)).isEqualTo(new Timestamp(TEST_TIME));
         assertThat(typeMap.putReturn(testKey, TEST_TIME).asTimestamps(testKey)).contains(new Timestamp(TEST_TIME));
+    }
+
+    @Test
+    void mapOfTest() {
+        assertThat(TypeMap.mapOf(null)).isEmpty();
+        assertThat(linkedMapOf(null)).isEmpty();
+        assertThat(concurrentMapOf(null)).isEmpty();
+
+        assertThat(TypeMap.mapOf("key1", 1, "key2", true)).containsExactly(entry("key1", 1), entry("key2", true));
+        assertThat(linkedMapOf("key1", 1, "key2", true)).containsExactly(entry("key1", 1), entry("key2", true));
+        assertThat(concurrentMapOf("key1", 1, "key2", true)).containsExactly(entry("key1", 1), entry("key2", true));
+
+        assertThatThrownBy(() -> TypeMap.mapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
+        assertThatThrownBy(() -> concurrentMapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
+        assertThatThrownBy(() -> concurrentMapOf("key1", 1, "key2")).isInstanceOf(InternalError.class).hasMessage("length is odd");
     }
 
     @Test

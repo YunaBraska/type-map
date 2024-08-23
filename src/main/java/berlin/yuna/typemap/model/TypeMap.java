@@ -3,6 +3,7 @@ package berlin.yuna.typemap.model;
 
 import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
+import berlin.yuna.typemap.logic.TypeConverter;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,7 +12,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static berlin.yuna.typemap.logic.TypeConverter.iterateOverArray;
-import static berlin.yuna.typemap.logic.TypeConverter.mapOf;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
@@ -65,8 +65,27 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
         return putReturn(key, value);
     }
 
+    /**
+     * Returns a {@link TypeMap} containing mappings.
+     *
+     * @param input key and value pairs
+     * @return a new {@link TypeMap} containing the specified mappings.
+     */
+    public static TypeMap mapOf(final Object... input) {
+        if (input == null)
+            return new TypeMap();
+        if ((input.length & 1) != 0)
+            throw new InternalError("length is odd");
+
+        final TypeMap result = new TypeMap();
+        for (int i = 0; i < input.length; i += 2) {
+            result.put(input[i], input[i + 1]);
+        }
+        return result;
+    }
+
     @SuppressWarnings("java:S3776")
-    protected static Object treeGet(final Object mapOrCollection, final Object... path) {
+    public static Object treeGet(final Object mapOrCollection, final Object... path) {
         if (path == null || path.length == 0) {
             return mapOrCollection;
         }
@@ -108,15 +127,15 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     }
 
     @SuppressWarnings("unchecked")
-    protected static <K, V, M extends Map<K, V>> M convertAndMap(final Object input, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
+    public static <K, V, M extends Map<K, V>> M convertAndMap(final Object input, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {
         if (output != null && keyType != null && valueType != null && input instanceof Map<?, ?>) {
-            return mapOf((Map<?, ?>) input, output, keyType, valueType);
+            return TypeConverter.mapOf((Map<?, ?>) input, output, keyType, valueType);
         }
         return ofNullable(output).map(Supplier::get).orElse((M) emptyMap());
     }
 
     @SuppressWarnings("unchecked")
-    protected static <K, V, M extends Map<K, V>> M convertAndMap(final Object input, final Supplier<M> output, final Function<Object, K> keyMapper, final Function<Object, V> valueMapper) {
+    public static <K, V, M extends Map<K, V>> M convertAndMap(final Object input, final Supplier<M> output, final Function<Object, K> keyMapper, final Function<Object, V> valueMapper) {
         if (output != null && keyMapper != null && valueMapper != null && input instanceof Map<?, ?>) {
             final M result = output.get();
             if (result == null)
