@@ -57,8 +57,28 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
+    default Optional<String> asStringOpt(final Object... path) {
+        return ofNullable(asString(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
     default Long asLong(final Object... path) {
         return get(Long.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Long> asLongOpt(final Object... path) {
+        return ofNullable(asLong(path));
     }
 
     /**
@@ -75,10 +95,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Integer> asIntOpt(final Object... path) {
+        return ofNullable(asInt(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Double asDouble(final Object... path) {
         return get(Double.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Double> asDoubleOpt(final Object... path) {
+        return ofNullable(asDouble(path));
     }
 
     /**
@@ -95,10 +135,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Float> asFloatOpt(final Object... path) {
+        return ofNullable(asFloat(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Short asShort(final Object... path) {
         return get(Short.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Short> asShortOpt(final Object... path) {
+        return ofNullable(asShort(path));
     }
 
     /**
@@ -115,10 +175,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Byte> asByteOpt(final Object... path) {
+        return ofNullable(asByte(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default BigInteger asBigInteger(final Object... path) {
         return get(BigInteger.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<BigInteger> asBigIntegerOpt(final Object... path) {
+        return ofNullable(asBigInteger(path));
     }
 
     /**
@@ -135,10 +215,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<BigDecimal> asBigDecimalOpt(final Object... path) {
+        return ofNullable(asBigDecimal(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Number asNumber(final Object... path) {
         return get(Number.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Number> asNumberOpt(final Object... path) {
+        return ofNullable(asNumber(path));
     }
 
     /**
@@ -155,10 +255,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<AtomicInteger> asAtomicIntegerOpt(final Object... path) {
+        return ofNullable(asAtomicInteger(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default AtomicLong asAtomicLong(final Object... path) {
         return get(AtomicLong.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<AtomicLong> asAtomicLongOpt(final Object... path) {
+        return ofNullable(asAtomicLong(path));
     }
 
     /**
@@ -175,10 +295,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<AtomicBoolean> asAtomicBooleanOpt(final Object... path) {
+        return ofNullable(asAtomicBoolean(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default UUID asUUID(final Object... path) {
         return get(UUID.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<UUID> asUUIDOpt(final Object... path) {
+        return ofNullable(asUUID(path));
     }
 
     /**
@@ -195,10 +335,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Character> asCharacterOpt(final Object... path) {
+        return ofNullable(asCharacter(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Boolean asBoolean(final Object... path) {
         return get(Boolean.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Boolean> asBooleanOpt(final Object... path) {
+        return ofNullable(asBoolean(path));
     }
 
     /**
@@ -215,10 +375,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Throwable> asThrowableOpt(final Object... path) {
+        return ofNullable(asThrowable(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Charset asCharset(final Object... path) {
         return get(Charset.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Charset> asCharsetOpt(final Object... path) {
+        return ofNullable(asCharset(path));
     }
 
     /**
@@ -235,10 +415,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<File> asFileOpt(final Object... path) {
+        return ofNullable(asFile(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Path asPath(final Object... path) {
         return get(Path.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Path> asPathOpt(final Object... path) {
+        return ofNullable(asPath(path));
     }
 
     /**
@@ -255,10 +455,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<URI> asURIOpt(final Object... path) {
+        return ofNullable(asURI(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default URL asURL(final Object... path) {
         return get(URL.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<URL> asURLOpt(final Object... path) {
+        return ofNullable(asURL(path));
     }
 
     /**
@@ -275,10 +495,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<InetAddress> asInetAddressOpt(final Object... path) {
+        return ofNullable(asInetAddress(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Inet4Address asInet4Address(final Object... path) {
         return get(Inet4Address.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Inet4Address> asInet4AddressOpt(final Object... path) {
+        return ofNullable(asInet4Address(path));
     }
 
     /**
@@ -295,10 +535,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Inet6Address> asInet6AddressOpt(final Object... path) {
+        return ofNullable(asInet6Address(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Date asDate(final Object... path) {
         return get(Date.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Date> asDateOpt(final Object... path) {
+        return ofNullable(asDate(path));
     }
 
     /**
@@ -315,10 +575,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Instant> asInstantOpt(final Object... path) {
+        return ofNullable(asInstant(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Calendar asCalendar(final Object... path) {
         return get(Calendar.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Calendar> asCalendarOpt(final Object... path) {
+        return ofNullable(asCalendar(path));
     }
 
     /**
@@ -335,10 +615,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<LocalDateTime> asLocalDateTimeOpt(final Object... path) {
+        return ofNullable(asLocalDateTime(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default LocalDate asLocalDate(final Object... path) {
         return get(LocalDate.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<LocalDate> asLocalDateOpt(final Object... path) {
+        return ofNullable(asLocalDate(path));
     }
 
     /**
@@ -355,10 +655,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<LocalTime> asLocalTimeOpt(final Object... path) {
+        return ofNullable(asLocalTime(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default OffsetDateTime asOffsetDateTime(final Object... path) {
         return get(OffsetDateTime.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<OffsetDateTime> asOffsetDateTimeOpt(final Object... path) {
+        return ofNullable(asOffsetDateTime(path));
     }
 
     /**
@@ -375,10 +695,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<ZonedDateTime> asZonedDateTimeOpt(final Object... path) {
+        return ofNullable(asZonedDateTime(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default java.sql.Date asSqlDate(final Object... path) {
         return get(java.sql.Date.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<java.sql.Date> asSqlDateOpt(final Object... path) {
+        return ofNullable(asSqlDate(path));
     }
 
     /**
@@ -395,10 +735,30 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Time> asTimeOpt(final Object... path) {
+        return ofNullable(asTime(path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
     default Timestamp asTimestamp(final Object... path) {
         return get(Timestamp.class, path);
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped
+     *
+     * @param path the key whose associated value is to be returned.
+     * @return the value if present and convertible, else empty.
+     */
+    default Optional<Timestamp> asTimestampOpt(final Object... path) {
+        return ofNullable(asTimestamp(path));
     }
 
     /**

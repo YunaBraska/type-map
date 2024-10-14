@@ -70,7 +70,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 ```
 
 ```java
-    TypeList typeList=new TypeList().addd(new Date());
+    TypeList typeList=new TypeList().addReturn(new Date());
     OffsetDateTime timeValue = typeMap.asOffsetDateTime(0);
     OffsetDateTime timeValue = typeMap.as(OffsetDateTime.class, 0);
 ```
@@ -87,7 +87,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 ```
 
 ```java
-    TypeList typeList=new TypeList().addd(new String[]{"1","2","3"});
+    TypeList typeList=new TypeList().addReturn(new String[]{"1","2","3"});
 
     TypeList list1=typeList.asList(0);
     Integer numberThree=typeList.asList(0).asIntList(2)
@@ -106,7 +106,7 @@ Map<Long, Instant> map2 = typeMap.asMap(() -> new HashMap<>(), Long.class, "myke
 ```
 
 ```java
-    TypeList typeLst = new TypeList().addd(Map.of(6, new Date()));
+    TypeList typeLst = new TypeList().addReturn(Map.of(6, new Date()));
 
 LinkedTypeMap map1 = typeLst.asMap(0);
 Map<Long, Instant> map2 = typeLst.asMap(Long.class, Instant.class, 0);
@@ -142,7 +142,7 @@ final TestEnum enum1 = jsonMap.asMap("outerMap").asList("myList").as(TestEnum.cl
 final TestEnum enum2 = jsonMap.asList("outerMap", "myList").as(TestEnum.class, 0)
 
 final Date myDate = jsonMap.asLong("outerMap", "innerMap", "timestamp");
-final Long myTimestamp = jsonMap.asLong(, "outerMap", "innerMap", "timestamp");
+final Long myTimestamp = jsonMap.asLong("outerMap", "innerMap", "timestamp");
 final TestEnum myEnum = jsonMap.as(TestEnum.class, "outerMap", "myList", 0);
 final Boolean myBoolean = jsonMap.asBoolean("outerMap", "myList", 2);
 final String backToJson = jsonMap.toJson();
