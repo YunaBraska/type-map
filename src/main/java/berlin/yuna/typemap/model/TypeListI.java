@@ -4,7 +4,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInfo<C> {
+public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeI<C> {
 
     /**
      * Adds the specified value
@@ -37,7 +37,7 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
     }
 
     /**
-     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeMapI}
+     * Fluent typecheck if the current {@link TypeI} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
@@ -47,7 +47,7 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
     }
 
     /**
-     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeListI}
+     * Fluent typecheck if the current {@link TypeI} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */

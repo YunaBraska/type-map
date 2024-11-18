@@ -31,7 +31,7 @@ import static java.util.Optional.ofNullable;
  * @param <C> {@link TypeMapI} or {@link TypeListI}
  */
 @SuppressWarnings("unused")
-public interface TypeInfo<C extends TypeInfo<C>> {
+public interface TypeI<C extends TypeI<C>> {
 
     /**
      * Adds the specified value
@@ -1085,14 +1085,14 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     }
 
     /**
-     * Fluent type-check if the current {@link TypeInfo} is a {@link TypeMapI}
+     * Fluent type-check if the current {@link TypeI} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
     Optional<TypeMapI<?>> typeMapOpt();
 
     /**
-     * Fluent type-check if the current {@link TypeInfo} is a {@link TypeListI}
+     * Fluent type-check if the current {@link TypeI} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */

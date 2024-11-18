@@ -3,7 +3,7 @@ package berlin.yuna.typemap.model;
 import java.util.Map;
 import java.util.Optional;
 
-public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, TypeInfo<C> {
+public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, TypeI<C> {
 
     /**
      * Associates the specified value with the specified key in this map.
@@ -18,7 +18,7 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
     }
 
     /**
-     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeMapI}
+     * Fluent typecheck if the current {@link TypeI} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
@@ -27,7 +27,7 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
     }
 
     /**
-     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeListI}
+     * Fluent typecheck if the current {@link TypeI} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */

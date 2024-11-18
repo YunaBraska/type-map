@@ -429,7 +429,7 @@ public class TypeMapTest {
             + "  }\n"
             + "}";
 
-        final TypeInfo<?> jsonMap = jsonTypeOf(jsonInput);
+        final TypeI<?> jsonMap = jsonTypeOf(jsonInput);
         final LinkedTypeMap map1 = jsonMap.asMap("outerMap", "times");
         final TestEnum testEnum = jsonMap.asList("outerMap", "myList").get(TestEnum.class, 0);
 
