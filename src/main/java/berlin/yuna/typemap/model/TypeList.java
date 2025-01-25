@@ -49,7 +49,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
      * @return the updated {@link TypeList} instance for chaining.
      */
     @Override
-    public TypeList addReturn(final int index, final Object value) {
+    public TypeList addR(final int index, final Object value) {
         if (index >= 0 && index < this.size()) {
             super.add(index, value);
         } else {
@@ -65,11 +65,11 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
      * @param value the value to be added
      * @return the updated {@link TypeList} instance for chaining.
      */
-    public TypeList addReturn(final Object index, final Object value) {
+    public TypeList addR(final Object index, final Object value) {
         if (index == null) {
             super.add(value);
         } else if (index instanceof Number) {
-            this.addReturn(((Number) index).intValue(), value);
+            this.addR(((Number) index).intValue(), value);
         }
         return this;
     }

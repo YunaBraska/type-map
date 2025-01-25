@@ -39,7 +39,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param key or index the index whose associated value is to be returned.
      * @return the updated {@link TypeListI} instance for chaining.
      */
-    C addReturn(final Object key, final Object value);
+    C addR(final Object key, final Object value);
 
     /**
      * Retrieves the value to which the specified key is mapped
@@ -1081,7 +1081,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @return an Optional containing the value if present and convertible, else empty.
      */
     default <T> T as(final Class<T> type, final Object... path) {
-        return getOpt(type, path).orElse(null);
+        return asOpt(type, path).orElse(null);
     }
 
     /**
@@ -1109,7 +1109,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @return an Optional containing the value if present and convertible, else empty.
      */
     default <T> T get(final Class<T> type, final Object... path) {
-        return getOpt(type, path).orElse(null);
+        return asOpt(type, path).orElse(null);
     }
 
     /**
@@ -1121,7 +1121,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    default <T> Optional<T> getOpt(final Class<T> type, final Object... path) {
+    default <T> Optional<T> asOpt(final Class<T> type, final Object... path) {
         return ofNullable(treeGet(this, path)).map(object -> convertObj(object, type));
     }
 
@@ -1302,5 +1302,131 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      */
     default String toJson() {
         return JsonEncoder.toJson(this);
+    }
+
+    /**
+     * Adds a value at a specified path. If the path refers to a collection, the value is appended.
+     * This method may throw an exception if the target collection is immutable or has fixed types.
+     * It is recommended to use TypeLists or TypeSets instead of other collections when adding collections.
+     *
+     * @param pathAndValue An array where the path elements precede the value to add.
+     * @return The current instance for method chaining.
+     */
+    default TypeInfo<C> addPathR(final Object... pathAndValue) {
+        addPath(pathAndValue);
+        return this;
+    }
+
+    /**
+     * Sets a value at a specified path, replacing any existing value at that position.
+     * This method may throw an exception if the target collection is immutable or has fixed types.
+     * It is recommended to use TypeLists or TypeSets instead of other collections when adding collections.
+     *
+     * @param pathAndValue An array where the path elements precede the value to set.
+     * @return The current instance for method chaining.
+     */
+    default TypeInfo<C> setPathR(final Object... pathAndValue) {
+        setPath(pathAndValue);
+        return this;
+
+    }
+
+    /**
+     * Inserts or updates a value at a specified path, where the last path element is treated as a key.
+     * This method may throw an exception if the target map is immutable or has fixed types.
+     * It is recommended to use TypeMaps when adding maps.
+     *
+     * @param pathAndValue An array where the path elements precede the key and value to insert or update.
+     * @return The current instance for method chaining.
+     */
+    default TypeInfo<C> putPathR(final Object... pathAndValue) {
+        putPath(pathAndValue);
+        return this;
+    }
+
+    /**
+     * Adds a value at a specified path. If the path refers to a collection, the value is appended.
+     * This method may throw an exception if the target collection is immutable or has fixed types.
+     * It is recommended to use TypeLists or TypeSets instead of other collections when adding collections.
+     *
+     * @param pathAndValue An array where the path elements precede the value to add.
+     * @return {@code true} if the value was added successfully, {@code false} otherwise.
+     */
+    //path, value
+    default boolean addPath(final Object... pathAndValue) {
+        if (pathAndValue == null || pathAndValue.length < 1)
+            return false;
+        final Object list = treeGet(this, Arrays.copyOf(pathAndValue, pathAndValue.length - 1));
+        if (!(list instanceof List<?>))
+            return putPath(pathAndValue);
+
+        ((List) list).add(pathAndValue[pathAndValue.length - 1]);
+        return true;
+    }
+
+    /**
+     * Sets a value at a specified path, replacing any existing value at that position.
+     * This method may throw an exception if the target collection is immutable or has fixed types.
+     * It is recommended to use TypeLists or TypeSets instead of other collections when adding collections.
+     *
+     * @param pathAndValue An array where the path elements precede the value to set.
+     * @return {@code true} if the value was added successfully, {@code false} otherwise.
+     */
+    default boolean setPath(final Object... pathAndValue) {
+        if (pathAndValue == null || pathAndValue.length < 2)
+            return false;
+
+        final Object list = treeGet(this, Arrays.copyOf(pathAndValue, pathAndValue.length - 2));
+        if (!(list instanceof List<?>))
+            return putPath(pathAndValue);
+
+        final Object key = pathAndValue[pathAndValue.length - 2];
+        final int index = !(key instanceof Number) ? ((List<?>) list).indexOf(key) : ((Number) key).intValue();
+        if (index > -1 && index < ((List<?>) list).size()) {
+            ((List) list).set(index, pathAndValue[pathAndValue.length - 1]);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Inserts or updates a value at a specified path, where the last path element is treated as a key.
+     * This method may throw an exception if the target map is immutable or has fixed types.
+     * It is recommended to use TypeMaps when adding maps.
+     *
+     * @param pathAndValue An array where the path elements precede the key and value to insert or update.
+     * @return {@code true} if the value was added successfully, {@code false} otherwise.
+     */
+    default boolean putPath(final Object... pathAndValue) {
+        if (pathAndValue == null || pathAndValue.length < 2)
+            return false;
+        final boolean isEntry = pathAndValue[pathAndValue.length - 1] instanceof Map.Entry;
+        final Object obj = treeGet(this, Arrays.copyOf(pathAndValue, pathAndValue.length - (isEntry ? 1 : 2)));
+        if (obj instanceof Map) {
+            ((Map) obj).put(
+                isEntry ? ((Map.Entry<?, ?>) pathAndValue[pathAndValue.length - 1]).getKey() : pathAndValue[pathAndValue.length - 2],
+                isEntry ? ((Map.Entry<?, ?>) pathAndValue[pathAndValue.length - 1]).getValue() : pathAndValue[pathAndValue.length - 1]
+            );
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Checks if a specified path contains a given value or key.
+     *
+     * @param pathAndValue An array where the path elements precede the value or key to check.
+     * @return {@code true} if the path contains the value or key, {@code false} otherwise.
+     */
+    default boolean containsPath(final Object... pathAndValue) {
+        if (pathAndValue == null || pathAndValue.length < 1)
+            return false;
+        final Object obj = treeGet(this, Arrays.copyOf(pathAndValue, pathAndValue.length - 1));
+        if (obj instanceof Map) {
+            return ((Map<?, ?>) obj).containsKey(pathAndValue[pathAndValue.length - 1]);
+        } else if (obj instanceof List) {
+            return ((Collection<?>) obj).contains(pathAndValue[pathAndValue.length - 1]);
+        }
+        return false;
     }
 }

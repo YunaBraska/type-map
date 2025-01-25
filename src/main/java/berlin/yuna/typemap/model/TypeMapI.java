@@ -1,7 +1,6 @@
 package berlin.yuna.typemap.model;
 
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, TypeInfo<C> {
 
@@ -12,7 +11,7 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
      * @param value the value to be associated with the specified key.
      * @return the updated TypeMap instance for chaining.
      */
-    default C putReturn(final Object key, final Object value) {
+    default C putR(final Object key, final Object value) {
         put(key, value);
         return (C) this;
     }

@@ -120,7 +120,7 @@ public class ConcurrentTypeSet extends CopyOnWriteArrayList<Object> implements T
      * @return the updated {@link ConcurrentTypeSet} instance for chaining.
      */
     @Override
-    public ConcurrentTypeSet addReturn(final int index, final Object value) {
+    public ConcurrentTypeSet addR(final int index, final Object value) {
         this.add(index, value);
         return this;
     }
@@ -132,11 +132,11 @@ public class ConcurrentTypeSet extends CopyOnWriteArrayList<Object> implements T
      * @param value the value to be added
      * @return the updated {@link ConcurrentTypeSet} instance for chaining.
      */
-    public ConcurrentTypeSet addReturn(final Object index, final Object value) {
+    public ConcurrentTypeSet addR(final Object index, final Object value) {
         if (index == null) {
             super.add(value);
         } else if (index instanceof Number) {
-            this.addReturn(((Number) index).intValue(), value);
+            this.addR(((Number) index).intValue(), value);
         }
         return this;
     }

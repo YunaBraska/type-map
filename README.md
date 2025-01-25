@@ -64,13 +64,13 @@ understand, and simple to enhance, all without any "magic" under the hood.
 - _[ConcurrentTypeSet](src/main/java/berlin/yuna/typemap/model/ConcurrentTypeSet.java)_
 
 ```java
-    TypeMap typeMap = new TypeMap().putReturn(new Date(), "myTime");
+    TypeMap typeMap = new TypeMap().putR(new Date(), "myTime");
     OffsetDateTime timeValue = typeMap.asOffsetDateTime("myTime");
     OffsetDateTime timeValue = typeMap.as(OffsetDateTime.class, "myTime");
 ```
 
 ```java
-    TypeList typeList=new TypeList().addReturn(new Date());
+    TypeList typeList=new TypeList().addR(new Date());
     OffsetDateTime timeValue = typeMap.asOffsetDateTime(0);
     OffsetDateTime timeValue = typeMap.as(OffsetDateTime.class, 0);
 ```
@@ -78,7 +78,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 #### Collections
 
 ```java
-    TypeMap typeMap=new TypeMap().putReturn("myKey",new String[]{"1","2","3"});
+    TypeMap typeMap=new TypeMap().putR("myKey",new String[]{"1","2","3"});
 
     TypeList list1=typeMap.asList("myKey");
     Integer numberThree=typeList.asList("myKey").as(2,Integer.class)
@@ -87,7 +87,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 ```
 
 ```java
-    TypeList typeList=new TypeList().addReturn(new String[]{"1","2","3"});
+    TypeList typeList=new TypeList().addR(new String[]{"1","2","3"});
 
     TypeList list1=typeList.asList(0);
     Integer numberThree=typeList.asList(0).asIntList(2)
@@ -98,7 +98,7 @@ understand, and simple to enhance, all without any "magic" under the hood.
 #### Maps
 
 ```java
-    TypeMap typeMap=new TypeMap().putReturn("mykey",Map.of(6,new Date()));
+    TypeMap typeMap=new TypeMap().putR("mykey",Map.of(6,new Date()));
 
 LinkedTypeMap map1 = typeMap.asMap("myKey");
 Map<Long, Instant> map2 = typeMap.asMap(Long.class, Instant.class, "mykey")
@@ -106,7 +106,7 @@ Map<Long, Instant> map2 = typeMap.asMap(() -> new HashMap<>(), Long.class, "myke
 ```
 
 ```java
-    TypeList typeLst = new TypeList().addReturn(Map.of(6, new Date()));
+    TypeList typeLst = new TypeList().addR(Map.of(6, new Date()));
 
 LinkedTypeMap map1 = typeLst.asMap(0);
 Map<Long, Instant> map2 = typeLst.asMap(Long.class, Instant.class, 0);

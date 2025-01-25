@@ -61,8 +61,8 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * @param value the value to be associated with the specified key.
      * @return the updated {@link ConcurrentTypeMap} instance for chaining.
      */
-    public TypeMap addReturn(final Object key, final Object value) {
-        return putReturn(key, value);
+    public TypeMap addR(final Object key, final Object value) {
+        return putR(key, value);
     }
 
     /**
@@ -103,8 +103,8 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                     value = (index >= 0 && index < list.size()) ? list.get(index) : null;
                 } else {
                     value = ((Collection<?>) value).stream().filter(item -> Objects.equals(item, key)
-                        || (item instanceof Pair && Objects.equals(((Pair<?, ?>) item).key(), key))
-                    ).map(o -> o instanceof Pair ? ((Pair<?, ?>) o).value() : o).findFirst().orElse(null);
+                        || (item instanceof Map.Entry && Objects.equals(((Map.Entry<?, ?>) item).getKey(), key))
+                    ).map(o -> o instanceof Map.Entry ? ((Map.Entry<?, ?>) o).getValue() : o).findFirst().orElse(null);
                 }
             } else if (value.getClass().isArray()) {
                 final int index = key instanceof Number ? ((Number) key).intValue() : -1;
@@ -115,10 +115,10 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                         result.set(item);
                 });
                 return result.get();
-            } else if (value instanceof Pair) {
-                final Pair<?, ?> pair = (Pair<?, ?>) value;
-                if (Objects.equals(pair.key(), key))
-                    value = pair.value();
+            } else if (value instanceof Map.Entry) {
+                final Map.Entry<?, ?> pair = (Map.Entry<?, ?>) value;
+                if (Objects.equals(pair.getKey(), key))
+                    value = pair.getValue();
             } else {
                 value = null;
             }

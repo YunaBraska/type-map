@@ -13,6 +13,12 @@ class PairTest {
         assertThat(pair.value()).isEqualTo("222");
         assertThat(pair.key(String.class)).isEqualTo("111");
         assertThat(pair.value(Integer.class)).isEqualTo(222);
+        assertThat(pair.getKey()).isEqualTo(111);
+        assertThat(pair.getValue()).isEqualTo("222");
+        assertThat(pair.value("AA").value()).isEqualTo("AA");
+        assertThat(pair.setValue("BB")).isEqualTo("AA");
+        assertThat(pair.getValue()).isEqualTo("BB");
+        assertThat(pair.key(222).key()).isEqualTo(222);
     }
 
     @Test

@@ -344,9 +344,9 @@ public class TypeConverter {
                 final Map.Entry<?, ?> first = map.entrySet().iterator().next();
                 return first.getKey() == null || "".equals(first.getKey()) ? first.getValue() : first.getKey();
             }
-        } else if (value instanceof Pair<?, ?>) {
-            final Pair<?, ?> pair = (Pair<?, ?>) value;
-            return pair.key() == null || "".equals(pair.key()) ? pair.value() : pair.key();
+        } else if (value instanceof Map.Entry<?, ?>) {
+            final Map.Entry<?, ?> pair = (Map.Entry<?, ?>) value;
+            return pair.getKey() == null || "".equals(pair.getKey()) ? pair.getValue() : pair.getKey();
         }
         return null;
     }

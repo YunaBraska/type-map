@@ -39,43 +39,43 @@ class TypeListTest {
     @MethodSource("typeMapProvider")
     void simpleConvertTest(final String mapName, final TypeListI<?> typeList) {
         final String myTime = new Date(TEST_TIME).toString();
-        typeList.addReturn(null, myTime).add(null);
+        typeList.addR(null, myTime).add(null);
 
         // VALIDATIONS
         assertThat(typeList.typeListOpt()).isPresent();
         assertThat(typeList.typeMapOpt()).isEmpty();
 
         // TREE MAP
-        assertThat(typeList.getOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.getOpt(OffsetDateTime.class, 1)).isEmpty();
+        assertThat(typeList.asOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
+        assertThat(typeList.asOpt(OffsetDateTime.class, 1)).isEmpty();
         assertThat(typeList.get(0)).isEqualTo(myTime);
 
         // KEY MAP
-        assertThat(typeList.getOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.getOpt(OffsetDateTime.class, 1)).isEmpty();
+        assertThat(typeList.asOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
+        assertThat(typeList.asOpt(OffsetDateTime.class, 1)).isEmpty();
         assertThat(typeList.get(0)).isEqualTo(myTime);
         assertThat(typeList.get(1)).isNull();
 
         // ADD AT INDEX
-        typeList.addReturn(0, "true");
+        typeList.addR(0, "true");
         assertThat(typeList.get(Boolean.class, 0)).isTrue();
-        assertThat(typeList.getOpt(Instant.class, 1)).contains(Instant.ofEpochMilli(TEST_TIME));
-        assertThat(typeList.getOpt(LocalTime.class, 1)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.getOpt(OffsetDateTime.class, 2)).isEmpty();
+        assertThat(typeList.asOpt(Instant.class, 1)).contains(Instant.ofEpochMilli(TEST_TIME));
+        assertThat(typeList.asOpt(LocalTime.class, 1)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
+        assertThat(typeList.asOpt(OffsetDateTime.class, 2)).isEmpty();
 
 
         if (typeList instanceof TypeSet || typeList instanceof ConcurrentTypeSet) {
             typeList.add(myTime);
             typeList.add(-1, myTime);
-            typeList.addReturn(-1, myTime);
-            typeList.addAllReturn(asList(myTime, myTime));
-            assertThat(typeList.addReturn(-1, myTime)).hasSize(3);
-            assertThat(typeList.addReturn((Object) 0, myTime)).hasSize(3);
+            typeList.addR(-1, myTime);
+            typeList.addAllR(asList(myTime, myTime));
+            assertThat(typeList.addR(-1, myTime)).hasSize(3);
+            assertThat(typeList.addR((Object) 0, myTime)).hasSize(3);
         } else {
-            assertThat(typeList.addReturn(-1, myTime)).hasSize(4);
-            assertThat(typeList.addReturn((Object) 0, myTime)).hasSize(5);
+            assertThat(typeList.addR(-1, myTime)).hasSize(4);
+            assertThat(typeList.addR((Object) 0, myTime)).hasSize(5);
         }
     }
 
@@ -83,14 +83,14 @@ class TypeListTest {
     @MethodSource("typeMapProvider")
     void enumConvertTest(final String mapName, final TypeListI<?> typeList) {
         typeList.add("BB");
-        assertThat(typeList.getOpt(TestEnum.class, 0)).contains(TestEnum.BB);
+        assertThat(typeList.asOpt(TestEnum.class, 0)).contains(TestEnum.BB);
     }
 
     @ParameterizedTest(name = "[{index}] [{0}]")
     @MethodSource("typeMapProvider")
     void collectionConvertTest(final String mapName, final TypeListI<?> typeList) {
         final String myTime = new Date(TEST_TIME).toString();
-        typeList.addReturn(myTime).add(new String[]{"1", "2", "3"});
+        typeList.addR(myTime).add(new String[]{"1", "2", "3"});
 
         // TREE MAP
         final List<Instant> instantList1 = typeList.asList(ArrayList::new, Instant.class, 0);
@@ -195,18 +195,18 @@ class TypeListTest {
         innerMap.put("FF", new Object[]{anObject});
         typeList.add(innerMap);
 
-        assertThat(typeList.getOpt(Object.class)).contains(typeList);
-        assertThat(typeList.getOpt(Object.class, (Object) null)).isEmpty();
-        assertThat(typeList.getOpt(Object.class, new Object[]{null})).isEmpty();
-        assertThat(typeList.getOpt(Object.class, 0)).contains(innerMap);
-        assertThat(typeList.getOpt(Object.class, 0, "BB")).contains(asList("11", "22"));
-        assertThat(typeList.getOpt(Object.class, 0, "CC")).contains(new Object[]{"33", "44"});
-        assertThat(typeList.getOpt(Object.class, 0, "BB", 0)).contains("11");
-        assertThat(typeList.getOpt(Object.class, 0, "BB", 1)).contains("22");
-        assertThat(typeList.getOpt(Object.class, 0, "CC", 0)).contains("33");
-        assertThat(typeList.getOpt(Object.class, 0, "CC", 1)).contains("44");
-        assertThat(typeList.getOpt(UnknownClass.class, 0, "DD")).contains(anObject);
-        assertThat(typeList.getOpt(UnknownClass.class, 0, "DD", anObject)).isEmpty();
+        assertThat(typeList.asOpt(Object.class)).contains(typeList);
+        assertThat(typeList.asOpt(Object.class, (Object) null)).isEmpty();
+        assertThat(typeList.asOpt(Object.class, new Object[]{null})).isEmpty();
+        assertThat(typeList.asOpt(Object.class, 0)).contains(innerMap);
+        assertThat(typeList.asOpt(Object.class, 0, "BB")).contains(asList("11", "22"));
+        assertThat(typeList.asOpt(Object.class, 0, "CC")).contains(new Object[]{"33", "44"});
+        assertThat(typeList.asOpt(Object.class, 0, "BB", 0)).contains("11");
+        assertThat(typeList.asOpt(Object.class, 0, "BB", 1)).contains("22");
+        assertThat(typeList.asOpt(Object.class, 0, "CC", 0)).contains("33");
+        assertThat(typeList.asOpt(Object.class, 0, "CC", 1)).contains("44");
+        assertThat(typeList.asOpt(UnknownClass.class, 0, "DD")).contains(anObject);
+        assertThat(typeList.asOpt(UnknownClass.class, 0, "DD", anObject)).isEmpty();
     }
 
     @Test
@@ -219,10 +219,10 @@ class TypeListTest {
         assertThat(new ConcurrentTypeSet("{ broken json")).containsExactly("{ broken json");
         assertThat(new ConcurrentTypeList("{ broken json")).containsExactly("{ broken json");
 
-        final TypeList list1 = new TypeList().addAllReturn(singletonList(myJson));
-        final TypeSet list2 = new TypeSet().addAllReturn(singletonList(myJson));
-        final ConcurrentTypeSet list3 = new ConcurrentTypeSet().addAllReturn(singletonList(myJson));
-        final ConcurrentTypeList list4 = new ConcurrentTypeList().addAllReturn(singletonList(myJson));
+        final TypeList list1 = new TypeList().addAllR(singletonList(myJson));
+        final TypeSet list2 = new TypeSet().addAllR(singletonList(myJson));
+        final ConcurrentTypeSet list3 = new ConcurrentTypeSet().addAllR(singletonList(myJson));
+        final ConcurrentTypeList list4 = new ConcurrentTypeList().addAllR(singletonList(myJson));
 
         //for coverage, for some reason it doesn't detect this earlier
         list2.add(-1, "AA");

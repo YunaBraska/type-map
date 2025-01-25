@@ -29,7 +29,7 @@ public class JsonDecoder {
     @SuppressWarnings("java:S1452")
     public static TypeInfo<?> jsonTypeOf(final String jsonOrXml) {
         final Object result = jsonOrXml != null && jsonOrXml.startsWith("<")? XmlDecoder.xmlTypeOf(jsonOrXml) : jsonOf(jsonOrXml);
-        return result instanceof TypeInfo ? (TypeInfo<?>) result : new TypeList().addReturn(result);
+        return result instanceof TypeInfo ? (TypeInfo<?>) result : new TypeList().addR(result);
     }
 
     /**
@@ -48,7 +48,7 @@ public class JsonDecoder {
         if (result instanceof LinkedTypeMap) {
             return (LinkedTypeMap) result;
         } else if (result != null) {
-            return new LinkedTypeMap().putReturn("", result);
+            return new LinkedTypeMap().putR("", result);
         }
         return new LinkedTypeMap();
     }

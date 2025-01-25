@@ -4,7 +4,6 @@ import berlin.yuna.typemap.model.Pair;
 import berlin.yuna.typemap.model.TypeList;
 import org.w3c.dom.*;
 import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -134,7 +133,7 @@ public class XmlDecoder {
         final Element node = document.getDocumentElement();
         node.normalize();
 
-        return new TypeList().addReturn(new Pair<>(node.getNodeName(), parseXmlNode(node)));
+        return new TypeList().addR(new Pair<>(node.getNodeName(), parseXmlNode(node)));
     }
 
     /**

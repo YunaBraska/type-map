@@ -55,8 +55,8 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * @param value the value to be associated with the specified key.
      * @return the updated {@link ConcurrentTypeMap} instance for chaining.
      */
-    public ConcurrentTypeMap addReturn(final Object key, final Object value) {
-        return putReturn(key, value);
+    public ConcurrentTypeMap addR(final Object key, final Object value) {
+        return putR(key, value);
     }
 
     /**

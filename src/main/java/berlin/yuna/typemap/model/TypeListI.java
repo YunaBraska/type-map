@@ -13,7 +13,7 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
      * @param value the value to be added
      * @return the updated {@link TypeListI} instance for chaining.
      */
-    C addReturn(final int index, final Object value);
+    C addR(final int index, final Object value);
 
     /**
      * Adds the specified value
@@ -21,8 +21,8 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
      * @param value the value to be added
      * @return the updated TypeList instance for chaining.
      */
-    default C addReturn(final Object value) {
-        return addReturn(-1, value);
+    default C addR(final Object value) {
+        return addR(-1, value);
     }
 
     /**
@@ -31,7 +31,7 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
      * @param collection which provides all entries to add
      * @return the updated {@link TypeListI} instance for chaining.
      */
-    default C addAllReturn(final Collection<?> collection) {
+    default C addAllR(final Collection<?> collection) {
         addAll(collection);
         return (C) this;
     }

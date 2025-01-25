@@ -1,13 +1,14 @@
 package berlin.yuna.typemap.model;
 
+import java.util.Map;
 import java.util.Objects;
 
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 
-public class Pair<K, V> {
+public class Pair<K, V> implements Map.Entry<K, V> {
 
-    final K key;
-    final V value;
+    private K key;
+    private V value;
 
     public Pair(final K key, final V value) {
         this.key = key;
@@ -22,12 +23,39 @@ public class Pair<K, V> {
         return value;
     }
 
+    public Pair<K, V> key(final K key) {
+        this.key = key;
+        return this;
+    }
+
+    public Pair<K, V> value(final V value) {
+        this.value = value;
+        return this;
+    }
+
     public <T> T key(final Class<T> type) {
         return convertObj(key, type);
     }
 
     public <T> T value(final Class<T> type) {
         return convertObj(value, type);
+    }
+
+    @Override
+    public K getKey() {
+        return key;
+    }
+
+    @Override
+    public V getValue() {
+        return value;
+    }
+
+    @Override
+    public V setValue(final V value) {
+        final V oldValue = this.value;
+        this.value = value;
+        return oldValue;
     }
 
     @Override

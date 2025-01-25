@@ -120,7 +120,7 @@ public class TypeSet extends ArrayList<Object> implements TypeListI<TypeSet> {
      * @return the updated {@link TypeSet} instance for chaining.
      */
     @Override
-    public TypeSet addReturn(final int index, final Object value) {
+    public TypeSet addR(final int index, final Object value) {
         this.add(index, value);
         return this;
     }
@@ -132,11 +132,11 @@ public class TypeSet extends ArrayList<Object> implements TypeListI<TypeSet> {
      * @param value the value to be added
      * @return the updated {@link TypeSet} instance for chaining.
      */
-    public TypeSet addReturn(final Object index, final Object value) {
+    public TypeSet addR(final Object index, final Object value) {
         if (index == null) {
             super.add(value);
         } else if (index instanceof Number) {
-            this.addReturn(((Number) index).intValue(), value);
+            this.addR(((Number) index).intValue(), value);
         }
         return this;
     }

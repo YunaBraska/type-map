@@ -55,8 +55,8 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * @param value the value to be associated with the specified key.
      * @return the updated {@link LinkedTypeMap} instance for chaining.
      */
-    public LinkedTypeMap addReturn(final Object key, final Object value) {
-        return putReturn(key, value);
+    public LinkedTypeMap addR(final Object key, final Object value) {
+        return putR(key, value);
     }
 
     /**

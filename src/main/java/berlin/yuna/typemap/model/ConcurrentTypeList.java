@@ -48,7 +48,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @return the updated {@link TypeList} instance for chaining.
      */
     @Override
-    public ConcurrentTypeList addReturn(final int index, final Object value) {
+    public ConcurrentTypeList addR(final int index, final Object value) {
         if (index >= 0 && index < this.size()) {
             super.add(index, value);
         } else {
@@ -64,11 +64,11 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * @param value the value to be added
      * @return the updated {@link ConcurrentTypeList} instance for chaining.
      */
-    public ConcurrentTypeList addReturn(final Object index, final Object value) {
+    public ConcurrentTypeList addR(final Object index, final Object value) {
         if (index == null) {
             super.add(value);
         } else if (index instanceof Number) {
-            this.addReturn(((Number) index).intValue(), value);
+            this.addR(((Number) index).intValue(), value);
         }
         return this;
     }
