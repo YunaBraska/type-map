@@ -26,11 +26,15 @@ import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
 import static berlin.yuna.typemap.model.ConcurrentTypeMap.concurrentMapOf;
 import static berlin.yuna.typemap.model.LinkedTypeMap.linkedMapOf;
+import static berlin.yuna.typemap.model.Type.typeOf;
+import static berlin.yuna.typemap.model.TypeMap.treeGet;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.Optional.ofNullable;
 import static org.assertj.core.api.Assertions.*;
 
+@SuppressWarnings("all")
 public class TypeMapTest {
 
     public static final long TEST_TIME = 1800000000000L;
@@ -56,8 +60,8 @@ public class TypeMapTest {
         typeMap.addR("myKey", myTime);
 
         // VALIDATIONS
-        assertThat(typeMap.typeListOpt()).isEmpty();
-        assertThat(typeMap.typeMapOpt()).isPresent();
+        assertThat(typeMap.typeListOpt().value()).isNull();
+        assertThat(typeMap.typeMapOpt().value()).isNotNull();
 
         // TREE MAP
         assertThat(typeMap.asOpt(Instant.class, "myKey")).contains(Instant.ofEpochMilli(TEST_TIME));
@@ -82,12 +86,12 @@ public class TypeMapTest {
         typeMap.put("key6", 5D);
         typeMap.put("key7", -1);
         assertThat(typeMap.asOpt(TestEnum.class, "key1")).contains(TestEnum.BB);
-        assertThat(typeMap.asOpt(TestEnum.class, "key2")).isEmpty();
+        assertThat(typeMap.asOpt(TestEnum.class, "key2").value()).isNull();
         assertThat(typeMap.asOpt(TestEnum.class, "key3")).contains(TestEnum.AA);
         assertThat(typeMap.asOpt(TestEnum.class, "key4")).contains(TestEnum.BB);
-        assertThat(typeMap.asOpt(TestEnum.class, "key5")).isEmpty();
+        assertThat(typeMap.asOpt(TestEnum.class, "key5").value()).isNull();
         assertThat(typeMap.asOpt(TestEnum.class, "key6")).contains(TestEnum.AA);
-        assertThat(typeMap.asOpt(TestEnum.class, "key7")).isEmpty();
+        assertThat(typeMap.asOpt(TestEnum.class, "key7").value()).isNull();
     }
 
     @ParameterizedTest
@@ -205,17 +209,17 @@ public class TypeMapTest {
         typeMap.put("AA", innerMap);
 
         assertThat(typeMap.asOpt(Object.class)).contains(typeMap);
-        assertThat(typeMap.asOpt(Object.class, (Object) null)).isEmpty();
-        assertThat(typeMap.asOpt(Object.class, new Object[]{null})).isEmpty();
+        assertThat(typeMap.asOpt(Object.class, (Object) null).value()).isNull();
+        assertThat(typeMap.asOpt(Object.class, new Object[]{null}).value()).isNull();
         assertThat(typeMap.asOpt(Object.class, "AA")).contains(innerMap);
         assertThat(typeMap.asOpt(Object.class, "AA", "BB")).contains(asList("11", "22"));
-        assertThat(typeMap.asOpt(Object.class, "AA", "CC")).contains(new Object[]{"33", "44"});
+        assertThat(typeMap.asOpt(Object.class, "AA", "CC").value()).isEqualTo(new Object[]{"33", "44"});
         assertThat(typeMap.asOpt(Object.class, "AA", "BB", 0)).contains("11");
         assertThat(typeMap.asOpt(Object.class, "AA", "BB", 1)).contains("22");
         assertThat(typeMap.asOpt(Object.class, "AA", "CC", 0)).contains("33");
         assertThat(typeMap.asOpt(Object.class, "AA", "CC", 1)).contains("44");
         assertThat(typeMap.asOpt(UnknownClass.class, "AA", "DD")).contains(anObject);
-        assertThat(typeMap.asOpt(UnknownClass.class, "AA", "DD", anObject)).isEmpty();
+        assertThat(typeMap.asOpt(UnknownClass.class, "AA", "DD", anObject).value()).isNull();
     }
 
     @Test
@@ -497,9 +501,9 @@ public class TypeMapTest {
         // TypeMap
         final TypeMap map = new TypeMap();
         map.put("key", new Date(TEST_TIME));
-        final Optional<Calendar> calendar = map.asOpt(Calendar.class, "key");
-        final Optional<LocalDateTime> localDateTime = map.asOpt(LocalDateTime.class, "key");
-        final Optional<ZonedDateTime> zonedDateTime = map.asOpt(ZonedDateTime.class, "key");
+        final Type<Calendar> calendar = map.asOpt(Calendar.class, "key");
+        final Type<LocalDateTime> localDateTime = map.asOpt(LocalDateTime.class, "key");
+        final Type<ZonedDateTime> zonedDateTime = map.asOpt(ZonedDateTime.class, "key");
 
         // Register custom conversion
         TypeConversionRegister.registerTypeConvert(UnknownClass.class, Double.class, source -> 99d);
@@ -520,19 +524,19 @@ public class TypeMapTest {
         final LinkedTypeMap map1 = jsonMap.asMap("outerMap", "times");
         final TestEnum testEnum = jsonMap.asList("outerMap", "myList").get(TestEnum.class, 0);
 
-        final Optional<Date> myDate1 = jsonMap.asOpt(Date.class, "outerMap", "times", "timestamp1");
-        final Optional<Date> myDate2 = jsonMap.asOpt(Date.class, "outerMap", "times", "timestamp2");
-        final Optional<Date> myDate3 = jsonMap.asOpt(Date.class, "outerMap", "times", "date");
-        final Optional<Long> myTimestamp = jsonMap.asOpt(Long.class, "outerMap", "times", "timestamp1");
-        final Optional<TestEnum> myEnum = jsonMap.asOpt(TestEnum.class, "outerMap", "myList", 0);
-        final Optional<Boolean> myBoolean = jsonMap.asOpt(Boolean.class, "outerMap", "myList", 2);
+        final Type<Date> myDate1 = jsonMap.asOpt(Date.class, "outerMap", "times", "timestamp1");
+        final Type<Date> myDate2 = jsonMap.asOpt(Date.class, "outerMap", "times", "timestamp2");
+        final Type<Date> myDate3 = jsonMap.asOpt(Date.class, "outerMap", "times", "date");
+        final Type<Long> myTimestamp = jsonMap.asOpt(Long.class, "outerMap", "times", "timestamp1");
+        final Type<TestEnum> myEnum = jsonMap.asOpt(TestEnum.class, "outerMap", "myList", 0);
+        final Type<Boolean> myBoolean = jsonMap.asOpt(Boolean.class, "outerMap", "myList", 2);
 
         final String myJson = jsonMap.toJson();
 
         // Assertions
-        assertThat(calendar).isPresent();
-        assertThat(localDateTime).isPresent();
-        assertThat(zonedDateTime).isPresent();
+        assertThat(calendar.value()).isNotNull();
+        assertThat(localDateTime.value()).isNotNull();
+        assertThat(zonedDateTime.value()).isNotNull();
         assertThat(map1).hasSize(3);
         assertThat(testEnum).isEqualTo(TestEnum.BB);
         assertThat(date).isEqualTo(new Date(TEST_TIME));
@@ -543,6 +547,219 @@ public class TypeMapTest {
         assertThat(myEnum).contains(TestEnum.BB);
         assertThat(myBoolean).contains(true);
         assertThat(myJson).isNotNull();
+    }
+
+    @Test
+    void istPresentTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.isPresent("key")).isTrue();
+        assertThat(typeMap.isPresent("invalid")).isFalse();
+        assertThat(typeMap.isPresent("key", 0)).isTrue();
+        assertThat(typeMap.isPresent("key", 1)).isTrue();
+        assertThat(typeMap.isPresent("key", 2)).isFalse();
+        assertThat(typeMap.isPresent("key", "value1")).isTrue();
+    }
+
+    @Test
+    void isEmptyTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.isEmpty()).isFalse();
+        assertThat(typeMap.isEmpty("key")).isFalse();
+        assertThat(typeMap.isEmpty("invalid")).isTrue();
+        assertThat(typeMap.isEmpty("key", 0)).isFalse();
+        assertThat(typeMap.isEmpty("key", 1)).isFalse();
+        assertThat(typeMap.isEmpty("key", 2)).isTrue();
+        assertThat(typeMap.isEmpty("key", "value1")).isFalse();
+    }
+
+    @Test
+    void ifPresentTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        typeMap.ifPresent(type -> assertThat(type).isNotNull().isNotEmpty(), "key");
+        typeMap.ifPresent(type -> fail("Invalid key"), "invalid");
+        typeMap.ifPresent(type -> assertThat(type).isNotNull().isNotEmpty(), "key", 0);
+        typeMap.ifPresent(type -> assertThat(type).isNotNull().isNotEmpty(), "key", 1);
+        typeMap.ifPresent(type -> fail("Invalid key"), "key", 2);
+        typeMap.ifPresent(type -> assertThat(type).isNotNull().isNotEmpty(), "key", "value1");
+        typeMap.ifPresent(type -> assertThat(type).isNotNull().isNotEmpty(), "key", "value2");
+        typeMap.ifPresent(type -> fail("Invalid key"), "key", "value3");
+    }
+
+    @Test
+    void ifPresentOrElseTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        typeMap.ifPresentOrElse(type -> assertThat(type).isNotNull().isNotEmpty(), () -> fail("Invalid key"), "key");
+        typeMap.ifPresentOrElse(type -> fail("Invalid key"), () -> assertThat(typeMap).isNotNull().isNotEmpty(), "invalid");
+        typeMap.ifPresentOrElse(type -> assertThat(type).isNotNull().isNotEmpty(), () -> fail("Invalid key"), "key", 0);
+        typeMap.ifPresentOrElse(type -> assertThat(type).isNotNull().isNotEmpty(), () -> fail("Invalid key"), "key", 1);
+        typeMap.ifPresentOrElse(type -> fail("Invalid key"), () -> assertThat(typeMap).isNotNull().isNotEmpty(), "key", 2);
+        typeMap.ifPresentOrElse(type -> assertThat(type).isNotNull().isNotEmpty(), () -> fail("Invalid key"), "key", "value1");
+        typeMap.ifPresentOrElse(type -> assertThat(type).isNotNull().isNotEmpty(), () -> fail("Invalid key"), "key", "value2");
+        typeMap.ifPresentOrElse(type -> fail("Invalid key"), () -> assertThat(typeMap).isNotNull().isNotEmpty(), "key", "value3");
+    }
+
+    @Test
+    void filterTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.filter(null).value()).isNull();
+        assertThat(typeMap.filter(type -> false).value()).isNull();
+        assertThat(typeMap.filter(type -> true)).isNotNull().isNotEmpty();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key")).isNotNull().isNotEmpty();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key", 0)).isNotNull().isNotEmpty();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key", 1)).isNotNull().isNotEmpty();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key", 2).value()).isNull();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key", "value1")).isNotNull().isNotEmpty();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key", "value2")).isNotNull().isNotEmpty();
+        assertThat(typeMap.filter(type -> type.isPresent(), "key", "value3").value()).isNull();
+    }
+
+    @Test
+    void mapTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.map(null).value()).isNull();
+        assertThat(typeMap.map(type -> type)).isNotNull().isNotEmpty();
+        assertThat(typeMap.map(type -> type, "key")).isNotNull().isNotEmpty();
+        assertThat(typeMap.map(type -> type, "key", 0)).isNotNull().isNotEmpty();
+        assertThat(typeMap.map(type -> type, "key", 1)).isNotNull().isNotEmpty();
+        assertThat(typeMap.map(type -> type, "key", 2).value()).isNull();
+        assertThat(typeMap.map(type -> type, "key", "value1")).isNotNull().isNotEmpty();
+        assertThat(typeMap.map(type -> type, "key", "value2")).isNotNull().isNotEmpty();
+        assertThat(typeMap.map(type -> type, "key", "value3").value()).isNull();
+        assertThat(typeMap.map(type -> 200888, "key", "value2").value()).isEqualTo(200888);
+    }
+
+    @Test
+    void flatMapTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.flatMap(null).value()).isNull();
+        assertThat(typeMap.flatMap(type -> type)).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatMap(type -> type, "key")).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatMap(type -> type, "key", 0)).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatMap(type -> type, "key", 1)).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatMap(type -> type, "key", 2).value()).isNull();
+        assertThat(typeMap.flatMap(type -> type, "key", "value1")).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatMap(type -> type, "key", "value2")).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatMap(type -> type, "key", "value3").value()).isNull();
+        assertThat(typeMap.flatMap(type -> new Type<>(200888), "key", "value2").value()).isEqualTo(200888);
+    }
+
+    @Test
+    void flatOptTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.flatOpt(null).value()).isNull();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()))).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key")).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key", 0)).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key", 1)).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key", 2).value()).isNull();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key", "value1")).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key", "value2")).isNotNull().isNotEmpty();
+        assertThat(typeMap.flatOpt(type -> Optional.of(type.value()), "key", "value3").value()).isNull();
+        assertThat(typeMap.flatOpt(type -> ofNullable(200888), "key", "value2").value()).isEqualTo(200888);
+    }
+
+    @Test
+    void orTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.or((Supplier<?>) null)).isEqualTo(typeMap);
+        assertThat(typeMap.or(() -> new TypeMap())).isNotNull().isNotEmpty();
+        assertThat(typeMap.or(() -> new TypeList().addR("OR"), "key")).isNotNull().isNotEmpty();
+        assertThat(typeMap.or(() -> "OR", "key", 0)).isNotNull().isNotEmpty();
+        assertThat(typeMap.or(() -> "OR", "key", 1)).isNotNull().isNotEmpty();
+        assertThat(typeMap.or(() -> new TypeMap().putR("OR", "OR"), "key", 2)).isEqualTo(new TypeMap().putR("OR", "OR"));
+        assertThat(typeMap.or(() -> "OR", "key", "value1")).isNotNull().isNotEmpty();
+        assertThat(typeMap.or(() -> "OR", "key", "value2")).isNotNull().isNotEmpty();
+        assertThat(typeMap.or(() -> "OR", "key", "value3")).isEqualTo("OR");
+        typeMap.asOpt("key", "value3").or(() -> "OR");
+    }
+
+    @Test
+    void streamTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.stream()).isNotNull().containsExactly(typeOf(typeMap));
+        assertThat(typeMap.stream("key")).containsExactly(typeOf("value1"), typeOf("value2"));
+        assertThat(typeMap.stream("key", 0)).containsExactly(typeOf("value1"));
+        assertThat(typeMap.stream("key", 1)).containsExactly(typeOf("value2"));
+        assertThat(typeMap.stream("key", 2)).isEmpty();
+        assertThat(typeMap.stream("key", "value1")).containsExactly(typeOf("value1"));
+        assertThat(typeMap.stream("key", "value2")).containsExactly(typeOf("value2"));
+        assertThat(typeMap.stream("key", "value3")).isEmpty();
+        assertThat(new TypeMap().putR("key", new String[]{"value1", "value2"}).stream("key")).containsExactly(typeOf("value1"), typeOf("value2"));
+    }
+
+    @Test
+    void orElse() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.orElse(null)).isEqualTo(typeMap);
+        assertThat(typeMap.orElse(new TypeMap())).isEqualTo(typeMap);
+        assertThat(typeMap.orElse(new TypeList().addR("OR"), "key")).isEqualTo(new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.orElse("OR", "key", 0)).isEqualTo("value1");
+        assertThat(typeMap.orElse("OR", "key", 1)).isEqualTo("value2");
+        assertThat(typeMap.orElse(new TypeMap().putR("OR", "OR"), "key", 2)).isEqualTo(new TypeMap().putR("OR", "OR"));
+        assertThat(typeMap.orElse("OR", "key", "value1")).isEqualTo("value1");
+        assertThat(typeMap.orElse("OR", "key", "value2")).isEqualTo("value2");
+        assertThat(typeMap.orElse("OR", "key", "value3")).isEqualTo("OR");
+        typeMap.asOpt("key", "value3").orElse("OR");
+    }
+
+    @Test
+    void orElseGetTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.orElseGet(null)).isEqualTo(typeMap);
+        assertThat(typeMap.orElseGet(() -> new TypeMap())).isEqualTo(typeMap);
+        assertThat(typeMap.orElseGet(() -> new TypeList().addR("OR"), "key")).isEqualTo(new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.orElseGet(() -> "OR", "key", 0)).isEqualTo("value1");
+        assertThat(typeMap.orElseGet(() -> "OR", "key", 1)).isEqualTo("value2");
+        assertThat(typeMap.orElseGet(() -> new TypeMap().putR("OR", "OR"), "key", 2)).isEqualTo(new TypeMap().putR("OR", "OR"));
+        assertThat(typeMap.orElseGet(() -> "OR", "key", "value1")).isEqualTo("value1");
+        assertThat(typeMap.orElseGet(() -> "OR", "key", "value2")).isEqualTo("value2");
+        assertThat(typeMap.orElseGet(() -> "OR", "key", "value3")).isEqualTo("OR");
+        typeMap.asOpt("key", "value3").orElseGet(() -> "OR");
+    }
+
+    @Test
+    void orElseThrowTest() {
+        final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.orElseThrow(null)).isEqualTo(typeMap);
+        assertThat(typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"))).isEqualTo(typeMap);
+        assertThat(typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key")).isEqualTo(new TypeList().addR("value1").addR("value2"));
+        assertThat(typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key", 0)).isEqualTo("value1");
+        assertThat(typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key", 1)).isEqualTo("value2");
+        assertThat(typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key", "value1")).isEqualTo("value1");
+        assertThat(typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key", "value2")).isEqualTo("value2");
+
+        assertThatThrownBy(() -> typeMap.orElseThrow("key", 2)).isInstanceOf(NoSuchElementException.class);
+        assertThatThrownBy(() -> typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key", 2)).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> typeMap.orElseThrow("key", "value3")).isInstanceOf(NoSuchElementException.class);
+        assertThatThrownBy(() -> typeMap.orElseThrow(() -> new IllegalStateException("Invalid key"), "key", "value3")).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void toTypeTest() {
+        assertThat(TypeInfo.toType(null)).isEqualTo(typeOf(null));
+        assertThat(TypeInfo.toType("")).isEqualTo(typeOf(""));
+        assertThat(TypeInfo.toType(1)).isEqualTo(typeOf(1));
+        assertThat(TypeInfo.toType(typeOf(1L))).isEqualTo(typeOf(1L));
+        assertThat(TypeInfo.toType(Optional.of(1L))).isEqualTo(typeOf(1L));
+    }
+
+    @Test
+    void treeGetTest() {
+        final TypeMap typeMap = new TypeMap();
+        assertThat(treeGet(typeMap.putR("key", "value"), "key")).isEqualTo("value");
+        assertThat(treeGet(typeMap.putR("key", "value"), "invalid")).isNull();
+        assertThat(treeGet(typeMap.putR("key", new String[]{"value1", "value2"}), "key")).isEqualTo(new String[]{"value1", "value2"});
+        assertThat(treeGet(typeMap.putR("key", new String[]{"value1", "value2"}), "key", 1)).isEqualTo("value2");
+        assertThat(treeGet(typeMap.putR("key", new String[]{"value1", "value2"}), "key", 2)).isNull();
+        assertThat(treeGet(typeMap.putR("key", new String[]{"value1", "value2"}), "key", "value1")).isEqualTo("value1");
+        assertThat(treeGet(typeMap.putR("key", asList("value1", "value2")), "key")).isEqualTo(asList("value1", "value2"));
+        assertThat(treeGet(typeMap.putR("key", asList("value1", "value2")), "key", 1)).isEqualTo("value2");
+        assertThat(treeGet(typeMap.putR("key", asList("value1", "value2")), "key", 2)).isNull();
+        assertThat(treeGet(typeMap.putR("key", asList("value1", "value2")), "key", "value1")).isEqualTo("value1");
+        assertThat(treeGet(typeMap.putR("key", Optional.of("AA")), "key", "AA")).isEqualTo("AA");
+        assertThat(treeGet(typeMap.putR("key", typeOf("BB")), "key", "BB")).isEqualTo("BB");
+        assertThat(treeGet(typeMap.putR("key", new Pair<>("AA", "BB")), "key", "AA")).isEqualTo("BB");
+        assertThat(treeGet(typeMap.putR("key", new Pair<>("AA", "BB")), "key", "CC")).isNull();
     }
 
     @Test

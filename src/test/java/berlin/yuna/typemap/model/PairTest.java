@@ -37,7 +37,7 @@ class PairTest {
 
     @Test
     void TestToString() {
-        assertThat(new Pair<>(111, "AA")).hasToString("Pair{key=111, value=AA}");
+        assertThat(new Pair<>(111, "AA")).hasToString("{111:\"AA\"}");
         assertThat(new Pair<>(111, "AA").hashCode()).isNotZero();
     }
 }

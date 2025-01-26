@@ -115,10 +115,13 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                         result.set(item);
                 });
                 return result.get();
+            } else if (value instanceof Type) {
+                value = ((Type<?>) value).value();
+            } else if (value instanceof Optional<?>) {
+                value = ((Optional<?>) value).orElse(null);
             } else if (value instanceof Map.Entry) {
                 final Map.Entry<?, ?> pair = (Map.Entry<?, ?>) value;
-                if (Objects.equals(pair.getKey(), key))
-                    value = pair.getValue();
+                value = (Objects.equals(pair.getKey(), key)) ? pair.getValue() : null;
             } else {
                 value = null;
             }

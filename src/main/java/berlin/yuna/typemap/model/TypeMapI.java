@@ -1,6 +1,10 @@
 package berlin.yuna.typemap.model;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Optional;
+
+import static berlin.yuna.typemap.model.Type.empty;
+import static berlin.yuna.typemap.model.Type.typeOf;
 
 public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, TypeInfo<C> {
 
@@ -11,6 +15,7 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
      * @param value the value to be associated with the specified key.
      * @return the updated TypeMap instance for chaining.
      */
+    @SuppressWarnings("unchecked")
     default C putR(final Object key, final Object value) {
         put(key, value);
         return (C) this;
@@ -21,8 +26,8 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
-    default Optional<TypeMapI<?>> typeMapOpt() {
-        return Optional.of(this);
+    default Type<TypeMapI<?>> typeMapOpt() {
+        return typeOf(this);
     }
 
     /**
@@ -30,7 +35,7 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */
-    default Optional<TypeListI<?>> typeListOpt() {
-        return Optional.empty();
+    default Type<TypeListI<?>> typeListOpt() {
+        return empty();
     }
 }

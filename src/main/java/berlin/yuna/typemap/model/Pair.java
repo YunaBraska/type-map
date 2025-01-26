@@ -1,9 +1,14 @@
 package berlin.yuna.typemap.model;
 
+import java.util.AbstractMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static berlin.yuna.typemap.logic.JsonEncoder.toJson;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
+import static java.util.stream.Collectors.toMap;
 
 public class Pair<K, V> implements Map.Entry<K, V> {
 
@@ -73,10 +78,7 @@ public class Pair<K, V> implements Map.Entry<K, V> {
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "{" +
-            "key=" + key +
-            ", value=" + value +
-            '}';
+        return toJson(Stream.of(new AbstractMap.SimpleEntry<>(key, value)).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 }
 

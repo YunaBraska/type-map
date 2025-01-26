@@ -18,6 +18,7 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 
+@SuppressWarnings("all")
 class TypeListTest {
 
     @BeforeEach
@@ -42,19 +43,19 @@ class TypeListTest {
         typeList.addR(null, myTime).add(null);
 
         // VALIDATIONS
-        assertThat(typeList.typeListOpt()).isPresent();
-        assertThat(typeList.typeMapOpt()).isEmpty();
+        assertThat(typeList.typeListOpt().value()).isNotNull();
+        assertThat(typeList.typeMapOpt().value()).isNull();
 
         // TREE MAP
         assertThat(typeList.asOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeList.asOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.asOpt(OffsetDateTime.class, 1)).isEmpty();
+        assertThat(typeList.asOpt(OffsetDateTime.class, 1).value()).isNull();
         assertThat(typeList.get(0)).isEqualTo(myTime);
 
         // KEY MAP
         assertThat(typeList.asOpt(Instant.class, 0)).contains(Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeList.asOpt(LocalTime.class, 0)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.asOpt(OffsetDateTime.class, 1)).isEmpty();
+        assertThat(typeList.asOpt(OffsetDateTime.class, 1).value()).isNull();
         assertThat(typeList.get(0)).isEqualTo(myTime);
         assertThat(typeList.get(1)).isNull();
 
@@ -63,7 +64,7 @@ class TypeListTest {
         assertThat(typeList.get(Boolean.class, 0)).isTrue();
         assertThat(typeList.asOpt(Instant.class, 1)).contains(Instant.ofEpochMilli(TEST_TIME));
         assertThat(typeList.asOpt(LocalTime.class, 1)).contains(LocalDateTime.ofInstant(Instant.ofEpochMilli(TEST_TIME), ZoneId.systemDefault()).toLocalTime());
-        assertThat(typeList.asOpt(OffsetDateTime.class, 2)).isEmpty();
+        assertThat(typeList.asOpt(OffsetDateTime.class, 2).value()).isNull();
 
 
         if (typeList instanceof TypeSet || typeList instanceof ConcurrentTypeSet) {
@@ -196,17 +197,17 @@ class TypeListTest {
         typeList.add(innerMap);
 
         assertThat(typeList.asOpt(Object.class)).contains(typeList);
-        assertThat(typeList.asOpt(Object.class, (Object) null)).isEmpty();
-        assertThat(typeList.asOpt(Object.class, new Object[]{null})).isEmpty();
+        assertThat(typeList.asOpt(Object.class, (Object) null).value()).isNull();
+        assertThat(typeList.asOpt(Object.class, new Object[]{null}).value()).isNull();
         assertThat(typeList.asOpt(Object.class, 0)).contains(innerMap);
         assertThat(typeList.asOpt(Object.class, 0, "BB")).contains(asList("11", "22"));
-        assertThat(typeList.asOpt(Object.class, 0, "CC")).contains(new Object[]{"33", "44"});
+        assertThat(typeList.asOpt(Object.class, 0, "CC").value()).isEqualTo(new Object[]{"33", "44"});
         assertThat(typeList.asOpt(Object.class, 0, "BB", 0)).contains("11");
         assertThat(typeList.asOpt(Object.class, 0, "BB", 1)).contains("22");
         assertThat(typeList.asOpt(Object.class, 0, "CC", 0)).contains("33");
         assertThat(typeList.asOpt(Object.class, 0, "CC", 1)).contains("44");
         assertThat(typeList.asOpt(UnknownClass.class, 0, "DD")).contains(anObject);
-        assertThat(typeList.asOpt(UnknownClass.class, 0, "DD", anObject)).isEmpty();
+        assertThat(typeList.asOpt(UnknownClass.class, 0, "DD", anObject).value()).isNull();
     }
 
     @Test

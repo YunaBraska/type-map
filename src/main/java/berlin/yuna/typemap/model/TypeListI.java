@@ -4,6 +4,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import static berlin.yuna.typemap.model.Type.empty;
+import static berlin.yuna.typemap.model.Type.typeOf;
+
 public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInfo<C> {
 
     /**
@@ -42,8 +45,8 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
     @SuppressWarnings("java:S1452")
-    default Optional<TypeMapI<?>> typeMapOpt() {
-        return Optional.empty();
+    default Type<TypeMapI<?>> typeMapOpt() {
+        return empty();
     }
 
     /**
@@ -52,7 +55,7 @@ public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInf
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */
     @SuppressWarnings("java:S1452")
-    default Optional<TypeListI<?>> typeListOpt() {
-        return Optional.of(this);
+    default Type<TypeListI<?>> typeListOpt() {
+        return typeOf(this);
     }
 }

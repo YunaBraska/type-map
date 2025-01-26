@@ -15,22 +15,23 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Supplier;
+import java.util.function.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
+import static berlin.yuna.typemap.model.Type.typeOf;
 import static berlin.yuna.typemap.model.TypeMap.convertAndMap;
 import static berlin.yuna.typemap.model.TypeMap.treeGet;
-import static java.util.Optional.ofNullable;
 
 /**
  * Hold common methods between {@link TypeMapI} and {@link TypeListI}
  *
  * @param <C> {@link TypeMapI} or {@link TypeListI}
  */
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "java:S1452"})
 public interface TypeInfo<C extends TypeInfo<C>> {
 
     /**
@@ -57,8 +58,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else null.
      */
-    default Optional<String> asStringOpt(final Object... path) {
-        return ofNullable(asString(path));
+    default Type<String> asStringOpt(final Object... path) {
+        return typeOf(asString(path));
     }
 
     /**
@@ -77,8 +78,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Long> asLongOpt(final Object... path) {
-        return ofNullable(asLong(path));
+    default Type<Long> asLongOpt(final Object... path) {
+        return typeOf(asLong(path));
     }
 
     /**
@@ -97,8 +98,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Integer> asIntOpt(final Object... path) {
-        return ofNullable(asInt(path));
+    default Type<Integer> asIntOpt(final Object... path) {
+        return typeOf(asInt(path));
     }
 
     /**
@@ -117,8 +118,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Double> asDoubleOpt(final Object... path) {
-        return ofNullable(asDouble(path));
+    default Type<Double> asDoubleOpt(final Object... path) {
+        return typeOf(asDouble(path));
     }
 
     /**
@@ -137,8 +138,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Float> asFloatOpt(final Object... path) {
-        return ofNullable(asFloat(path));
+    default Type<Float> asFloatOpt(final Object... path) {
+        return typeOf(asFloat(path));
     }
 
     /**
@@ -157,8 +158,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Short> asShortOpt(final Object... path) {
-        return ofNullable(asShort(path));
+    default Type<Short> asShortOpt(final Object... path) {
+        return typeOf(asShort(path));
     }
 
     /**
@@ -177,8 +178,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Byte> asByteOpt(final Object... path) {
-        return ofNullable(asByte(path));
+    default Type<Byte> asByteOpt(final Object... path) {
+        return typeOf(asByte(path));
     }
 
     /**
@@ -197,8 +198,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<BigInteger> asBigIntegerOpt(final Object... path) {
-        return ofNullable(asBigInteger(path));
+    default Type<BigInteger> asBigIntegerOpt(final Object... path) {
+        return typeOf(asBigInteger(path));
     }
 
     /**
@@ -217,8 +218,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<BigDecimal> asBigDecimalOpt(final Object... path) {
-        return ofNullable(asBigDecimal(path));
+    default Type<BigDecimal> asBigDecimalOpt(final Object... path) {
+        return typeOf(asBigDecimal(path));
     }
 
     /**
@@ -237,8 +238,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Number> asNumberOpt(final Object... path) {
-        return ofNullable(asNumber(path));
+    default Type<Number> asNumberOpt(final Object... path) {
+        return typeOf(asNumber(path));
     }
 
     /**
@@ -257,8 +258,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<AtomicInteger> asAtomicIntegerOpt(final Object... path) {
-        return ofNullable(asAtomicInteger(path));
+    default Type<AtomicInteger> asAtomicIntegerOpt(final Object... path) {
+        return typeOf(asAtomicInteger(path));
     }
 
     /**
@@ -277,8 +278,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<AtomicLong> asAtomicLongOpt(final Object... path) {
-        return ofNullable(asAtomicLong(path));
+    default Type<AtomicLong> asAtomicLongOpt(final Object... path) {
+        return typeOf(asAtomicLong(path));
     }
 
     /**
@@ -297,8 +298,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<AtomicBoolean> asAtomicBooleanOpt(final Object... path) {
-        return ofNullable(asAtomicBoolean(path));
+    default Type<AtomicBoolean> asAtomicBooleanOpt(final Object... path) {
+        return typeOf(asAtomicBoolean(path));
     }
 
     /**
@@ -317,8 +318,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<UUID> asUUIDOpt(final Object... path) {
-        return ofNullable(asUUID(path));
+    default Type<UUID> asUUIDOpt(final Object... path) {
+        return typeOf(asUUID(path));
     }
 
     /**
@@ -337,8 +338,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Character> asCharacterOpt(final Object... path) {
-        return ofNullable(asCharacter(path));
+    default Type<Character> asCharacterOpt(final Object... path) {
+        return typeOf(asCharacter(path));
     }
 
     /**
@@ -357,8 +358,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Boolean> asBooleanOpt(final Object... path) {
-        return ofNullable(asBoolean(path));
+    default Type<Boolean> asBooleanOpt(final Object... path) {
+        return typeOf(asBoolean(path));
     }
 
     /**
@@ -377,8 +378,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Throwable> asThrowableOpt(final Object... path) {
-        return ofNullable(asThrowable(path));
+    default Type<Throwable> asThrowableOpt(final Object... path) {
+        return typeOf(asThrowable(path));
     }
 
     /**
@@ -397,8 +398,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Charset> asCharsetOpt(final Object... path) {
-        return ofNullable(asCharset(path));
+    default Type<Charset> asCharsetOpt(final Object... path) {
+        return typeOf(asCharset(path));
     }
 
     /**
@@ -417,8 +418,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<File> asFileOpt(final Object... path) {
-        return ofNullable(asFile(path));
+    default Type<File> asFileOpt(final Object... path) {
+        return typeOf(asFile(path));
     }
 
     /**
@@ -437,8 +438,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Path> asPathOpt(final Object... path) {
-        return ofNullable(asPath(path));
+    default Type<Path> asPathOpt(final Object... path) {
+        return typeOf(asPath(path));
     }
 
     /**
@@ -457,8 +458,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<URI> asURIOpt(final Object... path) {
-        return ofNullable(asURI(path));
+    default Type<URI> asURIOpt(final Object... path) {
+        return typeOf(asURI(path));
     }
 
     /**
@@ -477,8 +478,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<URL> asURLOpt(final Object... path) {
-        return ofNullable(asURL(path));
+    default Type<URL> asURLOpt(final Object... path) {
+        return typeOf(asURL(path));
     }
 
     /**
@@ -497,8 +498,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<InetAddress> asInetAddressOpt(final Object... path) {
-        return ofNullable(asInetAddress(path));
+    default Type<InetAddress> asInetAddressOpt(final Object... path) {
+        return typeOf(asInetAddress(path));
     }
 
     /**
@@ -517,8 +518,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Inet4Address> asInet4AddressOpt(final Object... path) {
-        return ofNullable(asInet4Address(path));
+    default Type<Inet4Address> asInet4AddressOpt(final Object... path) {
+        return typeOf(asInet4Address(path));
     }
 
     /**
@@ -537,8 +538,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Inet6Address> asInet6AddressOpt(final Object... path) {
-        return ofNullable(asInet6Address(path));
+    default Type<Inet6Address> asInet6AddressOpt(final Object... path) {
+        return typeOf(asInet6Address(path));
     }
 
     /**
@@ -557,8 +558,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Date> asDateOpt(final Object... path) {
-        return ofNullable(asDate(path));
+    default Type<Date> asDateOpt(final Object... path) {
+        return typeOf(asDate(path));
     }
 
     /**
@@ -577,8 +578,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Instant> asInstantOpt(final Object... path) {
-        return ofNullable(asInstant(path));
+    default Type<Instant> asInstantOpt(final Object... path) {
+        return typeOf(asInstant(path));
     }
 
     /**
@@ -597,8 +598,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Calendar> asCalendarOpt(final Object... path) {
-        return ofNullable(asCalendar(path));
+    default Type<Calendar> asCalendarOpt(final Object... path) {
+        return typeOf(asCalendar(path));
     }
 
     /**
@@ -617,8 +618,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<LocalDateTime> asLocalDateTimeOpt(final Object... path) {
-        return ofNullable(asLocalDateTime(path));
+    default Type<LocalDateTime> asLocalDateTimeOpt(final Object... path) {
+        return typeOf(asLocalDateTime(path));
     }
 
     /**
@@ -637,8 +638,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<LocalDate> asLocalDateOpt(final Object... path) {
-        return ofNullable(asLocalDate(path));
+    default Type<LocalDate> asLocalDateOpt(final Object... path) {
+        return typeOf(asLocalDate(path));
     }
 
     /**
@@ -657,8 +658,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<LocalTime> asLocalTimeOpt(final Object... path) {
-        return ofNullable(asLocalTime(path));
+    default Type<LocalTime> asLocalTimeOpt(final Object... path) {
+        return typeOf(asLocalTime(path));
     }
 
     /**
@@ -677,8 +678,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<OffsetDateTime> asOffsetDateTimeOpt(final Object... path) {
-        return ofNullable(asOffsetDateTime(path));
+    default Type<OffsetDateTime> asOffsetDateTimeOpt(final Object... path) {
+        return typeOf(asOffsetDateTime(path));
     }
 
     /**
@@ -697,8 +698,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<ZonedDateTime> asZonedDateTimeOpt(final Object... path) {
-        return ofNullable(asZonedDateTime(path));
+    default Type<ZonedDateTime> asZonedDateTimeOpt(final Object... path) {
+        return typeOf(asZonedDateTime(path));
     }
 
     /**
@@ -717,8 +718,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<java.sql.Date> asSqlDateOpt(final Object... path) {
-        return ofNullable(asSqlDate(path));
+    default Type<java.sql.Date> asSqlDateOpt(final Object... path) {
+        return typeOf(asSqlDate(path));
     }
 
     /**
@@ -737,8 +738,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Time> asTimeOpt(final Object... path) {
-        return ofNullable(asTime(path));
+    default Type<Time> asTimeOpt(final Object... path) {
+        return typeOf(asTime(path));
     }
 
     /**
@@ -757,8 +758,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param path the key whose associated value is to be returned.
      * @return the value if present and convertible, else empty.
      */
-    default Optional<Timestamp> asTimestampOpt(final Object... path) {
-        return ofNullable(asTimestamp(path));
+    default Type<Timestamp> asTimestampOpt(final Object... path) {
+        return typeOf(asTimestamp(path));
     }
 
     /**
@@ -1075,12 +1076,12 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped, and attempts to
      * convert it to the specified type.
      *
-     * @param <T>  The target type for conversion.
+     * @param <R>  The target type for conversion.
      * @param path the key whose associated value is to be returned.
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    default <T> T as(final Class<T> type, final Object... path) {
+    default <R> R as(final Class<R> type, final Object... path) {
         return asOpt(type, path).orElse(null);
     }
 
@@ -1089,15 +1090,14 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
      */
-    Optional<TypeMapI<?>> typeMapOpt();
+    Type<TypeMapI<?>> typeMapOpt();
 
     /**
      * Fluent type-check if the current {@link TypeInfo} is a {@link TypeListI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
      */
-    Optional<TypeListI<?>> typeListOpt();
-
+    Type<TypeListI<?>> typeListOpt();
 
     /**
      * Retrieves the value to which the specified key is mapped, and attempts to
@@ -1116,13 +1116,24 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * Retrieves the value to which the specified key is mapped, and attempts to
      * convert it to the specified type.
      *
+     * @param path the key whose associated value is to be returned.
+     * @return an Optional containing the value if present and convertible, else empty.
+     */
+    default Type<?> asOpt(final Object... path) {
+        return typeOf(treeGet(this, path));
+    }
+
+    /**
+     * Retrieves the value to which the specified key is mapped, and attempts to
+     * convert it to the specified type.
+     *
      * @param <T>  The target type for conversion.
      * @param path the key whose associated value is to be returned.
      * @param type the Class object of the type to convert to.
      * @return an Optional containing the value if present and convertible, else empty.
      */
-    default <T> Optional<T> asOpt(final Class<T> type, final Object... path) {
-        return ofNullable(treeGet(this, path)).map(object -> convertObj(object, type));
+    default <T> Type<T> asOpt(final Class<T> type, final Object... path) {
+        return asOpt(path).map(object -> convertObj(object, type));
     }
 
     /**
@@ -1352,7 +1363,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param pathAndValue An array where the path elements precede the value to add.
      * @return {@code true} if the value was added successfully, {@code false} otherwise.
      */
-    //path, value
+    @SuppressWarnings({"unchecked", "rawtypes"})
     default boolean addPath(final Object... pathAndValue) {
         if (pathAndValue == null || pathAndValue.length < 1)
             return false;
@@ -1372,6 +1383,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param pathAndValue An array where the path elements precede the value to set.
      * @return {@code true} if the value was added successfully, {@code false} otherwise.
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     default boolean setPath(final Object... pathAndValue) {
         if (pathAndValue == null || pathAndValue.length < 2)
             return false;
@@ -1397,6 +1409,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @param pathAndValue An array where the path elements precede the key and value to insert or update.
      * @return {@code true} if the value was added successfully, {@code false} otherwise.
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     default boolean putPath(final Object... pathAndValue) {
         if (pathAndValue == null || pathAndValue.length < 2)
             return false;
@@ -1428,5 +1441,237 @@ public interface TypeInfo<C extends TypeInfo<C>> {
             return ((Collection<?>) obj).contains(pathAndValue[pathAndValue.length - 1]);
         }
         return false;
+    }
+
+    /**
+     * If a value is present, returns {@code true}, otherwise {@code false}.
+     *
+     * @param path The key whose associated value
+     * @return {@code true} if a value is present, otherwise {@code false}
+     */
+    default boolean isPresent(final Object... path) {
+        return !isEmpty(path);
+    }
+
+    /**
+     * If a value is  not present, returns {@code true}, otherwise
+     * {@code false}.
+     *
+     * @param path The key whose associated value
+     * @return {@code true} if a value is not present, otherwise {@code false}
+     */
+    default boolean isEmpty(final Object... path) {
+        return treeGet(this, path) == null;
+    }
+
+    /**
+     * If a value is present, performs the given action with the value,
+     * otherwise does nothing.
+     *
+     * @param action the action to be performed, if a value is present
+     * @param path   The key whose associated value
+     * @return The current instance for method chaining.
+     */
+    default TypeInfo<C> ifPresent(final Consumer<? super Type<?>> action, final Object... path) {
+        ifPresentOrElse(action, null, path);
+        return this;
+    }
+
+    /**
+     * If a value is present, performs the given action with the value,
+     * otherwise performs the given empty-based action.
+     *
+     * @param action the action to be performed, if a value is present
+     * @param orElse the empty-based action to be performed, if no value is present
+     * @param path   The key whose associated value
+     * @return The current instance for method chaining.
+     */
+    default TypeInfo<C> ifPresentOrElse(final Consumer<? super Type<?>> action, final Runnable orElse, final Object... path) {
+        final Object value = treeGet(this, path);
+        if (value != null && action != null) {
+            action.accept(new Type<>(value));
+        } else if (orElse != null) {
+            orElse.run();
+        }
+        return this;
+    }
+
+    /**
+     * If a value is present, and the value matches the given predicate,
+     * returns an {@link Type} describing the value, otherwise returns an
+     * empty {@link Type}.
+     *
+     * @param predicate the predicate to apply to a value, if present
+     * @param path      The key whose associated value
+     * @return an {@link Type} describing the value of this
+     * {@link Type}, if a value is present and the value matches the
+     * given predicate, otherwise an empty {@link Type}
+     */
+    default Type<?> filter(final Predicate<Type<?>> predicate, final Object... path) {
+        final Object value = treeGet(this, path);
+        return (value != null && predicate != null && predicate.test(new Type<>(value))) ? new Type<>(value) : new Type<>(null);
+    }
+
+    /**
+     * If a value is present, returns an {@link Type} the result of applying the given mapping function to
+     * the value, otherwise returns an empty {@link Type}.
+     *
+     * <p>If the mapping function returns a {@code null} result then this method
+     * returns an empty {@link Type}.
+     *
+     * @param mapper the mapping function to apply to a value, if present
+     * @param path   The key whose associated value
+     * @return an {@link Type} describing the result of applying a mapping
+     */
+    default <R> Type<R> map(final Function<Type<?>, ? extends R> mapper, final Object... path) {
+        final Object value = treeGet(this, path);
+        return (value != null && mapper != null) ? new Type<>(mapper.apply(new Type<>(value))) : new Type<>(null);
+    }
+
+    /**
+     * If a value is present, returns the result of applying the given
+     * {@link Type}-bearing mapping function to the value, otherwise returns
+     * an empty {@link Type}.
+     *
+     * @param mapper the mapping function to apply to a value, if present
+     * @param path   The key whose associated value
+     * @return the result of applying an {@link Type}-bearing mapping
+     * function to the value of this {@link Type}, if a value is
+     * present, otherwise an empty {@link Type}
+     */
+    default <R> Type<R> flatMap(final Function<Type<?>, ? extends Type<? extends R>> mapper, final Object... path) {
+        final Object value = treeGet(this, path);
+        if (value != null && mapper != null) {
+            @SuppressWarnings("unchecked") final Type<R> result = (Type<R>) mapper.apply(new Type<>(value));
+            return result != null ? result : new Type<>(null);
+        } else {
+            return new Type<>(null);
+        }
+    }
+
+    /**
+     * If a value is present, returns the result of applying the given
+     * {@link Type}-bearing mapping function to the value, otherwise returns
+     * an empty {@link Type}.
+     *
+     * @param mapper the mapping function to apply to a value, if present
+     * @param path   The key whose associated value
+     * @return the result of applying an {@link Type}-bearing mapping
+     * function to the value of this {@link Type}, if a value is
+     * present, otherwise an empty {@link Type}
+     */
+    @SuppressWarnings({"unchecked", "java:S2789", "java:S4968"})
+    default <R> Type<R> flatOpt(final Function<Type<?>, ? extends Optional<? extends R>> mapper, final Object... path) {
+        final Object value = treeGet(this, path);
+        if (value != null && mapper != null) {
+            @SuppressWarnings("unchecked") final Optional<R> result = (Optional<R>) mapper.apply(new Type<>(value));
+            return result != null && result.isPresent() ? new Type<>(result.orElse(null)) : new Type<>(null);
+        } else {
+            return new Type<>(null);
+        }
+    }
+
+    /**
+     * If a value is present, returns an {@link Type} describing the value,
+     * otherwise returns an {@link Type} produced by the supplying function.
+     * It's recommended to use {@link #asOpt(Object...)} then {@link Type#map(Function)} first and then do the {@code or} instead.
+     *
+     * @param supplier the supplying function that produces a value to be returned
+     * @param path     The key whose associated value
+     * @return returns an {@link Type} describing the value of this
+     * {@link Type}, if a value is present, otherwise an
+     * {@link Type} produced by the supplying function.
+     */
+    @SuppressWarnings("unchecked")
+    default <R> R or(final Supplier<? extends R> supplier, final Object... path) {
+        final Object value = treeGet(this, path);
+        return (value != null || supplier == null) ? (R) value : supplier.get();
+    }
+
+    /**
+     * If a value is present, returns a sequential {@link Stream} containing
+     * only that value or in case of {@link Iterable} returns values.
+     *
+     * @param path The key whose associated value
+     * @return the value(s) as a {@link Stream}
+     */
+    @SuppressWarnings("unchecked")
+    default Stream<Type<?>> stream(final Object... path) {
+        final Object value = treeGet(this, path);
+        final Stream<Object> result;
+        if (value != null) {
+            if (value instanceof Iterable) {
+                result = StreamSupport.stream(((Iterable<Object>) value).spliterator(), false);
+            } else if (value.getClass().isArray()) {
+                result = Arrays.stream((Object[]) value);
+            } else {
+                result = Stream.of(value);
+            }
+            return result.map(TypeInfo::toType);
+        } else {
+            return Stream.empty();
+        }
+    }
+
+    /**
+     * If a value is present, returns the value, otherwise returns {@code other}.
+     *
+     * @param other the value to be returned, if no value is present.  May be {@code null}.
+     * @param path  The key whose associated value
+     * @return the value, if present, otherwise {@code other}
+     */
+    default Object orElse(final Object other, final Object... path) {
+        final Object value = treeGet(this, path);
+        return value != null ? value : other;
+    }
+
+    /**
+     * If a value is present, returns the value, otherwise returns the result
+     * produced by the supplying function.
+     *
+     * @param supplier the supplying function that produces a value to be returned
+     * @param path     The key whose associated value
+     * @return the value, if present, otherwise the result produced by the
+     * supplying function
+     */
+    default Object orElseGet(final Supplier<Object> supplier, final Object... path) {
+        final Object value = treeGet(this, path);
+        return value != null ? value : supplier.get();
+    }
+
+    /**
+     * If a value is present, returns the value, otherwise throws  {@code NoSuchElementException}.
+     *
+     * @param path The key whose associated value
+     * @return the non-{@code null} value described by this {@code Optional}
+     */
+    default Object orElseThrow(final Object... path) {
+        return orElseThrow(() -> new NoSuchElementException("No value present [" + (path == null ? "null" : Arrays.stream(path).filter(Objects::nonNull).map(Object::toString).collect(Collectors.joining(".")) + "]")), path);
+    }
+
+    /**
+     * If a value is present, returns the value, otherwise throws exception
+     *
+     * @param exceptionSupplier the supplying function that produces an exception to be thrown
+     * @param path              The key whose associated value
+     * @return the non-{@code null} value described by this {@code Optional}
+     */
+    default <X extends Throwable> Object orElseThrow(final Supplier<? extends X> exceptionSupplier, final Object... path) throws X {
+        final Object value = treeGet(this, path);
+        if (value != null) {
+            return value;
+        } else {
+            throw exceptionSupplier.get();
+        }
+    }
+
+    static Type<?> toType(final Object o) {
+        if (o instanceof Type) {
+            return (Type<?>) o;
+        } else if (o instanceof Optional) {
+            return new Type<>(((Optional<?>) o).orElse(null));
+        } else {
+            return new Type<>(o);
+        }
     }
 }
