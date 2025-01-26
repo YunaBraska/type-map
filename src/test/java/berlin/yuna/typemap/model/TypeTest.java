@@ -26,6 +26,7 @@ class TypeTest {
         assertThat(nonEmpty.value(TEST_TIME)).contains(TEST_TIME);
         assertThat(nonEmpty.typeListOpt().value()).isNull();
         assertThat(nonEmpty.typeMapOpt().value()).isNull();
+        assertThat(nonEmpty.or(() -> -1L)).isEqualTo(TEST_TIME);
 
         nonEmpty.value(TEST_TIME).ifPresent(value -> assertThat(value).isEqualTo(TEST_TIME));
         assertThat(nonEmpty.ifPresent(null).value()).isEqualTo(TEST_TIME);
@@ -46,6 +47,7 @@ class TypeTest {
         assertThat(emptyType.typeMapOpt().value()).isNull();
 
         emptyType.value(null).ifPresent(value -> fail("Value should be null"));
+        assertThat(emptyType.or(() -> -99L)).isEqualTo(-99L);
         assertThat(emptyType.ifPresent(null).value()).isNull();
         assertThat(emptyType.ifPresentOrElse(null, null).value()).isNull();
         assertThat(emptyType.ifPresentOrElse(value -> fail("Value should be null"), null).value()).isNull();

@@ -87,7 +87,9 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     @SuppressWarnings("java:S3776")
     public static Object treeGet(final Object mapOrCollection, final Object... path) {
         if (path == null || path.length == 0) {
-            return mapOrCollection;
+            if (mapOrCollection instanceof Type)
+                return ((Type<?>) mapOrCollection).value();
+            return mapOrCollection instanceof Optional ? ((Optional<?>) mapOrCollection).orElse(null) : mapOrCollection;
         }
 
         Object value = mapOrCollection;

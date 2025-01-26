@@ -56,25 +56,6 @@ public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
     }
 
     /**
-     * If a value is present, returns {@code true}, otherwise {@code false}.
-     *
-     * @return {@code true} if a value is present, otherwise {@code false}
-     */
-    public boolean isPresent() {
-        return !isEmpty();
-    }
-
-    /**
-     * If a value is  not present, returns {@code true}, otherwise
-     * {@code false}.
-     *
-     * @return {@code true} if a value is not present, otherwise {@code false}
-     */
-    public boolean isEmpty() {
-        return value == null;
-    }
-
-    /**
      * Fluent type-check if the current {@link TypeInfo} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
