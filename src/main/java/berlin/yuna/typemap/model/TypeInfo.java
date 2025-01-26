@@ -1488,8 +1488,9 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      */
     default TypeInfo<C> ifPresentOrElse(final Consumer<? super Type<?>> action, final Runnable orElse, final Object... path) {
         final Object value = treeGet(this, path);
-        if (value != null && action != null) {
-            action.accept(new Type<>(value));
+        if (value != null) {
+            if(action != null)
+                action.accept(new Type<>(value));
         } else if (orElse != null) {
             orElse.run();
         }

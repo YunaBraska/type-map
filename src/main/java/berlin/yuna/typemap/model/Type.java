@@ -4,10 +4,13 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import static berlin.yuna.typemap.model.TypeMap.treeGet;
 
 public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
 
@@ -53,6 +56,25 @@ public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
     }
 
     /**
+     * If a value is present, returns {@code true}, otherwise {@code false}.
+     *
+     * @return {@code true} if a value is present, otherwise {@code false}
+     */
+    public boolean isPresent() {
+        return !isEmpty();
+    }
+
+    /**
+     * If a value is  not present, returns {@code true}, otherwise
+     * {@code false}.
+     *
+     * @return {@code true} if a value is not present, otherwise {@code false}
+     */
+    public boolean isEmpty() {
+        return value == null;
+    }
+
+    /**
      * Fluent type-check if the current {@link TypeInfo} is a {@link TypeMapI}
      *
      * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
@@ -70,6 +92,36 @@ public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
     @Override
     public Type<TypeListI<?>> typeListOpt() {
         return value instanceof TypeListI ? typeOf((TypeListI<?>) value) : empty();
+    }
+
+    /**
+     * If a value is present, performs the given action with the value,
+     * otherwise does nothing.
+     *
+     * @param action the action to be performed, if a value is present
+     * @return The current instance for method chaining.
+     */
+    public Type<T> ifPresent(final Consumer<T> action) {
+        ifPresentOrElse(action, null);
+        return this;
+    }
+
+    /**
+     * If a value is present, performs the given action with the value,
+     * otherwise performs the given empty-based action.
+     *
+     * @param action the action to be performed, if a value is present
+     * @param orElse the empty-based action to be performed, if no value is present
+     * @return The current instance for method chaining.
+     */
+    public Type<T> ifPresentOrElse(final Consumer<T> action, final Runnable orElse) {
+        if (value != null) {
+            if(action != null)
+                action.accept(value);
+        } else if (orElse != null) {
+            orElse.run();
+        }
+        return this;
     }
 
     /**

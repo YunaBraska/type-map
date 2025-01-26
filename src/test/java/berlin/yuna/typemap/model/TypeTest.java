@@ -9,8 +9,7 @@ import static berlin.yuna.typemap.model.Type.empty;
 import static berlin.yuna.typemap.model.Type.typeOf;
 import static berlin.yuna.typemap.model.TypeMapTest.TEST_TIME;
 import static java.util.Optional.ofNullable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @SuppressWarnings("all")
 class TypeTest {
@@ -18,6 +17,8 @@ class TypeTest {
     @Test
     void testType() {
         final Type<Long> nonEmpty = typeOf(200888L);
+        assertThat(nonEmpty.isEmpty()).isFalse();
+        assertThat(nonEmpty.isPresent()).isTrue();
         assertThat(nonEmpty).contains(200888L);
         assertThat(nonEmpty.addR(1L, null)).contains(1L);
         assertThat(nonEmpty.addR(null, 2L)).contains(2L);
@@ -26,7 +27,16 @@ class TypeTest {
         assertThat(nonEmpty.typeListOpt().value()).isNull();
         assertThat(nonEmpty.typeMapOpt().value()).isNull();
 
+        nonEmpty.value(TEST_TIME).ifPresent(value -> assertThat(value).isEqualTo(TEST_TIME));
+        assertThat(nonEmpty.ifPresent(null).value()).isEqualTo(TEST_TIME);
+        assertThat(nonEmpty.ifPresentOrElse(null, null).value()).isEqualTo(TEST_TIME);
+        assertThat(nonEmpty.ifPresentOrElse(value -> assertThat(value).isEqualTo(TEST_TIME), null).value()).isEqualTo(TEST_TIME);
+        assertThat(nonEmpty.ifPresentOrElse(value -> assertThat(value).isEqualTo(TEST_TIME), () -> fail("Value should be present")).value()).isEqualTo(TEST_TIME);
+        assertThat(nonEmpty.ifPresentOrElse(null, () -> fail("Value should be present")).value()).isEqualTo(TEST_TIME);
+
         final Type<String> emptyType = empty();
+        assertThat(emptyType.isEmpty()).isTrue();
+        assertThat(emptyType.isPresent()).isFalse();
         assertThat(emptyType.value()).isNull();
         assertThat(emptyType.value("AA")).contains("AA");
         assertThat(emptyType.addR("BB", null)).contains("BB");
@@ -34,6 +44,13 @@ class TypeTest {
         assertThat(emptyType.addR(null, null).value()).isNull();
         assertThat(emptyType.typeListOpt().value()).isNull();
         assertThat(emptyType.typeMapOpt().value()).isNull();
+
+        emptyType.value(null).ifPresent(value -> fail("Value should be null"));
+        assertThat(emptyType.ifPresent(null).value()).isNull();
+        assertThat(emptyType.ifPresentOrElse(null, null).value()).isNull();
+        assertThat(emptyType.ifPresentOrElse(value -> fail("Value should be null"), null).value()).isNull();
+        assertThat(emptyType.ifPresentOrElse(value -> fail("Value should be null"), () -> assertThat(nonEmpty).contains(TEST_TIME)).value()).isNull();
+        assertThat(emptyType.ifPresentOrElse(null, () -> assertThat(nonEmpty).contains(TEST_TIME)).value()).isNull();
     }
 
     @Test
