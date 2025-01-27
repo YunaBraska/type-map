@@ -661,15 +661,15 @@ public class TypeMapTest {
     @Test
     void orTest() {
         final TypeMap typeMap = new TypeMap().putR("key", new TypeList().addR("value1").addR("value2"));
-        assertThat(typeMap.or((Supplier<?>) null)).isEqualTo(typeMap);
+        assertThat(typeMap.or((Supplier<?>) null)).isEqualTo(typeOf(typeMap));
         assertThat(typeMap.or(() -> new TypeMap())).isNotNull().isNotEmpty();
         assertThat(typeMap.or(() -> new TypeList().addR("OR"), "key")).isNotNull().isNotEmpty();
         assertThat(typeMap.or(() -> "OR", "key", 0)).isNotNull().isNotEmpty();
         assertThat(typeMap.or(() -> "OR", "key", 1)).isNotNull().isNotEmpty();
-        assertThat(typeMap.or(() -> new TypeMap().putR("OR", "OR"), "key", 2)).isEqualTo(new TypeMap().putR("OR", "OR"));
+        assertThat(typeMap.or(() -> new TypeMap().putR("OR", "OR"), "key", 2)).isEqualTo(typeOf(new TypeMap().putR("OR", "OR")));
         assertThat(typeMap.or(() -> "OR", "key", "value1")).isNotNull().isNotEmpty();
         assertThat(typeMap.or(() -> "OR", "key", "value2")).isNotNull().isNotEmpty();
-        assertThat(typeMap.or(() -> "OR", "key", "value3")).isEqualTo("OR");
+        assertThat(typeMap.or(() -> "OR", "key", "value3")).isEqualTo(typeOf("OR"));
         typeMap.asOpt("key", "value3").or(() -> "OR");
     }
 

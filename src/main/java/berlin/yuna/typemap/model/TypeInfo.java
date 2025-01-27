@@ -1584,9 +1584,9 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * {@link Type} produced by the supplying function.
      */
     @SuppressWarnings("unchecked")
-    default <R> R or(final Supplier<? extends R> supplier, final Object... path) {
+    default <R> Type<R> or(final Supplier<? extends R> supplier, final Object... path) {
         final Object value = treeGet(this, path);
-        return (value != null || supplier == null) ? (R) value : supplier.get();
+        return new Type<>((R) ((value != null || supplier == null) ? value : supplier.get()));
     }
 
     /**

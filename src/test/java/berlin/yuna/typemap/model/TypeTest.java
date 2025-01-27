@@ -26,7 +26,7 @@ class TypeTest {
         assertThat(nonEmpty.value(TEST_TIME)).contains(TEST_TIME);
         assertThat(nonEmpty.typeListOpt().value()).isNull();
         assertThat(nonEmpty.typeMapOpt().value()).isNull();
-        assertThat(nonEmpty.or(() -> -1L)).isEqualTo(TEST_TIME);
+        assertThat(nonEmpty.or(() -> -1L)).contains(TEST_TIME);
 
         nonEmpty.value(TEST_TIME).ifPresent(value -> assertThat(value).isEqualTo(TEST_TIME));
         assertThat(nonEmpty.ifPresent(null).value()).isEqualTo(TEST_TIME);
@@ -47,12 +47,34 @@ class TypeTest {
         assertThat(emptyType.typeMapOpt().value()).isNull();
 
         emptyType.value(null).ifPresent(value -> fail("Value should be null"));
-        assertThat(emptyType.or(() -> -99L)).isEqualTo(-99L);
+        assertThat(emptyType.or(() -> -99L)).contains(-99L);
         assertThat(emptyType.ifPresent(null).value()).isNull();
         assertThat(emptyType.ifPresentOrElse(null, null).value()).isNull();
         assertThat(emptyType.ifPresentOrElse(value -> fail("Value should be null"), null).value()).isNull();
         assertThat(emptyType.ifPresentOrElse(value -> fail("Value should be null"), () -> assertThat(nonEmpty).contains(TEST_TIME)).value()).isNull();
         assertThat(emptyType.ifPresentOrElse(null, () -> assertThat(nonEmpty).contains(TEST_TIME)).value()).isNull();
+    }
+
+    @Test
+    void chainTest() {
+        final TypeMap typeMap = new TypeMap().putR("key1", "value1").putR("key2", "value2");
+        assertThat(typeMap.asStringOpt("key1")).contains("value1");
+        assertThat(typeMap.asStringOpt("key1").or(() -> typeMap.asString("key2"))).contains("value1");
+        assertThat(typeMap.asStringOpt("key1").or(() -> typeMap.asString("key2")).orElseGet(() -> "default")).isEqualTo("value1");
+        assertThat(typeMap.asStringOpt("invalid").or(() -> typeMap.asString("key2")).orElseGet(() -> "default")).isEqualTo("value2");
+        assertThat(typeMap.asStringOpt("invalid").or(() -> typeMap.asString("invalid")).orElseGet(() -> "default")).isEqualTo("default");
+        assertThat(typeMap.asStringOpt("invalid").or(() -> typeMap.asString("invalid")).orElseGet(() -> "default")).isEqualTo("default");
+    }
+
+    @Test
+    void orTest() {
+        assertThat(typeOf("AA").or(() -> "BB")).contains("AA");
+        assertThat(typeOf("AA").or(null)).contains("AA");
+        assertThat(typeOf("AA").or(() -> null)).contains("AA");
+        assertThat(typeOf(null).or(() -> "BB")).contains("BB");
+        assertThat(typeOf(null).or(null).value()).isNull();
+        assertThat(typeOf(null).or(() -> null).value()).isNull();
+        assertThat(typeOf(null).or(() -> typeOf("BB")).value()).isEqualTo(typeOf("BB"));
     }
 
     @Test
