@@ -44,7 +44,7 @@
         <project.reporting.outputEncoding>${project.encoding}</project.reporting.outputEncoding>
         <!-- TEST -->
         <assertj.version>3.27.3</assertj.version>
-        <junit-jupiter-api.version>5.11.4</junit-jupiter-api.version>
+        <junit-jupiter-api.version>5.12.0-RC1</junit-jupiter-api.version>
         <!-- BUILD -->
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
