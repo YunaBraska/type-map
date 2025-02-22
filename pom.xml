@@ -6,7 +6,7 @@
 
     <groupId>berlin.yuna</groupId>
     <artifactId>type-map</artifactId>
-    <version>2025.0.7</version>
+    <version>2025.0.8</version>
     <packaging>jar</packaging>
 
     <name>type-map</name>
