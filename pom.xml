@@ -6,7 +6,7 @@
 
     <groupId>berlin.yuna</groupId>
     <artifactId>type-map</artifactId>
-    <version>2025.07.2020718</version>
+    <version>2025.08.2200717</version>
     <packaging>jar</packaging>
 
     <name>type-map</name>
@@ -44,7 +44,7 @@
         <project.reporting.outputEncoding>${project.encoding}</project.reporting.outputEncoding>
         <!-- TEST -->
         <junit.version>5.13.4</junit.version>
-        <assertj.version>3.27.3</assertj.version>
+        <assertj.version>3.27.4</assertj.version>
         <junit-launcher.version>1.13.4</junit-launcher.version>
 
 
