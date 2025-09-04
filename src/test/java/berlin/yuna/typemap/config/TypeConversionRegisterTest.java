@@ -412,4 +412,80 @@ class TypeConversionRegisterTest {
         assertThat(convertObj(time, ZonedDateTime.class)).isNotNull();
         assertThat(convertObj(-1L, ZonedDateTime.class)).isNotNull();
     }
+
+    @Test
+    void parseCommonDateTimeFormats_resilient() {
+        final String[] samples = {
+            "2024-11-14 04:54:38",
+            "2025-09-04T13:45:30Z",
+            "2025-09-04 13:45:30",
+            "2025-09-04 13:45",
+            "2025-9-4 1:5:6",
+            "2025/09/04 13:45",
+            "04.09.2025 13:45",
+            "04.09.2025 13:45:30.123",
+            "09/04/2025 01:45 PM",
+            "Thu, 04 Sep 2025 13:45:30 GMT",
+            "Thu Aug 22 2024 15:01:02 GMT+0200",
+            "2025-09-04T13:45:30+0200",
+            "2025-09-04T13:45:30.123456789Z",
+            "2025-09-04 at 13:45:30"
+        };
+
+        for (final String s : samples) {
+            assertThat(convertObj(s, Date.class)).as("Date: " + s).isNotNull();
+            assertThat(convertObj(s, Instant.class)).as("Instant: " + s).isNotNull();
+            assertThat(convertObj(s, Calendar.class)).as("Calendar: " + s).isNotNull();
+            assertThat(convertObj(s, LocalDate.class)).as("LocalDate: " + s).isNotNull();
+            assertThat(convertObj(s, LocalTime.class)).as("LocalTime: " + s).isNotNull();
+            assertThat(convertObj(s, LocalDateTime.class)).as("LocalDateTime: " + s).isNotNull();
+            assertThat(convertObj(s, OffsetDateTime.class)).as("OffsetDateTime: " + s).isNotNull();
+            assertThat(convertObj(s, ZonedDateTime.class)).as("ZonedDateTime: " + s).isNotNull();
+            assertThat(convertObj(s, java.sql.Date.class)).as("sql.Date: " + s).isNotNull();
+            assertThat(convertObj(s, java.sql.Time.class)).as("sql.Time: " + s).isNotNull();
+            assertThat(convertObj(s, Time.class)).as("Time: " + s).isNotNull();
+        }
+    }
+
+    @Test
+    void parseCommonDateOnlyFormats_resilient() {
+        final String[] samples = {
+            "2025-09-04",
+            "2025/09/04",
+            "04.09.2025",
+            "4.9.2025",
+            "04/09/2025",
+            "09/04/2025",
+            "04-09-2025",
+            "4-9-2025",
+            "4 Sep 2025",
+            "4 September 2025",
+            "4. Sep 2025",
+            "4. September 2025"
+        };
+
+        for (final String s : samples) {
+            // With the upgraded temporalOf, these should all promote to start-of-day UTC (per @BeforeEach)
+            assertThat(convertObj(s, LocalDate.class)).as("LocalDate: " + s).isNotNull();
+            assertThat(convertObj(s, ZonedDateTime.class)).as("ZonedDateTime: " + s).isNotNull();
+            assertThat(convertObj(s, Instant.class)).as("Instant: " + s).isNotNull();
+            assertThat(convertObj(s, Date.class)).as("Date: " + s).isNotNull();
+            assertThat(convertObj(s, java.sql.Date.class)).as("sql.Date: " + s).isNotNull();
+        }
+    }
+
+    @Test
+    void parseTwoDigitYear_US_style_pivotTo2000s() {
+        final String s = "9/4/25 13:45";
+        final LocalDate ld = convertObj(s, LocalDate.class);
+        assertThat(ld).isNotNull();
+        assertThat(ld.getYear()).isEqualTo(2025);
+    }
+
+    @Test
+    void calendarOfDate_isCorrect() {
+        final Date d = new Date(123456789L);
+        final Calendar cal = TypeConversionRegister.calendarOf(d);
+        assertThat(cal.getTimeInMillis()).isEqualTo(123456789L);
+    }
 }

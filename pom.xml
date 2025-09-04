@@ -42,11 +42,11 @@
         <project.encoding>UTF-8</project.encoding>
         <project.build.sourceEncoding>${project.encoding}</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.encoding}</project.reporting.outputEncoding>
+
         <!-- TEST -->
         <junit.version>5.13.4</junit.version>
         <assertj.version>3.27.4</assertj.version>
         <junit-launcher.version>1.13.4</junit-launcher.version>
-
 
         <!-- BUILD -->
         <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>

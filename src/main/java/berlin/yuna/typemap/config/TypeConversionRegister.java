@@ -19,7 +19,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
 import java.time.format.TextStyle;
+import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.time.temporal.TemporalQueries;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -27,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
+import static java.time.temporal.ChronoField.NANO_OF_SECOND;
 import static java.util.Arrays.asList;
 
 
@@ -85,7 +88,134 @@ public class TypeConversionRegister<S, T> {
         DateTimeFormatter.ISO_WEEK_DATE,
         // String.valueOf(new Date())
         new DateTimeFormatterBuilder().parseCaseInsensitive().appendPattern("EEE MMM dd HH:mm:ss ").appendZoneText(TextStyle.SHORT).appendPattern(" yyyy").toFormatter(Locale.ENGLISH),
+
+        new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .appendValue(java.time.temporal.ChronoField.MONTH_OF_YEAR)
+            .appendLiteral('/')
+            .appendValue(java.time.temporal.ChronoField.DAY_OF_MONTH)
+            .appendLiteral('/')
+            .appendValueReduced(java.time.temporal.ChronoField.YEAR, 2, 2, 2000)
+            .optionalStart().appendLiteral(' ')
+            .appendPattern("H[:m][:s][.SSSSSSSSS]")
+            .optionalStart().appendLiteral(' ').appendPattern("[XXX][XX][X]").optionalEnd()
+            .optionalStart().appendLiteral(' ').appendPattern("a").optionalEnd()
+            .optionalEnd()
+            .toFormatter(Locale.ENGLISH),
+
+        // Java Date.toString() e.g. "Wed Oct 10 20:19:24 CEST 2018"
+        new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .appendPattern("EEE MMM dd HH:mm:ss ")
+            .appendZoneText(TextStyle.SHORT)
+            .appendPattern(" uuuu")
+            .toFormatter(Locale.ENGLISH),
+
+        // ISO_LOCAL_DT_SPACE
+        fmtFlex("uuuu-MM-dd HH:mm[:ss][.SSSSSSSSS]"),
+
+        // EU_DOT_WITH_OPT_TIME
+        fmtFlex("d.M.uuuu[ HH[:mm][:ss][.SSSSSSSSS]]", Locale.GERMAN),
+
+        //US_SLASH_24H
+        new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .appendPattern("M/d/uuuu[ HH[:mm][:ss][.SSSSSSSSS]]")
+            .toFormatter(Locale.ENGLISH),
+
+        // US_SLASH_12H
+        new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .appendPattern("M/d/uuuu hh[:mm][:ss][.SSSSSSSSS] a")
+            .toFormatter(Locale.ENGLISH),
+
+        // JS_GMT
+        new DateTimeFormatterBuilder().parseCaseInsensitive()
+            .appendPattern("EEE MMM dd uuuu HH:mm:ss 'GMT'XX")
+            .toFormatter(Locale.ENGLISH),
+
+        // --- New: tolerant ISO-ish & fractional seconds (up to 9), with/without 'T', with/without offset ---
+        fmtFlex("uuuu-MM-dd['T'][' ']HH:mm[:ss][.SSSSSSSSS][XXX]"),
+        fmt("uuuu-MM-dd['T'][' ']HH:mm[:ss][.SSSSSSSSS][XX]"),
+        fmt("uuuu-MM-dd['T'][' ']HH:mm[:ss][.SSSSSSSSS][X]"),
+
+        // Single digit month/day + space or 'T'
+        fmt("uuuu-M-d['T'][' ']H:m[:s][.SSSSSSSSS][XXX]"),
+        fmtFlex("uuuu-M-d['T'][' ']H:m[:s][.SSSSSSSSS][XX]"),
+        fmt("uuuu-M-d['T'][' ']H:m[:s][.SSSSSSSSS][X]"),
+
+        // Year-first slashes with optional 'T' or space, optional seconds/fraction, optional offset
+        fmt("uuuu/MM/dd['T'][' ']HH:mm[:ss][.SSSSSSSSS][XXX]"),
+        fmt("uuuu/MM/dd['T'][' ']HH:mm[:ss][.SSSSSSSSS][XX]"),
+        fmtFlex("uuuu/MM/dd['T'][' ']HH:mm[:ss][.SSSSSSSSS][X]"),
+
+// Single-digit month/day variant
+        fmt("uuuu/M/d['T'][' ']H:m[:s][.SSSSSSSSS][XXX]"),
+        fmt("uuuu/M/d['T'][' ']H:m[:s][.SSSSSSSSS][XX]"),
+        fmt("uuuu/M/d['T'][' ']H:m[:s][.SSSSSSSSS][X]"),
+
+        // Date-only variants
+        fmt("uuuu-MM-dd"),
+        fmt("uuuu-M-d"),
+        fmt("uuuu/MM/dd"),
+        fmt("uuuu/M/d"),
+
+        // German/EU numeric
+        fmtFlex("dd.MM.uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]", Locale.GERMAN),
+        fmt("d.M.uuuu[' 'H[:m][:s][.SSSSSSSSS][XXX]]", Locale.GERMAN),
+        // Day-first slashes and dashes
+        fmt("dd/MM/uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]"),
+        fmt("d/M/uuuu[' 'H[:m][:s][.SSSSSSSSS][XXX]]"),
+        fmt("dd-MM-uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]"),
+        fmt("d-M-uuuu[' 'H[:m][:s][.SSSSSSSSS][XXX]]"),
+
+        // US style (month-first), with optional 12-hour clock + AM/PM
+        fmtFlex("MM/dd/uuuu[' 'hh[:mm][:ss][.SSSSSSSSS][ XXX][ XX][ X]][ a]"),
+        fmt("M/d/uuuu[' 'h[:m][:s][.SSSSSSSSS][ XXX][ XX][ X]][ a]"),
+
+        // Textual months (English & German), day with dot tolerated for German
+        fmtFlex("d MMM uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]", Locale.ENGLISH),
+        fmt("d MMMM uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]", Locale.ENGLISH),
+        fmt("d. MMM uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]", Locale.GERMAN),
+        fmt("d. MMMM uuuu[' 'HH[:mm][:ss][.SSSSSSSSS][XXX]]", Locale.GERMAN),
+
+        // JavaScript Date.toString without trailing TZ name in parentheses:
+        // "Thu Aug 22 2024 15:01:02 GMT+0200"
+        fmt("EEE MMM dd uuuu HH:mm:ss 'GMT'XX", Locale.ENGLISH),
+
+        // RFC822-like without weekday (seen in emails/logs)
+        fmt("dd MMM uuuu HH:mm[:ss] z", Locale.ENGLISH),
     };
+
+    private static DateTimeFormatter fmt(final String pattern, final Locale locale) {
+        return new DateTimeFormatterBuilder()
+            .parseCaseInsensitive()
+            .appendPattern(pattern)
+            .toFormatter(locale);
+    }
+
+    private static DateTimeFormatter fmt(final String pattern) {
+        return fmt(pattern, Locale.ROOT);
+    }
+
+    private static DateTimeFormatter fmtFlex(final String pattern) {
+        return fmtFlex(pattern, Locale.ROOT);
+    }
+
+    private static DateTimeFormatter fmtFlex(final String pattern, final Locale locale) {
+        final String token = "[.SSSSSSSSS]";
+        final DateTimeFormatterBuilder b = new DateTimeFormatterBuilder().parseCaseInsensitive();
+
+        int start = 0;
+        int idx;
+        while ((idx = pattern.indexOf(token, start)) >= 0) {
+            final String head = pattern.substring(start, idx);
+            if (!head.isEmpty()) b.appendPattern(head);
+            // replace the token with an optional fractional part including the decimal point
+            b.optionalStart().appendFraction(NANO_OF_SECOND, 1, 9, true).optionalEnd();
+            start = idx + token.length();
+        }
+        final String tail = pattern.substring(start);
+        if (!tail.isEmpty()) b.appendPattern(tail);
+
+        return b.toFormatter(locale);
+    }
 
     public static final String LINE_SEPARATOR = System.lineSeparator();
 
@@ -408,24 +538,49 @@ public class TypeConversionRegister<S, T> {
         registerTypeConvert(String.class, Timestamp.class, string -> temporalOf(Timestamp.class, string, time -> Timestamp.from(Instant.from(time))));
     }
 
-    public static <T> T temporalOf(final Class<T> target, final String string, final Function<TemporalAccessor, T> converter) {
+    public static <T> T temporalOf(final Class<T> target, final String string, final java.util.function.Function<TemporalAccessor, T> converter) {
+        final String input = string.replaceAll("\\s+", " ").replace(" at ", " ");
+//            .replaceFirst("^(\\d{4})/(\\d{1,2})/(\\d{1,2})(\\b)", "$1-$2-$3$4");
         for (final DateTimeFormatter formatter : DATE_TIME_FORMATTERS) {
             try {
-                return converter.apply(formatter.parse(string));
-            } catch (final DateTimeParseException ignored) {
-                // ignored
+                return converter.apply(normalizeTemporal(formatter.parse(input)));
+            } catch (final DateTimeException ignored) {
+                // parse or extraction failed; try next formatter
             }
-
-            // Try convert to timestamp
-            // careful with `convertObj` at this place can lead to loops
             try {
-                return TypeConverter.convertObj(toTimestampMs(Long.parseLong(string)), target);
+                return berlin.yuna.typemap.logic.TypeConverter.convertObj(toTimestampMs(Long.parseLong(string)), target);
             } catch (final Exception ignored) {
-                // ignored
+                // not a pure number; keep trying
             }
         }
         return null;
     }
+
+    private static TemporalAccessor normalizeTemporal(final TemporalAccessor ta) {
+        // Already has an instant or zone/offset -> leave it alone
+        if (ta.isSupported(ChronoField.INSTANT_SECONDS)) return ta;
+        if (ta.query(TemporalQueries.zone()) != null) return ta;               // ZoneId or ZoneOffset present
+        if (ta.isSupported(ChronoField.OFFSET_SECONDS)) return ta;             // offset-only
+
+        final ZoneId zone = ZoneId.systemDefault();
+
+        final boolean hasDate = ta.isSupported(ChronoField.EPOCH_DAY)
+            || ta.query(TemporalQueries.localDate()) != null;
+        final boolean hasTime = ta.isSupported(ChronoField.NANO_OF_DAY)
+            || ta.query(TemporalQueries.localTime()) != null;
+
+        if (hasDate && hasTime) {
+            return ZonedDateTime.of(LocalDate.from(ta), LocalTime.from(ta), zone);
+        }
+        if (hasDate) {
+            return ZonedDateTime.of(LocalDate.from(ta), LocalTime.MIDNIGHT, zone);
+        }
+        if (hasTime) {
+            return ZonedDateTime.of(LocalDate.now(zone), LocalTime.from(ta), zone);
+        }
+        return ta; // nothing to upgrade
+    }
+
 
     public static long toTimestampMs(final long timestamp) {
         return timestamp > 1800000000 ? timestamp : timestamp * 1000;
@@ -439,7 +594,7 @@ public class TypeConversionRegister<S, T> {
 
     public static Calendar calendarOf(final Date date) {
         final Calendar cal = Calendar.getInstance();
-        Calendar.getInstance().setTime(date);
+        cal.setTime(date);
         return cal;
     }
 
