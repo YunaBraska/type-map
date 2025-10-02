@@ -24,7 +24,7 @@ class XmlDecoderTest {
         result.get(String.class, "project", "description");
         assertThat(result.get(String.class, "project", "groupId")).isEqualTo("berlin.yuna");
         assertThat(result.get(String.class, "project", "artifactId")).isEqualTo("type-map");
-        assertThat(result.get(Integer.class, "project", "properties", "java-version")).isEqualTo(8);
+        assertThat(result.get(Integer.class, "project", "properties", "java-version")).isEqualTo(17);
         assertThat(result.asList(Pair.class, "project", "dependencies")).hasSize(5);
 
         assertThat(XmlDecoder.xmlTypeOf(Files.newInputStream(pomPath))).isEqualTo(result);

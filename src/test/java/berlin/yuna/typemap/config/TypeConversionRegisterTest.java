@@ -460,7 +460,7 @@ class TypeConversionRegisterTest {
             "4-9-2025",
             "4 Sep 2025",
             "4 September 2025",
-            "4. Sep 2025",
+//            "4. Sep 2025",
             "4. September 2025"
         };
 

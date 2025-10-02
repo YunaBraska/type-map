@@ -289,4 +289,4 @@ toURL());
 
 [gitter_link]: https://gitter.im/type-map/Lobby
 
-[java_version]: https://img.shields.io/badge/java-8-blueviolet?style=flat-square
+[java_version]: https://img.shields.io/badge/java-17-blueviolet?style=flat-square
