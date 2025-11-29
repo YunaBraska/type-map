@@ -1,7 +1,10 @@
 package berlin.yuna.typemap.model;
 
 
-import berlin.yuna.typemap.logic.*;
+import berlin.yuna.typemap.logic.ArgsDecoder;
+import berlin.yuna.typemap.logic.JsonDecoder;
+import berlin.yuna.typemap.logic.TypeConverter;
+import berlin.yuna.typemap.logic.XmlDecoder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -88,7 +91,11 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * Parses JSON file into a {@link TypeMapI}.
      */
     public static LinkedTypeMap fromJson(final Path json) {
-        return fromJson(readPath(json));
+        try (final InputStream in = Files.newInputStream(json)) {
+            return fromJson(in);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
     }
 
     /**
@@ -118,7 +125,11 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * Parses XML file into a {@link TypeMapI}.
      */
     public static LinkedTypeMap fromXml(final Path xml) {
-        return fromXml(readPath(xml));
+        try (final InputStream in = Files.newInputStream(xml)) {
+            return fromXml(in);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
     }
 
     /**
@@ -150,14 +161,20 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      * Parses CLI args CharSequence into a {@link TypeMapI}.
      */
     public static LinkedTypeMap fromArgs(final CharSequence args) {
-        return args == null ? new LinkedTypeMap() : fromArgs(args.toString());
+        return args == null
+            ? new LinkedTypeMap()
+            : fromArgs(args.toString());
     }
 
     /**
      * Parses CLI args file into a {@link TypeMapI}.
      */
     public static LinkedTypeMap fromArgs(final Path args) {
-        return fromArgs(readPath(args));
+        try (final InputStream in = Files.newInputStream(args)) {
+            return fromArgs(in);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
     }
 
     /**
@@ -174,16 +191,6 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
         if (first instanceof final Pair<?, ?> pair)
             return new LinkedTypeMap().putR(pair.getKey(), pair.getValue());
         return new LinkedTypeMap().putR("root", xml);
-    }
-
-    private static String readPath(final Path path) {
-        if (path == null)
-            return "";
-        try {
-            return Files.readString(path, StandardCharsets.UTF_8);
-        } catch (final IOException ignored) {
-            return "";
-        }
     }
 
     private static String readStream(final InputStream stream) {
@@ -230,29 +237,28 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     @SuppressWarnings("java:S3776")
     public static Object treeGet(final Object mapOrCollection, final Object... path) {
         if (path == null || path.length == 0) {
-            if (mapOrCollection instanceof Type)
-                return ((Type<?>) mapOrCollection).value();
-            return mapOrCollection instanceof Optional ? ((Optional<?>) mapOrCollection).orElse(null) : mapOrCollection;
+            if (mapOrCollection instanceof final Type<?> type)
+                return type.value();
+            return mapOrCollection instanceof final Optional<?> optional ? optional.orElse(null) : mapOrCollection;
         }
 
         Object value = mapOrCollection;
         for (final Object key : path) {
             if (key == null || value == null) {
                 return null;
-            } else if (value instanceof Map<?, ?>) {
-                value = ((Map<?, ?>) value).get(key);
-            } else if (value instanceof Collection<?>) {
-                if (key instanceof Number) {
-                    final int index = ((Number) key).intValue();
-                    final List<?> list = (List<?>) value;
+            } else if (value instanceof final Map<?, ?> map) {
+                value = map.get(key);
+            } else if (value instanceof final Collection<?> collection) {
+                if (key instanceof final Number numberKey && value instanceof final List<?> list) {
+                    final int index = numberKey.intValue();
                     value = (index >= 0 && index < list.size()) ? list.get(index) : null;
                 } else {
-                    value = ((Collection<?>) value).stream().filter(item -> Objects.equals(item, key)
-                        || (item instanceof Map.Entry && Objects.equals(((Map.Entry<?, ?>) item).getKey(), key))
-                    ).map(o -> o instanceof Map.Entry ? ((Map.Entry<?, ?>) o).getValue() : o).findFirst().orElse(null);
+                    value = collection.stream().filter(item -> Objects.equals(item, key)
+                        || (item instanceof final Map.Entry<?, ?> entry && Objects.equals(entry.getKey(), key))
+                    ).map(o -> o instanceof final Map.Entry<?, ?> entry ? entry.getValue() : o).findFirst().orElse(null);
                 }
             } else if (value.getClass().isArray()) {
-                final int index = key instanceof Number ? ((Number) key).intValue() : -1;
+                final int index = key instanceof final Number num ? num.intValue() : -1;
                 final AtomicInteger itemCount = new AtomicInteger(0);
                 final AtomicReference<Object> result = new AtomicReference<>(null);
                 iterateOverArray(value, item -> {
@@ -260,12 +266,11 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                         result.set(item);
                 });
                 return result.get();
-            } else if (value instanceof Type) {
-                value = ((Type<?>) value).value();
-            } else if (value instanceof Optional<?>) {
-                value = ((Optional<?>) value).orElse(null);
-            } else if (value instanceof Map.Entry) {
-                final Map.Entry<?, ?> pair = (Map.Entry<?, ?>) value;
+            } else if (value instanceof final Type<?> type) {
+                value = type.value();
+            } else if (value instanceof final Optional<?> optional) {
+                value = optional.orElse(null);
+            } else if (value instanceof final Map.Entry<?, ?> pair) {
                 value = (Objects.equals(pair.getKey(), key)) ? pair.getValue() : null;
             } else {
                 value = null;
@@ -273,12 +278,6 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
         }
         return value;
     }
-
-    public String toJson() {
-        return JsonEncoder.toJson(this);
-    }
-
-    // toXML provided via TypeMapI default
 
     @SuppressWarnings("unchecked")
     public static <K, V, M extends Map<K, V>> M convertAndMap(final Object input, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {

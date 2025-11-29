@@ -3,103 +3,437 @@ package berlin.yuna.typemap.logic;
 import berlin.yuna.typemap.model.LinkedTypeMap;
 import berlin.yuna.typemap.model.TypeInfo;
 import berlin.yuna.typemap.model.TypeList;
-import berlin.yuna.typemap.model.TypeMap;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.PushbackReader;
+import java.io.Reader;
+import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
+
+import berlin.yuna.typemap.model.Type;
 
 import static berlin.yuna.typemap.logic.JsonEncoder.unescapeJson;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 
 public class JsonDecoder {
 
-
     /**
-     * Determines the type of the given JSON string and converts it into a corresponding {@link TypeInfo} instance.
-     * This method utilizes the {@link #jsonOf(String)} method to parse the JSON string and then checks the resulting
-     * object's type to appropriately wrap it within a {@link TypeInfo}. If the result is already an instance of
-     * {@link TypeInfo}, it is returned directly. Otherwise, the result is wrapped in a {@link TypeList} to maintain
-     * a consistent interface for further operations. This approach allows for flexible processing of JSON data, enabling
-     * easy extraction and manipulation of nested structures.
-     *
-     * @param jsonOrXml The JSON string to be analyzed and converted. Can represent a JSON object, array, or primitive type.
-     * @return A {@link TypeInfo} instance representing the structured data of the JSON input. If the input is
-     *         a JSON object or array, the returned {@link TypeInfo} will be a {@link TypeMap} or {@link TypeList},
-     *         respectively. For primitive JSON types, a {@link TypeList} containing the single value is returned.
-     *         In cases where the input cannot be parsed or is null, a new {@link TypeList} with no elements is returned.
+     * Parses JSON or XML content from a string and returns a {@link TypeInfo} (map/list) structure.
+     * Uses the streaming path under the hood to keep memory usage predictable.
      */
     @SuppressWarnings("java:S1452")
     public static TypeInfo<?> jsonTypeOf(final String jsonOrXml) {
-        final Object result = jsonOrXml != null && jsonOrXml.startsWith("<")? XmlDecoder.xmlTypeOf(jsonOrXml) : jsonOf(jsonOrXml);
-        return result instanceof TypeInfo ? (TypeInfo<?>) result : new TypeList().addR(result);
+        return jsonOrXml == null
+                ? new TypeList()
+                : jsonTypeOf(new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8)));
     }
 
     /**
-     * Converts a JSON string to a LinkedTypeMap.
-     * This method first converts the JSON string into an appropriate Java object (Map, List, or other types)
-     * using the objectOf method. If the result is a LinkedTypeMap, it returns the map directly.
-     * Otherwise, it creates a new LinkedTypeMap with a single entry where the key is an empty string
-     * and the value is the result object. If the JSON string represents an array or a non-map object,
-     * it's encapsulated within this single-entry map.
-     *
-     * @param json The JSON string to convert.
-     * @return A LinkedTypeMap representing the JSON object, or an empty LinkedTypeMap if the JSON string is null or invalid.
+     * Parses JSON or XML content from a stream and returns a {@link TypeInfo} (map/list) structure.
+     */
+    @SuppressWarnings("java:S1452")
+    public static TypeInfo<?> jsonTypeOf(final InputStream jsonOrXml) {
+        return jsonTypeOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML content from a stream with the given charset and returns a {@link TypeInfo}.
+     */
+    @SuppressWarnings("java:S1452")
+    public static TypeInfo<?> jsonTypeOf(final InputStream jsonOrXml, final Charset charset) {
+        try {
+            final Object result = detectAndParse(jsonOrXml, charset);
+            return result instanceof TypeInfo ? (TypeInfo<?>) result : new TypeList().addR(result);
+        } catch (final IOException ignored) {
+            return new TypeList();
+        }
+    }
+
+    /**
+     * Parses JSON into a {@link LinkedTypeMap}, auto-detecting XML if provided.
      */
     public static LinkedTypeMap jsonMapOf(final String json) {
-        final Object result = jsonOf(json);
-        if (result instanceof LinkedTypeMap) {
-            return (LinkedTypeMap) result;
-        } else if (result != null) {
-            return new LinkedTypeMap().putR("", result);
+        if (json == null)
+            return new LinkedTypeMap();
+        try (final ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(UTF_8))) {
+            return jsonMapOf(in, UTF_8);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    /**
+     * Parses JSON into a {@link LinkedTypeMap}, auto-detecting XML if provided.
+     */
+    public static LinkedTypeMap jsonMapOf(final InputStream json) {
+        return jsonMapOf(json, UTF_8);
+    }
+
+    /**
+     * Parses JSON into a {@link LinkedTypeMap} using the provided charset, auto-detecting XML if provided.
+     */
+    public static LinkedTypeMap jsonMapOf(final InputStream json, final Charset charset) {
+        try {
+            final Object result = detectAndParse(json, charset);
+            if (result instanceof final LinkedTypeMap map) {
+                return map;
+            } else if (result != null) {
+                return new LinkedTypeMap().putR("", result);
+            }
+        } catch (final IOException ignored) {
+            // fallthrough to empty map
         }
         return new LinkedTypeMap();
     }
 
     /**
-     * Converts a JSON string to a List of objects.
-     * This method first converts the JSON string into an appropriate Java object (Map, List, or other types)
-     * using the objectOf method. If the result is a List, it is cast and returned directly.
-     * If the result is a LinkedTypeMap, it creates a new List containing this map as a single element.
-     * This method is useful for ensuring that JSON arrays are converted to Lists, but it can also encapsulate
-     * non-array JSON objects within a List.
-     *
-     * @param json The JSON string to convert.
-     * @return A List of objects representing the JSON array or containing the JSON object, or an empty List if the JSON string is null or invalid.
+     * Parses JSON into a {@link TypeList}, auto-detecting XML if provided.
      */
     public static TypeList jsonListOf(final String json) {
-        final Object result = jsonOf(json);
-        if (result instanceof TypeList) {
-            return (TypeList) result;
-        } else if (result instanceof LinkedTypeMap) {
-            final TypeList list = new TypeList();
-            list.add(result);
-            return list;
-        } else if (result != null) {
-            return new TypeList(singletonList(result));
+        if (json == null) {
+            return new TypeList();
+        }
+        try (final ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(UTF_8))) {
+            return jsonListOf(in, UTF_8);
+        } catch (final IOException ignored) {
+            return new TypeList();
+        }
+    }
+
+    /**
+     * Parses JSON into a {@link TypeList}, auto-detecting XML if provided.
+     */
+    public static TypeList jsonListOf(final InputStream json) {
+        return jsonListOf(json, UTF_8);
+    }
+
+    /**
+     * Parses JSON into a {@link TypeList} using the provided charset, auto-detecting XML if provided.
+     */
+    public static TypeList jsonListOf(final InputStream json, final Charset charset) {
+        try {
+            final Object result = detectAndParse(json, charset);
+            if (result instanceof final TypeList list) {
+                return list;
+            } else if (result instanceof final LinkedTypeMap map) {
+                return new TypeList().addR(map);
+            } else if (result != null) {
+                return new TypeList(singletonList(result));
+            }
+        } catch (final IOException ignored) {
+            // fallthrough
         }
         return new TypeList();
     }
 
-    /**
-     * Converts a JSON string to a Map, List, or Object.
-     * Handles basic structures of JSON including nested objects and arrays.
-     * Note: This implementation is simplified and may not handle all edge cases or complex JSON structures.
-     *
-     * @param json The JSON string to convert.
-     * @return A Map, List, or Object representing the JSON structure.
-     */
     public static Object jsonOf(final String json) {
-        final String input = json == null ? null : json.strip();
-        if (json == null || json.equals("{}")) {
+        if (json == null) {
             return null;
-        } else if (input.startsWith("{") && input.endsWith("}")) {
-            final LinkedTypeMap map = toMap(removeWrapper(input).strip());
-            return map.size() == 1 && map.containsKey("") ? map.get("") : map;
-        } else if (input.startsWith("[") && input.endsWith("]")) {
-            return toList(removeWrapper(input).strip());
-        } else if (input.startsWith("\"") && input.endsWith("\"")) {
-            return unescapeJson(input.substring(1, input.length() - 1));
-        } else {
-            return convertToPrimitive(input);
         }
+        return jsonOf(new ByteArrayInputStream(json.getBytes(UTF_8)), UTF_8);
+    }
+
+    /**
+     * Auto-detects JSON vs XML from a stream and parses it leniently (trailing commas tolerated; malformed input falls back to raw text).
+     *
+     * @param json stream containing JSON or XML
+     * @return parsed structure or null on empty/invalid input
+     */
+    public static Object jsonOf(final InputStream json) {
+        return jsonOf(json, UTF_8);
+    }
+
+    /**
+     * Auto-detects JSON vs XML from a stream and parses it leniently with the provided charset for JSON paths.
+     */
+    public static Object jsonOf(final InputStream json, final Charset charset) {
+        if (json == null) {
+            return null;
+        }
+        try {
+            return detectAndParse(json, charset);
+        } catch (final IOException ignored) {
+            return null;
+        }
+    }
+
+    /**
+     * Streams top-level JSON array elements as {@link Type} without loading the whole payload.
+     *
+     * @param json input stream containing a JSON array
+     * @param charset charset to decode the stream
+     * @return lazy stream of Type elements (caller must close)
+     * @throws IOException when the stream cannot be read or the payload is not an array
+     */
+    public static Stream<Type<?>> streamArray(final InputStream json, final Charset charset) throws IOException {
+        final LenientStream stream = new LenientStream(new InputStreamReader(json, charset), 8 * 1024);
+        final int start = stream.nextNonWhitespace();
+        if (start != '[') {
+            throw new IllegalStateException("Expected array start '['");
+        }
+
+        final Iterator<Type<?>> iterator = new Iterator<Type<?>>() {
+            private boolean endReached;
+
+            @Override
+            public boolean hasNext() {
+                if (endReached) {
+                    return false;
+                }
+                try {
+                    final int next = stream.nextNonWhitespace();
+                    if (next == ']') {
+                        endReached = true;
+                        return false;
+                    }
+                    stream.unread(next);
+                    return true;
+                } catch (final IOException e) {
+                    endReached = true;
+                    return false;
+                }
+            }
+
+            @Override
+            public Type<?> next() {
+                try {
+                    final Object value = parseValue(stream);
+                    final int sep = stream.nextNonWhitespace();
+                    if (sep == ']') {
+                        endReached = true;
+                    } else if (sep != ',') {
+                        throw new IllegalStateException("Invalid array separator");
+                    }
+                    return Type.typeOf(value);
+                } catch (final IOException e) {
+                    endReached = true;
+                    throw new IllegalStateException(e);
+                }
+            }
+        };
+
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
+            .onClose(() -> closeQuietly(stream.reader));
+    }
+
+    /**
+     * Detects whether the input stream is XML (leading '<') or JSON and delegates to the appropriate parser.
+     * Uses streaming to avoid buffering whole payloads; wraps incoming streams in a {@link BufferedInputStream} if needed.
+     *
+     * @param input   stream to parse
+     * @param charset charset to use when decoding JSON content
+     * @return parsed structure or null on failure/empty input
+     * @throws IOException when the stream cannot be read
+     */
+    public static Object detectAndParse(final InputStream input, final Charset charset) throws IOException {
+        final BufferedInputStream buffered = input instanceof final BufferedInputStream bufferedInputStream ? bufferedInputStream : new BufferedInputStream(input);
+        buffered.mark(1024);
+        int ch;
+        do {
+            ch = buffered.read();
+        } while (ch != -1 && Character.isWhitespace(ch));
+        buffered.reset();
+        if (ch == '<') {
+            return XmlDecoder.xmlTypeOf(buffered);
+        }
+        try (final Reader reader = buffered(new InputStreamReader(buffered, charset))) {
+            return parse(reader);
+        }
+    }
+
+    private static void closeQuietly(final AutoCloseable closeable) {
+        if (closeable != null) {
+            try {
+                closeable.close();
+            } catch (final Exception ignored) {
+                // ignore
+            }
+        }
+    }
+
+    private static Object parse(final Reader reader) throws IOException {
+        final LenientStream stream = new LenientStream(reader, 8 * 1024);
+        try {
+            final Object value = parseValue(stream);
+            if (value instanceof final LinkedTypeMap singleMap && singleMap.size() == 1 && singleMap.containsKey(""))
+                return singleMap.get("");
+            if (value instanceof final LinkedTypeMap map && map.isEmpty() && "{}".contentEquals(stream.rawText().strip()))
+                return null;
+            return value;
+        } catch (final RuntimeException ignored) {
+            final String raw = stream.rawText();
+            return raw.isEmpty() ? null : raw;
+        }
+    }
+
+    private static Reader buffered(final Reader reader) {
+        return reader instanceof BufferedReader ? reader : new BufferedReader(reader, 8192);
+    }
+
+    private static Object parseValue(final LenientStream stream) throws IOException {
+        final int ch = stream.nextNonWhitespace();
+        if (ch == -1) {
+            return null;
+        }
+        return switch (ch) {
+            case '{' -> parseObject(stream);
+            case '[' -> parseArray(stream);
+            case '"' -> parseString(stream);
+            default -> parsePrimitive(stream, (char) ch);
+        };
+    }
+
+    private static LinkedTypeMap parseObject(final LenientStream stream) throws IOException {
+        final LinkedTypeMap map = new LinkedTypeMap();
+        while (true) {
+            final int first = stream.nextNonWhitespace();
+            if (first == '}') {
+                return map;
+            } else if (first == -1) {
+                throw new IllegalStateException("Unterminated object");
+            }
+            final String key = parseKey(stream, first);
+            final int separator = stream.nextNonWhitespace();
+            if (separator == ':') {
+                final Object value = parseValue(stream);
+                map.put(key, value);
+                final int sep = stream.nextNonWhitespace();
+                if (sep == '}') {
+                    return map;
+                } else if (sep != ',') {
+                    throw new IllegalStateException("Invalid JSON object separator");
+                }
+            } else if (separator == '}' || separator == ',') {
+                map.put("", key);
+                if (separator == '}') {
+                    return map;
+                }
+            } else {
+                throw new IllegalStateException("Invalid JSON object separator");
+            }
+        }
+    }
+
+    private static String parseKey(final LenientStream stream, final int first) throws IOException {
+        if (first == '"') {
+            return parseString(stream);
+        }
+        final StringBuilder token = new StringBuilder();
+        token.append((char) first);
+        while (true) {
+            final int ch = stream.read();
+            if (ch == -1) {
+                return token.toString();
+            }
+            if (ch == ':') {
+                stream.unread(ch);
+                return token.toString();
+            }
+            if (!Character.isWhitespace(ch)) {
+                token.append((char) ch);
+            }
+        }
+    }
+
+    private static TypeList parseArray(final LenientStream stream) throws IOException {
+        final TypeList list = new TypeList();
+        while (true) {
+            int ch = stream.nextNonWhitespace();
+            if (ch == ']') {
+                return list;
+            }
+            if (ch == -1) {
+                throw new IllegalStateException("Unterminated array");
+            }
+            stream.unread(ch);
+            list.add(parseValue(stream));
+            ch = stream.nextNonWhitespace();
+            if (ch == ']') {
+                return list;
+            } else if (ch != ',') {
+                throw new IllegalStateException("Invalid JSON array separator");
+            }
+        }
+    }
+
+    private static String parseString(final LenientStream stream) throws IOException {
+        final StringBuilder sb = new StringBuilder();
+        boolean escaped = false;
+        while (true) {
+            final int ch = stream.read();
+            if (ch == -1) {
+                throw new IllegalStateException("Unterminated string");
+            }
+            if (escaped) {
+                sb.append(decodeEscape(ch, stream));
+                escaped = false;
+            } else if (ch == '\\') {
+                escaped = true;
+            } else if (ch == '"') {
+                break;
+            } else {
+                sb.append((char) ch);
+            }
+        }
+        return sb.toString();
+    }
+
+    private static char decodeEscape(final int esc, final LenientStream stream) throws IOException {
+        return switch (esc) {
+            case '"' -> '"';
+            case '\\' -> '\\';
+            case '/' -> '/';
+            case 'b' -> '\b';
+            case 'f' -> '\f';
+            case 'n' -> '\n';
+            case 'r' -> '\r';
+            case 't' -> '\t';
+            case 'u' -> {
+                final char[] hex = new char[4];
+                for (int i = 0; i < 4; i++) {
+                    final int h = stream.read();
+                    if (h == -1) {
+                        throw new IllegalStateException("Incomplete unicode escape");
+                    }
+                    hex[i] = (char) h;
+                }
+                yield (char) Integer.parseInt(new String(hex), 16);
+            }
+            default -> (char) esc;
+        };
+    }
+
+    private static Object parsePrimitive(final LenientStream stream, final char first) throws IOException {
+        final StringBuilder token = new StringBuilder();
+        token.append(first);
+        while (true) {
+            final int ch = stream.read();
+            if (ch == -1 || ch == ',' || ch == '}' || ch == ']' || Character.isWhitespace(ch)) {
+                if (ch != -1) {
+                    stream.unread(ch);
+                }
+                break;
+            }
+            token.append((char) ch);
+        }
+        final String value = token.toString();
+        return switch (value) {
+            case "true" -> true;
+            case "false" -> false;
+            case "null" -> null;
+            default -> convertToPrimitive(value);
+        };
     }
 
     private static Object convertToPrimitive(final String value) {
@@ -118,92 +452,47 @@ public class JsonDecoder {
         }
     }
 
-    private static String removeWrapper(final String input) {
-        return input.substring(1, input.length() - 1);
-    }
+    private static class LenientStream {
+        private static final int PUSHBACK_SIZE = 16;
+        private final PushbackReader reader;
+        private final StringBuilder raw;
+        private final int rawLimit;
 
-    private static LinkedTypeMap toMap(final String json) {
-        final LinkedTypeMap map = new LinkedTypeMap();
-        for (final String pair : splitJson(json)) {
-            final String[] keyValue = splitFirstBy(pair, ':');
-            if (keyValue.length < 2) {
-                map.put("", jsonOf(pair));
-            } else {
-                final String key = unquote(keyValue[0].strip());
-                final Object value = jsonOf(keyValue[1].strip());
-                map.put(key, value);
+        LenientStream(final Reader reader, final int rawLimit) {
+            this.reader = new PushbackReader(reader, PUSHBACK_SIZE);
+            this.rawLimit = rawLimit;
+            this.raw = new StringBuilder(Math.min(rawLimit, 1024));
+        }
+
+        int read() throws IOException {
+            final int ch = reader.read();
+            appendRaw(ch);
+            return ch;
+        }
+
+        void unread(final int ch) throws IOException {
+            if (ch != -1) {
+                reader.unread(ch);
             }
         }
-        return map;
-    }
 
-    @SuppressWarnings("java:S3776")
-    private static String[] splitJson(final String json) {
-        final TypeList parts = new TypeList();
-        int braceCount = 0;
-        int bracketCount = 0;
-        boolean inString = false;
-        final StringBuilder currentPart = new StringBuilder();
+        int nextNonWhitespace() throws IOException {
+            int ch;
+            do {
+                ch = read();
+            } while (ch != -1 && Character.isWhitespace(ch));
+            return ch;
+        }
 
-        for (int i = 0; i < json.length(); i++) {
-            final char c = json.charAt(i);
+        String rawText() {
+            return raw.toString();
+        }
 
-            // Toggle the inString flag if we encounter a non-escaped quote
-            if (c == '"' && (i == 0 || json.charAt(i - 1) != '\\')) {
-                inString = !inString;
+        private void appendRaw(final int ch) {
+            if (ch != -1 && raw.length() < rawLimit) {
+                raw.append((char) ch);
             }
-
-            if (!inString) {
-                if (c == '{') braceCount++;
-                if (c == '}') braceCount--;
-                if (c == '[') bracketCount++;
-                if (c == ']') bracketCount--;
-
-                if (c == ',' && braceCount == 0 && bracketCount == 0) {
-                    parts.add(currentPart.toString());
-                    currentPart.setLength(0);
-                    continue;
-                }
-            }
-
-            currentPart.append(c);
         }
-
-        if (currentPart.length() > 0) {
-            parts.add(currentPart.toString());
-        }
-
-        return parts.toArray(new String[0]);
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static String[] splitFirstBy(final String string, final char c) {
-        final int colonIndex = firstNonEscapedCar(string, c);
-        return colonIndex == -1 ? new String[0] : new String[]{
-            string.substring(0, colonIndex).strip(),
-            string.substring(colonIndex + 1).strip()
-        };
-    }
-
-    private static int firstNonEscapedCar(final String str, final char c) {
-        boolean inString = false;
-        for (int i = 0; i < str.length(); i++) {
-            if (str.charAt(i) == '"' && (i == 0 || str.charAt(i - 1) != '\\')) inString = !inString;
-            if (str.charAt(i) == c && !inString) return i;
-        }
-        return -1;
-    }
-
-    private static String unquote(final String str) {
-        return str.startsWith("\"") && str.endsWith("\"") ? removeWrapper(str) : str;
-    }
-
-    private static TypeList toList(final String json) {
-        final TypeList list = new TypeList();
-        for (final String element : splitJson(json)) {
-            list.add(jsonOf(element.strip())); // Recursively parse each element
-        }
-        return list;
     }
 
     private JsonDecoder() {

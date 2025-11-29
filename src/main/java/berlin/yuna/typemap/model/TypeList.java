@@ -68,13 +68,6 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     }
 
     /**
-     * Parses JSON or XML file into a {@link TypeList}.
-     */
-    public static TypeList fromJson(final Path jsonOrXml) {
-        return fromJson(readPath(jsonOrXml));
-    }
-
-    /**
      * Parses JSON or XML stream into a {@link TypeList}.
      */
     public static TypeList fromJson(final InputStream jsonOrXml) {
@@ -134,7 +127,11 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     }
 
     public static TypeList fromArgs(final Path args) {
-        return fromArgs(readPath(args));
+        try (InputStream in = Files.newInputStream(args)) {
+            return fromArgs(in);
+        } catch (final IOException ignored) {
+            return new TypeList();
+        }
     }
 
     public static TypeList fromArgs(final InputStream args) {

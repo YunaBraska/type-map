@@ -3,9 +3,13 @@ package berlin.yuna.typemap.logic;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.IOException;
 import java.util.*;
 
 import static berlin.yuna.typemap.logic.JsonEncoder.toJson;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,5 +69,16 @@ class JsonEncoderTest {
         assertThat(JsonDecoder.jsonListOf(jsonString)).isEqualTo(singletonList(expectedString));
         assertThat(JsonDecoder.jsonMapOf(jsonString)).containsEntry("", expectedString);
         assertThat(JsonDecoder.jsonTypeOf(jsonString).get(String.class,0)).isEqualTo(expectedString);
+
+        // STREAM PATHS
+        try (InputStream mapStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8));
+             InputStream listStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8));
+             InputStream valueStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8))) {
+            assertThat(JsonDecoder.jsonMapOf(mapStream)).containsEntry("", expectedString);
+            assertThat(JsonDecoder.jsonListOf(listStream)).containsExactly(expectedString);
+            assertThat(JsonDecoder.jsonOf(valueStream)).isEqualTo(expectedString);
+        } catch (final IOException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
