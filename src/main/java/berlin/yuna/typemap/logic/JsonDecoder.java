@@ -87,14 +87,14 @@ public class JsonDecoder {
      * @return A Map, List, or Object representing the JSON structure.
      */
     public static Object jsonOf(final String json) {
-        final String input = json == null ? null : json.trim();
+        final String input = json == null ? null : json.strip();
         if (json == null || json.equals("{}")) {
             return null;
         } else if (input.startsWith("{") && input.endsWith("}")) {
-            final LinkedTypeMap map = toMap(removeWrapper(input).trim());
+            final LinkedTypeMap map = toMap(removeWrapper(input).strip());
             return map.size() == 1 && map.containsKey("") ? map.get("") : map;
         } else if (input.startsWith("[") && input.endsWith("]")) {
-            return toList(removeWrapper(input).trim());
+            return toList(removeWrapper(input).strip());
         } else if (input.startsWith("\"") && input.endsWith("\"")) {
             return unescapeJson(input.substring(1, input.length() - 1));
         } else {
@@ -129,8 +129,8 @@ public class JsonDecoder {
             if (keyValue.length < 2) {
                 map.put("", jsonOf(pair));
             } else {
-                final String key = unquote(keyValue[0].trim());
-                final Object value = jsonOf(keyValue[1].trim());
+                final String key = unquote(keyValue[0].strip());
+                final Object value = jsonOf(keyValue[1].strip());
                 map.put(key, value);
             }
         }
@@ -180,8 +180,8 @@ public class JsonDecoder {
     private static String[] splitFirstBy(final String string, final char c) {
         final int colonIndex = firstNonEscapedCar(string, c);
         return colonIndex == -1 ? new String[0] : new String[]{
-            string.substring(0, colonIndex).trim(),
-            string.substring(colonIndex + 1).trim()
+            string.substring(0, colonIndex).strip(),
+            string.substring(colonIndex + 1).strip()
         };
     }
 
@@ -201,7 +201,7 @@ public class JsonDecoder {
     private static TypeList toList(final String json) {
         final TypeList list = new TypeList();
         for (final String element : splitJson(json)) {
-            list.add(jsonOf(element.trim())); // Recursively parse each element
+            list.add(jsonOf(element.strip())); // Recursively parse each element
         }
         return list;
     }

@@ -9,9 +9,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Time;
 import java.sql.Timestamp;
@@ -763,6 +766,64 @@ public class TypeMapTest {
     }
 
     @Test
+    void shouldReadJsonFromStringPathAndStream() throws Exception {
+        final Path jsonPath = Files.createTempFile("typemap-json", ".json");
+        Files.writeString(jsonPath, "{\"name\":\"alpha\",\"number\":7}");
+
+        final TypeMapI<?> fromJsonString = TypeMap.fromJson("{\"name\":\"alpha\",\"number\":7}");
+        final TypeMapI<?> fromJsonCharSeq = TypeMap.fromJson((CharSequence) "{\"name\":\"char\",\"number\":8}");
+        final TypeMapI<?> fromJsonPath = TypeMap.fromJson(jsonPath);
+        try (InputStream stream = Files.newInputStream(jsonPath)) {
+            assertThat(TypeMap.fromJson(stream).asString("name")).isEqualTo("alpha");
+        }
+        assertThat(fromJsonString.asInt("number")).isEqualTo(7);
+        assertThat(fromJsonCharSeq.asInt("number")).isEqualTo(8);
+        assertThat(fromJsonPath.toJson()).contains("\"name\":\"alpha\"");
+    }
+
+    @Test
+    void shouldReadXmlFromStringPathAndStream() throws Exception {
+        final String xml = "<root><item id=\"9\">value</item></root>";
+        final Path xmlPath = Files.createTempFile("typemap-xml", ".xml");
+        Files.writeString(xmlPath, xml);
+
+        final TypeMapI<?> fromString = TypeMap.fromXml(xml);
+        final TypeMapI<?> fromCharSeq = TypeMap.fromXml((CharSequence) xml);
+        final TypeMapI<?> fromPath = TypeMap.fromXml(xmlPath);
+        try (InputStream stream = Files.newInputStream(xmlPath)) {
+            assertThat(TypeMap.fromXml(stream).toXML()).satisfies(out -> assertThat(normalizeXml(out)).isEqualTo(normalizeXml(xml)));
+        }
+        assertThat(normalizeXml(fromString.toXML())).isEqualTo(normalizeXml(xml));
+        assertThat(normalizeXml(fromCharSeq.toXML())).isEqualTo(normalizeXml(xml));
+        assertThat(normalizeXml(fromPath.toXML())).isEqualTo(normalizeXml(xml));
+        assertThat(fromString.get("root")).isInstanceOf(TypeList.class);
+    }
+
+    @Test
+    void shouldReadArgsFromStringArrayPathAndStream() throws Exception {
+        final String argsString = "--name=neo -v";
+        final String[] argsArray = new String[]{"--name=neo", "-v"};
+        final Path argsPath = Files.createTempFile("typemap-args", ".txt");
+        Files.writeString(argsPath, "--name=trinity -count=3");
+
+        assertThat((TypeSet) TypeMap.fromArgs(argsString).get("name")).contains("neo");
+        assertThat((TypeSet) TypeMap.fromArgs((CharSequence) argsString).get("name")).contains("neo");
+        assertThat((TypeSet) TypeMap.fromArgs(argsArray).get("name")).contains("neo");
+        assertThat((TypeSet) TypeMap.fromArgs(argsPath).get("count")).contains("3");
+        try (InputStream stream = Files.newInputStream(argsPath)) {
+            assertThat((TypeSet) TypeMap.fromArgs(stream).get("name")).contains("trinity");
+        }
+    }
+
+    @Test
+    void shouldHandleBrokenOrEmptyInputsGracefully() {
+        assertThat(TypeMap.fromJson("borken")).isNotNull();
+        assertThat(TypeMap.fromJson((String) null)).isEmpty();
+        assertThat(TypeMap.fromXml("<<<not-xml>>")).isEmpty();
+        assertThat(TypeMap.fromArgs((String) null)).isEmpty();
+    }
+
+    @Test
     void showCaseXml() {
         final String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<error>\n"
@@ -776,5 +837,9 @@ public class TypeMapTest {
         assertThat(xml.get(String.class, "error", "code")).isEqualTo("red");
         assertThat(xml.get(Integer.class, "error", "details", "http-status")).isEqualTo(418);
         assertThat(xml.get(Date.class, "error", "details", "date-time")).isEqualTo(new Date(1800000000000L));
+    }
+
+    private static String normalizeXml(final String xml) {
+        return xml == null ? "" : xml.replaceAll(">\\s+<", "><").trim();
     }
 }

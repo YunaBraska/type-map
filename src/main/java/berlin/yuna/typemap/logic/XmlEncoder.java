@@ -1,6 +1,8 @@
 package berlin.yuna.typemap.logic;
 
 import berlin.yuna.typemap.model.Pair;
+import berlin.yuna.typemap.model.TypeList;
+import berlin.yuna.typemap.model.TypeMapI;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -9,6 +11,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.StringWriter;
 import java.util.Collection;
+import java.util.Map;
 
 import static berlin.yuna.typemap.logic.ArgsDecoder.hasText;
 import static berlin.yuna.typemap.logic.XmlDecoder.documentBuilder;
@@ -41,6 +44,35 @@ public class XmlEncoder {
         } catch (final Exception e) {
             throw new IllegalStateException("Error generating XML", e);
         }
+    }
+
+    public static String toXmlMap(final TypeMapI<?> map) {
+        if (map == null || map.isEmpty()) {
+            return "";
+        }
+        final java.util.Iterator<Map.Entry<Object, Object>> iterator = map.entrySet().iterator();
+        final Map.Entry<Object, Object> first = iterator.hasNext() ? iterator.next() : null;
+        if (first != null && first.getKey() instanceof String && first.getValue() instanceof Collection<?>) {
+            final TypeList content = new TypeList((Collection<?>) first.getValue());
+            return toXml(java.util.Collections.singletonList(new Pair<>(first.getKey(), content)));
+        }
+        final TypeList entries = new TypeList();
+        map.forEach((key, value) -> entries.add(new Pair<>(String.valueOf(key), value)));
+        return toXml(java.util.Collections.singletonList(new Pair<>("root", entries)));
+    }
+
+    public static String toXml(final TypeList list) {
+        if (list == null || list.isEmpty()) {
+            return "";
+        }
+        if (list.get(0) instanceof Pair<?, ?>) {
+            return toXml((Collection<?>) list);
+        }
+        final TypeList entries = new TypeList();
+        for (final Object item : list) {
+            entries.add(new Pair<>("item", item));
+        }
+        return toXml(java.util.Collections.singletonList(new Pair<>("root", entries)));
     }
 
     /**
@@ -106,9 +138,9 @@ public class XmlEncoder {
             transformerFactory.setAttribute("http://javax.xml.XMLConstants/property/accessExternalStylesheet", "");
 
             final Transformer transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+            transformer.setOutputProperty(OutputKeys.INDENT, "no");
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
-            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
             return transformer;
         } catch (final TransformerConfigurationException e) {
             throw new IllegalStateException(e);

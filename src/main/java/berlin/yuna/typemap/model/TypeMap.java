@@ -1,10 +1,13 @@
 package berlin.yuna.typemap.model;
 
 
-import berlin.yuna.typemap.logic.ArgsDecoder;
-import berlin.yuna.typemap.logic.JsonDecoder;
-import berlin.yuna.typemap.logic.TypeConverter;
+import berlin.yuna.typemap.logic.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -33,14 +36,20 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
 
     /**
      * Constructs a new {@link TypeMap} of the specified json.
+     *
+     * @deprecated use {@link #fromJson(String)} or {@link #fromXml(String)} for clarity
      */
+    @Deprecated(forRemoval = true)
     public TypeMap(final String json) {
         this(JsonDecoder.jsonMapOf(json));
     }
 
     /**
      * Constructs a new {@link TypeMap} of the specified command line arguments.
+     *
+     * @deprecated use {@link #fromArgs(String[])} instead
      */
+    @Deprecated(forRemoval = true)
     public TypeMap(final String[] cliArgs) {
         this(ArgsDecoder.argsOf(String.join(" ", cliArgs)));
     }
@@ -52,6 +61,140 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      */
     public TypeMap(final Map<?, ?> map) {
         ofNullable(map).ifPresent(super::putAll);
+    }
+
+    /**
+     * Parses JSON into a {@link TypeMapI} (returns {@link LinkedTypeMap} when possible).
+     *
+     * @param json raw json content
+     * @return populated map or empty map when input is blank
+     */
+    public static LinkedTypeMap fromJson(final String json) {
+        return (json == null || json.isBlank())
+            ? new LinkedTypeMap()
+            : JsonDecoder.jsonMapOf(json);
+    }
+
+    /**
+     * Parses JSON CharSequence into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromJson(final CharSequence json) {
+        return json == null
+            ? new LinkedTypeMap()
+            : fromJson(json.toString());
+    }
+
+    /**
+     * Parses JSON file into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromJson(final Path json) {
+        return fromJson(readPath(json));
+    }
+
+    /**
+     * Parses JSON stream into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromJson(final InputStream json) {
+        return fromJson(readStream(json));
+    }
+
+    /**
+     * Parses XML into a {@link LinkedTypeMap} preserving element order.
+     */
+    public static LinkedTypeMap fromXml(final String xml) {
+        return fromXml(XmlDecoder.xmlTypeOf(xml));
+    }
+
+    /**
+     * Parses XML CharSequence into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromXml(final CharSequence xml) {
+        return xml == null
+            ? new LinkedTypeMap()
+            : fromXml(xml.toString());
+    }
+
+    /**
+     * Parses XML file into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromXml(final Path xml) {
+        return fromXml(readPath(xml));
+    }
+
+    /**
+     * Parses XML stream into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromXml(final InputStream xml) {
+        return fromXml(readStream(xml));
+    }
+
+    /**
+     * Parses CLI args into a {@link LinkedTypeMap}.
+     */
+    public static LinkedTypeMap fromArgs(final String args) {
+        return (args == null || args.isBlank())
+            ? new LinkedTypeMap()
+            : ArgsDecoder.argsOf(args);
+    }
+
+    /**
+     * Parses CLI args array into a {@link LinkedTypeMap}.
+     */
+    public static LinkedTypeMap fromArgs(final String[] args) {
+        return (args == null || args.length == 0)
+            ? new LinkedTypeMap()
+            : ArgsDecoder.argsOf(String.join(" ", args));
+    }
+
+    /**
+     * Parses CLI args CharSequence into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromArgs(final CharSequence args) {
+        return args == null ? new LinkedTypeMap() : fromArgs(args.toString());
+    }
+
+    /**
+     * Parses CLI args file into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromArgs(final Path args) {
+        return fromArgs(readPath(args));
+    }
+
+    /**
+     * Parses CLI args stream into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromArgs(final InputStream args) {
+        return fromArgs(readStream(args));
+    }
+
+    private static LinkedTypeMap fromXml(final TypeList xml) {
+        if (xml == null || xml.isEmpty())
+            return new LinkedTypeMap();
+        final Object first = xml.get(0);
+        if (first instanceof final Pair<?, ?> pair)
+            return new LinkedTypeMap().putR(pair.getKey(), pair.getValue());
+        return new LinkedTypeMap().putR("root", xml);
+    }
+
+    private static String readPath(final Path path) {
+        if (path == null)
+            return "";
+        try {
+            return Files.readString(path, StandardCharsets.UTF_8);
+        } catch (final IOException ignored) {
+            return "";
+        }
+    }
+
+    private static String readStream(final InputStream stream) {
+        if (stream == null) {
+            return "";
+        }
+        try {
+            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (final IOException ignored) {
+            return "";
+        }
     }
 
     /**
@@ -130,6 +273,12 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
         }
         return value;
     }
+
+    public String toJson() {
+        return JsonEncoder.toJson(this);
+    }
+
+    // toXML provided via TypeMapI default
 
     @SuppressWarnings("unchecked")
     public static <K, V, M extends Map<K, V>> M convertAndMap(final Object input, final Supplier<M> output, final Class<K> keyType, final Class<V> valueType) {

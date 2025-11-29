@@ -1,28 +1,30 @@
 package berlin.yuna.typemap.logic;
 
+import berlin.yuna.typemap.model.LinkedTypeMap;
 import berlin.yuna.typemap.model.TypeList;
 import berlin.yuna.typemap.model.TypeSet;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static java.util.Collections.singletonList;
 
 
 public class ArgsDecoder {
 
-    public static Map<String, TypeSet> argsOf(final String input) {
-        final Map<String, TypeSet> result = new HashMap<>();
+    public static LinkedTypeMap argsOf(final String input) {
+        final LinkedTypeMap result = new LinkedTypeMap();
         final List<Integer[]> keyRanges = getKeyRanges(input);
 
         for (int i = 0; i < keyRanges.size(); i++) {
             final Integer[] range = keyRanges.get(i);
             final int offsetEnd = i + 1 < keyRanges.size() ? keyRanges.get(i + 1)[0] : input.length();
             final String key = input.substring(range[0], range[1]);
-            final String cleanKey = key.substring(key.startsWith("--") ? 2 : 1).trim();
+            final String cleanKey = key.substring(key.startsWith("--") ? 2 : 1).strip();
             final String value = input.substring(range[1] + 1, offsetEnd);
-            final TypeSet values = result.computeIfAbsent(cleanKey, v -> new TypeSet());
-            values.addAll((hasText(value) ? handleValue(value.trim()) : singletonList(true)));
+            final TypeSet values = (TypeSet) result.computeIfAbsent(cleanKey, v -> new TypeSet());
+            values.addAll((hasText(value) ? handleValue(value.strip()) : singletonList(true)));
             result.put(cleanKey, values);
         }
         return result;
@@ -36,7 +38,7 @@ public class ArgsDecoder {
         if ((value.startsWith("'") && value.endsWith("'")) || (value.startsWith("\"") && value.endsWith("\""))) {
             return new TypeList().addR(convertToType(value.substring(1, value.length() - 1)));
         }
-        return new TypeList().addAllR(Arrays.stream(value.split("\\s+", -1)).map(ArgsDecoder::convertToType).collect(Collectors.toList()));
+        return new TypeList().addAllR(Arrays.stream(value.split("\\s+", -1)).map(ArgsDecoder::convertToType).toList());
     }
 
     private static Object convertToType(final String string) {

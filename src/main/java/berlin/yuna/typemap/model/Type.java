@@ -10,8 +10,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import static berlin.yuna.typemap.model.TypeMap.treeGet;
-
 public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
 
     private T value;
@@ -48,7 +46,7 @@ public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
      * @return the current instance {@link Type}
      */
     @Override
-    @Deprecated
+    @Deprecated(forRemoval = true)
     @SuppressWarnings("unchecked")
     public Type<T> addR(final Object key, final Object value) {
         this.value = (T) (key != null ? key : value);
@@ -229,8 +227,7 @@ public class Type<T> implements Iterable<T>, TypeInfo<Type<T>> {
 
     @Override
     public boolean equals(final Object o) {
-        if (!(o instanceof Type)) return false;
-        final Type<?> type = (Type<?>) o;
+        if (!(o instanceof final Type<?> type)) return false;
         return Objects.equals(value, type.value);
     }
 

@@ -1,5 +1,7 @@
 package berlin.yuna.typemap.model;
 
+import berlin.yuna.typemap.logic.XmlEncoder;
+
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,5 +39,9 @@ public interface TypeMapI<C extends TypeMapI<C>> extends Map<Object, Object>, Ty
      */
     default Type<TypeListI<?>> typeListOpt() {
         return empty();
+    }
+
+    default String toXML() {
+        return XmlEncoder.toXmlMap(this);
     }
 }
