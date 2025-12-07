@@ -326,6 +326,18 @@ class TypeListTest {
     }
 
     @Test
+    void shouldStreamPairsFromTypeListInstance() {
+        final TypeList list = new TypeList();
+        list.addAll(List.of("x", 2));
+        assertThat(list.streamPairs().toList())
+            .extracting(Pair::key, Pair::value)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple(0, "x"), org.assertj.core.groups.Tuple.tuple(1, 2));
+        assertThat(list.streamPairs(String.class).toList())
+            .extracting(Pair::value)
+            .containsExactly("x", "2");
+    }
+
+    @Test
     void shouldSupportArgsFileAndStream() throws Exception {
         final Path argsPath = Files.createTempFile("typelist-args", ".txt");
         Files.writeString(argsPath, "--name=trinity -count=3");

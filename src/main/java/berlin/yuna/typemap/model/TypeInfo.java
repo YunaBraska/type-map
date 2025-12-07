@@ -43,6 +43,36 @@ public interface TypeInfo<C extends TypeInfo<C>> {
     C addR(final Object key, final Object value);
 
     /**
+     * Streams map/list content as {@link Pair} key/value entries for generic consumption.
+     * Keys are stringified for maps and integer indexes for lists.
+     */
+    default Stream<Pair<Object, Object>> streamAny() {
+        return streamAny(null);
+    }
+
+    /**
+     * Streams map/list content as {@link Pair} key/value entries, converting values to the given type when provided.
+     *
+     * @param valueType optional target type for values
+     * @param path optional path to a nested map/list
+     */
+    @SuppressWarnings("unchecked")
+    default <V> Stream<Pair<Object, V>> streamAny(final Class<V> valueType, final Object... path) {
+        final Object target = treeGet(this, path);
+        if (target instanceof final Map<?, ?> map) {
+            return map.entrySet().stream().map(e -> new Pair<>(String.valueOf(e.getKey()), (V) convert(valueType, e.getValue())));
+        } else if (target instanceof final Iterable<?> iterable) {
+            final AtomicInteger idx = new AtomicInteger(0);
+            return StreamSupport.stream(iterable.spliterator(), false).map(val -> new Pair<>((Object) idx.getAndIncrement(), (V) convert(valueType, val)));
+        }
+        return Stream.empty();
+    }
+
+    private static Object convert(final Class<?> valueType, final Object value) {
+        return valueType == null ? value : convertObj(value, valueType);
+    }
+
+    /**
      * Retrieves the value to which the specified key is mapped
      *
      * @param path the key whose associated value is to be returned.

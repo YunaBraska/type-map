@@ -23,6 +23,7 @@ import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import berlin.yuna.typemap.model.Type;
@@ -813,6 +814,86 @@ public class TypeMapTest {
             }, Map::putAll);
             assertThat(converted).containsExactly(entry("num", 7), entry("flag", true));
         }
+    }
+
+    @Test
+    void shouldStreamPairsFromTypeMapInstance() {
+        final TypeMap map = new TypeMap();
+        map.put("a", 1);
+        map.put("b", "two");
+        assertThat(map.streamPairs().toList())
+            .extracting(Pair::key, Pair::value)
+            .containsExactlyInAnyOrder(tuple("a", 1), tuple("b", "two"));
+        assertThat(map.streamPairs(Integer.class).toList())
+            .extracting(Pair::value)
+            .containsExactlyInAnyOrder(1, null);
+        assertThat(map.streamPairs("missing")).isEmpty();
+    }
+
+    @Test
+    void shouldStreamNestedPairsFromXml() {
+        final String xml = """
+            <root>
+              <user id="7">
+                <name>neo</name>
+                <roles>
+                  <role>admin</role>
+                  <role>ops</role>
+                </roles>
+              </user>
+              <active>true</active>
+            </root>
+            """;
+        final TypeMapI<?> map = TypeMap.fromXml(xml);
+
+        assertThat(map.streamPairs().toList())
+            .extracting(Pair::key)
+            .containsExactly("root");
+
+        final List<Pair<String, Object>> rootChildren = map.streamPairs("root")
+            .map(p -> new Pair<>(String.valueOf(p.key()), p.value()))
+            .toList();
+        assertThat(rootChildren).hasSize(2);
+        final List<Pair<?, ?>> rootPairs = rootChildren.stream()
+            .map(pair -> (Pair<?, ?>) pair.value())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+        final TypeList userContent = (TypeList) rootPairs.stream()
+            .filter(p -> "user".equals(p.getKey()))
+            .findFirst()
+            .map(Pair::getValue)
+            .orElseThrow();
+        final Object activeValue = rootPairs.stream()
+            .filter(p -> "active".equals(p.getKey()))
+            .findFirst()
+            .map(Pair::getValue)
+            .orElse(null);
+
+        assertThat(activeValue).isInstanceOf(TypeList.class);
+        assertThat((TypeList) activeValue).contains("true");
+        final List<Pair<?, ?>> userEntries = userContent.streamPairs()
+            .map(pair -> (Pair<?, ?>) pair.value())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+        final List<String> userKeys = userEntries.stream()
+            .map(entry -> String.valueOf(entry.getKey()))
+            .collect(Collectors.toList());
+        assertThat(userKeys).containsExactlyInAnyOrder("name", "roles", "@id");
+
+        final TypeList roles = (TypeList) userEntries.stream()
+            .filter(p -> "roles".equals(p.getKey()))
+            .findFirst()
+            .map(Pair::getValue)
+            .orElseThrow();
+
+        final List<String> roleValues = roles.streamPairs()
+            .map(Pair::value)
+            .filter(Objects::nonNull)
+            .map(val -> val instanceof Pair<?, ?> pair ? pair.getValue() : val)
+            .flatMap(val -> val instanceof TypeList list ? list.stream().map(String::valueOf) : Stream.of(String.valueOf(val)))
+            .collect(Collectors.toList());
+        assertThat(roleValues).containsExactly("admin", "ops");
     }
 
     @Test

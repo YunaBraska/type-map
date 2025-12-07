@@ -137,6 +137,69 @@ class JsonDecoderTest {
     }
 
     @Test
+    void shouldStreamDeeplyNestedObject() {
+        final String json = """
+            {
+              "title":"matrix",
+              "meta":{"rating":null,"scores":[1,2,[3,4]],"active":true},
+              "items":[{"id":1,"tags":["red","blue"],"data":{"pi":3.14}},{"id":2,"tags":[],"data":{"empty":{}}}]
+            }
+            """;
+
+        try (Stream<Pair<String, Object>> stream = JsonDecoder.streamJsonObject(json)) {
+            final TypeMap root = new TypeMap();
+            stream.forEach(p -> root.put(p.key(), p.value()));
+
+            assertThat(root.asString("title")).isEqualTo("matrix");
+            assertThat(root.get("meta")).isInstanceOf(LinkedTypeMap.class);
+            final LinkedTypeMap meta = (LinkedTypeMap) root.get("meta");
+            assertThat(meta).containsEntry("rating", null);
+            assertThat(meta.asBoolean("active")).isTrue();
+            assertThat(meta.get("scores")).isInstanceOf(TypeList.class);
+            final TypeList scores = (TypeList) meta.get("scores");
+            assertThat(scores).hasSize(3);
+            assertThat(scores.get(2)).isInstanceOf(TypeList.class);
+            assertThat((TypeList) scores.get(2)).containsExactly(3L, 4L);
+
+            assertThat(root.get("items")).isInstanceOf(TypeList.class);
+            final TypeList items = (TypeList) root.get("items");
+            assertThat(items).hasSize(2);
+            final LinkedTypeMap first = (LinkedTypeMap) items.get(0);
+            assertThat(first.asInt("id")).isEqualTo(1);
+            assertThat((TypeList) first.get("tags")).containsExactly("red", "blue");
+            assertThat(((LinkedTypeMap) first.get("data")).asDouble("pi")).isEqualTo(3.14);
+            final LinkedTypeMap second = (LinkedTypeMap) items.get(1);
+            assertThat(second.asInt("id")).isEqualTo(2);
+            assertThat((TypeList) second.get("tags")).isEmpty();
+            assertThat(((LinkedTypeMap) second.get("data")).get("empty")).isInstanceOf(LinkedTypeMap.class);
+        }
+    }
+
+    @Test
+    void shouldStreamArrayWithNestedObjectsAndUnicode() {
+        final String json = """
+            [
+              {"msg":"привет","nums":[0,-1,2.5],"flag":false},
+              {"msg":"こんにちは","nums":[10,20],"flag":true}
+            ]
+            """;
+
+        try (Stream<Pair<Integer, Object>> stream = JsonDecoder.streamJsonArray(json)) {
+            final List<Pair<Integer, Object>> pairs = stream.toList();
+            assertThat(pairs).hasSize(2);
+            final LinkedTypeMap first = (LinkedTypeMap) pairs.get(0).value();
+            assertThat(first.asString("msg")).isEqualTo("привет");
+            assertThat((TypeList) first.get("nums")).containsExactly(0L, -1L, 2.5d);
+            assertThat(first.asBoolean("flag")).isFalse();
+
+            final LinkedTypeMap second = (LinkedTypeMap) pairs.get(1).value();
+            assertThat(second.asString("msg")).isEqualTo("こんにちは");
+            assertThat((TypeList) second.get("nums")).containsExactly(10L, 20L);
+            assertThat(second.asBoolean("flag")).isTrue();
+        }
+    }
+
+    @Test
     void shouldReturnEmptyOnNullOrWhitespace() {
         assertThat(JsonDecoder.streamJson((InputStream) null)).isEmpty();
         try (final Stream<Pair<Object, Object>> stream = JsonDecoder.streamJson("   ")) {

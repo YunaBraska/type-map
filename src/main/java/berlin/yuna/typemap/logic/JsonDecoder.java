@@ -185,15 +185,14 @@ public class JsonDecoder {
      * @param charset charset to decode the stream
      * @return lazy stream of Type elements (caller must close)
      */
-    @SuppressWarnings("unchecked")
-    public static Stream<Type<Object>> streamArray(final InputStream json, final Charset charset) throws IOException {
+    public static Stream<Object> streamArray(final InputStream json, final Charset charset) throws IOException {
         final LenientStream stream = new LenientStream(new InputStreamReader(json, charset), 8 * 1024);
         final int start = stream.nextNonWhitespace();
         if (start != '[') {
             throw new IllegalStateException("Expected array start '['");
         }
 
-        final Iterator<Type<?>> iterator = new Iterator<>() {
+        final Iterator<Object> iterator = new Iterator<>() {
             private boolean endReached;
 
             @Override
@@ -216,7 +215,7 @@ public class JsonDecoder {
             }
 
             @Override
-            public Type<Object> next() {
+            public Object next() {
                 if (!hasNext()) {
                     throw new java.util.NoSuchElementException();
                 }
@@ -228,7 +227,7 @@ public class JsonDecoder {
                     } else if (sep != ',') {
                         throw new IllegalStateException("Invalid array separator");
                     }
-                    return Type.typeOf(value);
+                    return value;
                 } catch (final IOException e) {
                     endReached = true;
                     throw new IllegalStateException(e);
@@ -236,7 +235,7 @@ public class JsonDecoder {
             }
         };
 
-        return (Stream) StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
+        return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
                 .onClose(() -> closeQuietly(stream.reader));
     }
 
@@ -319,7 +318,7 @@ public class JsonDecoder {
     public static Stream<Pair<Integer, Object>> streamJsonArray(final InputStream json, final Charset charset) {
         try {
             final AtomicInteger index = new AtomicInteger(0);
-            return errorTolerantStream(streamArray(json, charset).map(type -> new Pair<>(index.getAndIncrement(), type == null ? null : type.value())));
+            return errorTolerantStream(streamArray(json, charset).map(value -> new Pair<>(index.getAndIncrement(), value)));
         } catch (final Exception ignored) {
             return Stream.empty();
         }
