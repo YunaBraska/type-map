@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import berlin.yuna.typemap.model.Type;
 
 import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
-import static berlin.yuna.typemap.logic.JsonDecoder.streamJson;
+import static berlin.yuna.typemap.logic.JsonDecoder.streamJsonObject;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
@@ -789,12 +789,12 @@ public class TypeMapTest {
     @Test
     void shouldStreamJsonObjectEntries() throws Exception {
         final String json = "{\"a\":1,\"b\":\"c\"}";
-        try (Stream<Pair<String, Object>> stream = streamJson(json)) {
+        try (Stream<Pair<String, Object>> stream = streamJsonObject(json)) {
             final LinkedHashMap<String, Object> map = stream.collect(LinkedHashMap::new, (m, p) -> m.put(p.getKey(), p.getValue()), Map::putAll);
             assertThat(map).containsExactly(entry("a", 1L), entry("b", "c"));
         }
         try (InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-             Stream<Pair<String, Object>> s = streamJson(stream)) {
+             Stream<Pair<String, Object>> s = streamJsonObject(stream)) {
             final LinkedHashMap<String, Object> map = s.collect(LinkedHashMap::new, (m, p) -> m.put(p.getKey(), p.getValue()), Map::putAll);
             assertThat(map).containsExactly(entry("a", 1L), entry("b", "c"));
         }
@@ -803,7 +803,7 @@ public class TypeMapTest {
     @Test
     void shouldExposeTypeInfoConvenienceOnStreamedPairs() throws Exception {
         final String json = "{\"num\":\"7\",\"flag\":\"true\"}";
-        try (Stream<Pair<String, Object>> stream = streamJson(json)) {
+        try (Stream<Pair<String, Object>> stream = streamJsonObject(json)) {
             final LinkedHashMap<String, Object> converted = stream.collect(LinkedHashMap::new, (m, p) -> {
                 if ("num".equals(p.key())) {
                     m.put(p.key(), p.valueType().asInt());

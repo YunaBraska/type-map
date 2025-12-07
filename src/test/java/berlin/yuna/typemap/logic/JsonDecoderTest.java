@@ -14,7 +14,11 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.io.UncheckedIOException;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,45 +30,95 @@ class JsonDecoderTest {
     private static final String COMPLEX_JSON = "{\"name\":\"neo\",\"nested\":{\"level\":1,\"list\":[{\"x\":1},2,true]},\"tags\":[\"a\",\"b\"]}";
 
     @Test
-    void shouldStreamAllOverloads() throws Exception {
+    void shouldStreamObjectOverloads() throws Exception {
         final Path file = Files.createTempFile("stream-json", ".json");
         Files.writeString(file, COMPLEX_JSON, StandardCharsets.UTF_8);
         final File asFile = file.toFile();
         final URI uri = file.toUri();
         final URL url = uri.toURL();
 
-        assertComplex(JsonDecoder.streamJson(new ByteArrayInputStream(COMPLEX_JSON.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(new ByteArrayInputStream(COMPLEX_JSON.getBytes(StandardCharsets.UTF_8))));
-        assertComplex(JsonDecoder.streamJson(COMPLEX_JSON, StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(COMPLEX_JSON));
-        assertComplex(JsonDecoder.streamJson(new StringBuilder(COMPLEX_JSON), StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(new StringBuilder(COMPLEX_JSON)));
-        assertComplex(JsonDecoder.streamJson(file, StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(file));
-        assertComplex(JsonDecoder.streamJson(asFile, StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(asFile));
-        assertComplex(JsonDecoder.streamJson(uri, StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(uri));
-        assertComplex(JsonDecoder.streamJson(url, StandardCharsets.UTF_8));
-        assertComplex(JsonDecoder.streamJson(url));
+        final List<Supplier<Stream<Pair<String, Object>>>> suppliers = List.of(
+            supplier(() -> JsonDecoder.streamJsonObject(new ByteArrayInputStream(COMPLEX_JSON.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(new ByteArrayInputStream(COMPLEX_JSON.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.streamJsonObject(COMPLEX_JSON, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(COMPLEX_JSON)),
+            supplier(() -> JsonDecoder.streamJsonObject(new StringBuilder(COMPLEX_JSON), StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(new StringBuilder(COMPLEX_JSON))),
+            supplier(() -> JsonDecoder.streamJsonObject(file, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(file)),
+            supplier(() -> JsonDecoder.streamJsonObject(asFile, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(asFile)),
+            supplier(() -> JsonDecoder.streamJsonObject(uri, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(uri)),
+            supplier(() -> JsonDecoder.streamJsonObject(url, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonObject(url))
+        );
+        suppliers.forEach(this::assertComplex);
     }
 
     @Test
-    void shouldStreamArrayWithIndexKeys() throws Exception {
+    void shouldStreamArrayWithIndexKeysAcrossOverloads() throws Exception {
         final String array = "[{\"x\":1},2,true]";
-        try (final Stream<Pair<String, Object>> stream = JsonDecoder.streamJson(array)) {
+        final Path file = Files.createTempFile("stream-json-array", ".json");
+        Files.writeString(file, array, StandardCharsets.UTF_8);
+        final File asFile = file.toFile();
+        final URI uri = file.toUri();
+        final URL url = uri.toURL();
+
+        final List<Supplier<Stream<Pair<Integer, Object>>>> suppliers = List.of(
+            supplier(() -> JsonDecoder.streamJsonArray(array)),
+            supplier(() -> JsonDecoder.streamJsonArray(array, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonArray(new ByteArrayInputStream(array.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.streamJsonArray(new ByteArrayInputStream(array.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonArray(file)),
+            supplier(() -> JsonDecoder.streamJsonArray(file, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonArray(asFile)),
+            supplier(() -> JsonDecoder.streamJsonArray(asFile, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonArray(uri)),
+            supplier(() -> JsonDecoder.streamJsonArray(uri, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJsonArray(url)),
+            supplier(() -> JsonDecoder.streamJsonArray(url, StandardCharsets.UTF_8))
+        );
+        suppliers.forEach(this::assertArray);
+    }
+
+    @Test
+    void shouldStreamGenericOverloads() throws Exception {
+        final Path file = Files.createTempFile("stream-json-generic", ".json");
+        Files.writeString(file, COMPLEX_JSON, StandardCharsets.UTF_8);
+        final File asFile = file.toFile();
+        final URI uri = file.toUri();
+        final URL url = uri.toURL();
+
+        final List<Supplier<Stream<Pair<Object, Object>>>> suppliers = List.of(
+            supplier(() -> JsonDecoder.streamJson(new StringBuilder(COMPLEX_JSON))),
+            supplier(() -> JsonDecoder.streamJson(new StringBuilder(COMPLEX_JSON), StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJson(file)),
+            supplier(() -> JsonDecoder.streamJson(file, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJson(asFile)),
+            supplier(() -> JsonDecoder.streamJson(asFile, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJson(uri)),
+            supplier(() -> JsonDecoder.streamJson(uri, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.streamJson(url)),
+            supplier(() -> JsonDecoder.streamJson(url, StandardCharsets.UTF_8))
+        );
+
+        suppliers.forEach(streamSupplier -> assertComplex(() -> streamSupplier.get().map(p -> new Pair<>(String.valueOf(p.key()), p.value()))));
+    }
+
+    @Test
+    void shouldDecodeEscapesInsideString() {
+        final String escaped = "{\"msg\":\"line\\nquote\\\"unicode\\u00a9\"}";
+        try (Stream<Pair<String, Object>> stream = JsonDecoder.streamJsonObject(escaped)) {
             final Map<String, Object> result = stream.collect(Collectors.toMap(Pair::key, Pair::value));
-            assertThat(result.keySet()).containsExactly("0", "1", "2");
-            assertThat((LinkedTypeMap) result.get("0")).containsEntry("x", 1L);
-            assertThat(result).containsEntry("1", 2L);
-            assertThat(result).containsEntry("2", true);
+            assertThat(result).containsEntry("msg", "line\nquote\"unicode\u00a9");
         }
     }
 
     @Test
-    void shouldReturnEmptyOnNullOrWhitespace() throws Exception {
+    void shouldReturnEmptyOnNullOrWhitespace() {
         assertThat(JsonDecoder.streamJson((InputStream) null)).isEmpty();
-        try (final Stream<Pair<String, Object>> stream = JsonDecoder.streamJson("   ")) {
+        try (final Stream<Pair<Object, Object>> stream = JsonDecoder.streamJson("   ")) {
             assertThat(stream).isEmpty();
         }
     }
@@ -72,15 +126,14 @@ class JsonDecoderTest {
     @Test
     void shouldFailOnInvalidJson() {
         assertThatThrownBy(() -> JsonDecoder.streamJson("oops").toList())
-            .isInstanceOf(IllegalStateException.class)
-            .hasMessageContaining("Expected JSON object or array");
+            .isInstanceOf(UncheckedIOException.class);
         assertThatThrownBy(() -> JsonDecoder.streamJson("{\"a\":1").toList())
-            .isInstanceOf(IllegalStateException.class);
+            .isInstanceOf(UncheckedIOException.class);
     }
 
-    private void assertComplex(final Stream<Pair<String, Object>> stream) {
+    private void assertComplex(final Supplier<Stream<Pair<String, Object>>> supplier) {
         final TypeMap data = new TypeMap();
-        try (final Stream<Pair<String, Object>> closeable = stream) {
+        try (final Stream<Pair<String, Object>> closeable = supplier.get()) {
             closeable.forEach(p -> data.put(p.key(), p.value()));
         }
 
@@ -97,5 +150,25 @@ class JsonDecoderTest {
         assertThat(list).contains(2L, true);
         assertThat(data.get("tags")).isInstanceOf(TypeList.class);
         assertThat((TypeList) data.get("tags")).containsExactly("a", "b");
+    }
+
+    private void assertArray(final Supplier<Stream<Pair<Integer, Object>>> supplier) {
+        try (Stream<Pair<Integer, Object>> stream = supplier.get()) {
+            final Map<Integer, Object> result = stream.collect(Collectors.toMap(Pair::key, Pair::value));
+            assertThat(result.keySet()).containsExactly(0, 1, 2);
+            assertThat((LinkedTypeMap) result.get(0)).containsEntry("x", 1L);
+            assertThat(result).containsEntry(1, 2L);
+            assertThat(result).containsEntry(2, true);
+        }
+    }
+
+    private <T> Supplier<T> supplier(final Callable<T> callable) {
+        return () -> {
+            try {
+                return callable.call();
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 }
