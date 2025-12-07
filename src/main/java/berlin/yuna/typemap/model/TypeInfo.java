@@ -1289,7 +1289,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
      * @return an array of the specified component type.
      */
     default <E> E[] asArray(final IntFunction<E[]> generator, final Class<E> componentType, final Object... path) {
-        return asList(ArrayList::new, componentType, path).stream().toArray(generator);
+        return asList(ArrayList::new, componentType, path).toArray(generator);
     }
 
     /**
@@ -1393,7 +1393,7 @@ public interface TypeInfo<C extends TypeInfo<C>> {
             return putPath(pathAndValue);
 
         final Object key = pathAndValue[pathAndValue.length - 2];
-        final int index = !(key instanceof Number) ? ((List<?>) list).indexOf(key) : ((Number) key).intValue();
+        final int index = !(key instanceof final Number num) ? ((List<?>) list).indexOf(key) : num.intValue();
         if (index > -1 && index < ((List<?>) list).size()) {
             ((List) list).set(index, pathAndValue[pathAndValue.length - 1]);
             return true;
@@ -1415,8 +1415,8 @@ public interface TypeInfo<C extends TypeInfo<C>> {
             return false;
         final boolean isEntry = pathAndValue[pathAndValue.length - 1] instanceof Map.Entry;
         final Object obj = treeGet(this, Arrays.copyOf(pathAndValue, pathAndValue.length - (isEntry ? 1 : 2)));
-        if (obj instanceof Map) {
-            ((Map) obj).put(
+        if (obj instanceof final Map map) {
+            map.put(
                 isEntry ? ((Map.Entry<?, ?>) pathAndValue[pathAndValue.length - 1]).getKey() : pathAndValue[pathAndValue.length - 2],
                 isEntry ? ((Map.Entry<?, ?>) pathAndValue[pathAndValue.length - 1]).getValue() : pathAndValue[pathAndValue.length - 1]
             );

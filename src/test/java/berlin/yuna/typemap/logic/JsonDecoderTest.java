@@ -116,6 +116,27 @@ class JsonDecoderTest {
     }
 
     @Test
+    void shouldHandleInvalidEscapesAsUnchecked() {
+        final String invalid = "{\"msg\":\"bad\\u00\"}";
+        assertThatThrownBy(() -> JsonDecoder.streamJsonObject(invalid).toList())
+            .isInstanceOf(UncheckedIOException.class);
+    }
+
+    @Test
+    void shouldStopArrayStreamOnMalformedSeparator() {
+        final String broken = "[1 2]";
+        assertThatThrownBy(() -> JsonDecoder.streamJsonArray(broken).toList())
+            .isInstanceOf(UncheckedIOException.class);
+    }
+
+    @Test
+    void shouldStopObjectStreamOnMalformedSeparator() {
+        final String broken = "{\"a\":1 \"b\":2}";
+        assertThatThrownBy(() -> JsonDecoder.streamJsonObject(broken).toList())
+            .isInstanceOf(UncheckedIOException.class);
+    }
+
+    @Test
     void shouldReturnEmptyOnNullOrWhitespace() {
         assertThat(JsonDecoder.streamJson((InputStream) null)).isEmpty();
         try (final Stream<Pair<Object, Object>> stream = JsonDecoder.streamJson("   ")) {

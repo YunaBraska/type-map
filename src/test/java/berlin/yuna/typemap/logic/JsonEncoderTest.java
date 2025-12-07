@@ -7,6 +7,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 
 import static berlin.yuna.typemap.logic.JsonEncoder.toJson;
 import static java.nio.charset.StandardCharsets.UTF_8;

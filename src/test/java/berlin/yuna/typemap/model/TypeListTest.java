@@ -280,6 +280,30 @@ class TypeListTest {
     }
 
     @Test
+    void shouldReadJsonFromCharSequenceAndPath() throws Exception {
+        final String json = "[\"x\",{\"y\":1}]";
+        final Path jsonPath = Files.createTempFile("typelist-json", ".json");
+        Files.writeString(jsonPath, json);
+        assertThat(TypeList.fromJson((CharSequence) json)).containsExactly("x", Map.of("y", 1L));
+        try (InputStream in = Files.newInputStream(jsonPath)) {
+            assertThat(TypeList.fromJson(in)).hasSize(2);
+        }
+    }
+
+    @Test
+    void shouldHandleEmptyOrNullJsonGracefully() {
+        assertThat(TypeList.fromJson((String) null)).isEmpty();
+        assertThat(TypeList.fromJson((CharSequence) null)).isEmpty();
+    }
+
+    @Test
+    void shouldHandleEmptyArgsAndJson() {
+        assertThat(TypeList.fromArgs((String) null)).isEmpty();
+        assertThat(TypeList.fromArgs((CharSequence) null)).isEmpty();
+        assertThat(TypeList.fromJson("")).isEmpty();
+    }
+
+    @Test
     void shouldStreamJsonArray() throws Exception {
         final String json = "[1,\"alpha\",true]";
         try (Stream<Pair<Integer, Object>> stream = streamJsonArray(json)) {

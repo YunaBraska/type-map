@@ -2,6 +2,8 @@ package berlin.yuna.typemap.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PairTest {
@@ -29,6 +31,19 @@ class PairTest {
         assertThat(numberPair.valueType().asLong()).isEqualTo(42L);
         assertThat(flagPair.asBoolean()).isTrue();
         assertThat(flagPair.asBoolean("value")).isTrue();
+    }
+
+    @Test
+    void shouldSupportTypeInfoLookups() {
+        final Pair<String, Object> pair = new Pair<>("list", List.of("a", "b"));
+        assertThat(pair.valueInfo().asList(String.class)).containsExactly("a", "b");
+        assertThat(pair.typeListOpt().value()).isNull();
+        assertThat(pair.typeMapOpt().value()).isNull();
+        assertThat(pair.asOpt("key").value()).isEqualTo("list");
+        assertThat(pair.asOpt("value").value()).isEqualTo(List.of("a", "b"));
+        final Pair<String, Object> viaAddR = new Pair<String, Object>(null, null).addR("k", null).addR(null, "v");
+        assertThat(viaAddR.getKey()).isEqualTo("k");
+        assertThat(viaAddR.getValue()).isEqualTo("v");
     }
 
     @Test
