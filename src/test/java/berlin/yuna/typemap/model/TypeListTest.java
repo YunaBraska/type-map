@@ -282,7 +282,7 @@ class TypeListTest {
     @Test
     void shouldStreamJsonArray() throws Exception {
         final String json = "[1,\"alpha\",true]";
-        try (Stream<Pair<Object, Object>> stream = streamJson(json)) {
+        try (Stream<Pair<String, Object>> stream = streamJson(json)) {
             final List<Pair<String, Object>> entries = stream.toList();
             final List<String> keys = entries.stream().map(Pair::key).toList();
             final List<Object> values = entries.stream().map(Pair::value).toList();
@@ -291,7 +291,7 @@ class TypeListTest {
             assertThat(values).containsExactlyElementsOf(expected);
         }
         try (InputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-             Stream<Pair<Object, Object>> stream = streamJson(in)) {
+             Stream<Pair<String, Object>> stream = streamJson(in)) {
             final List<Pair<String, Object>> entries = stream.toList();
             final List<String> keys = entries.stream().map(Pair::key).toList();
             final List<Object> values = entries.stream().map(Pair::value).toList();

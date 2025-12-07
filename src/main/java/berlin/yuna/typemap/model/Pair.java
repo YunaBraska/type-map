@@ -45,7 +45,10 @@ public class Pair<K, V> implements Map.Entry<K, V>, TypeInfo<Pair<K, V>> {
         return convertObj(value, type);
     }
 
-    public Pair<K, V> to(final Class<K> keyType, final Class<V> valueType) {
+    /**
+     * Converts key and value into a new {@link Pair} using the provided target types.
+     */
+    public <NK, NV> Pair<NK, NV> to(final Class<? extends NK> keyType, final Class<? extends NV> valueType) {
         return new Pair<>(convertObj(key, keyType), convertObj(value, valueType));
     }
 

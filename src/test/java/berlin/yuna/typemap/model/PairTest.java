@@ -32,6 +32,17 @@ class PairTest {
     }
 
     @Test
+    void shouldConvertToTargetTypes() {
+        final Pair<Object, Object> pair = new Pair<>("1", "true");
+        final Pair<Integer, Boolean> converted = pair.to(Integer.class, Boolean.class);
+        assertThat(converted.key()).isEqualTo(1);
+        assertThat(converted.value()).isTrue();
+        final Pair<String, Object> widened = pair.to(String.class, Object.class);
+        assertThat(widened.key()).isEqualTo("1");
+        assertThat(widened.value()).isEqualTo("true");
+    }
+
+    @Test
     void TestEquals() {
         final Pair<Integer, String> pair1 = new Pair<>(111, "AA");
         final Pair<Integer, String> pair2 = new Pair<>(111, "BB");

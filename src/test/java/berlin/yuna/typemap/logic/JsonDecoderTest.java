@@ -53,7 +53,7 @@ class JsonDecoderTest {
     void shouldStreamArrayWithIndexKeys() throws Exception {
         final String array = "[{\"x\":1},2,true]";
         try (final Stream<Pair<String, Object>> stream = JsonDecoder.streamJson(array)) {
-            final Map<Object, Object> result = stream.collect(Collectors.toMap(Pair::key, Pair::value));
+            final Map<String, Object> result = stream.collect(Collectors.toMap(Pair::key, Pair::value));
             assertThat(result.keySet()).containsExactly("0", "1", "2");
             assertThat((LinkedTypeMap) result.get("0")).containsEntry("x", 1L);
             assertThat(result).containsEntry("1", 2L);
@@ -78,9 +78,11 @@ class JsonDecoderTest {
             .isInstanceOf(IllegalStateException.class);
     }
 
-    private void assertComplex(final Stream<Pair<Object, Object>> stream) {
+    private void assertComplex(final Stream<Pair<String, Object>> stream) {
         final TypeMap data = new TypeMap();
-        stream.forEach(p -> data.put(p.key(), p.value()));
+        try (final Stream<Pair<String, Object>> closeable = stream) {
+            closeable.forEach(p -> data.put(p.key(), p.value()));
+        }
 
 
         assertThat(data).containsKeys("name", "nested", "tags");
