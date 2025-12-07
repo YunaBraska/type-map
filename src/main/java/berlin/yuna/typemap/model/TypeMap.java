@@ -6,9 +6,10 @@ import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.TypeConverter;
 import berlin.yuna.typemap.logic.XmlDecoder;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -18,6 +19,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static berlin.yuna.typemap.logic.TypeConverter.iterateOverArray;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
@@ -198,7 +200,7 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
             return "";
         }
         try {
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            return new String(stream.readAllBytes(), UTF_8);
         } catch (final IOException ignored) {
             return "";
         }

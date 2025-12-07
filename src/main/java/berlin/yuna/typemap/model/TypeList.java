@@ -5,13 +5,14 @@ import berlin.yuna.typemap.logic.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Optional.ofNullable;
 
 /**
@@ -73,6 +74,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     public static TypeList fromJson(final InputStream jsonOrXml) {
         return fromJson(readStream(jsonOrXml));
     }
+
 
     /**
      * Parses XML string into a {@link TypeList}.
@@ -195,7 +197,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
             return "";
         }
         try {
-            return Files.readString(path, StandardCharsets.UTF_8);
+            return Files.readString(path, UTF_8);
         } catch (final IOException ignored) {
             return "";
         }
@@ -206,7 +208,7 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
             return "";
         }
         try {
-            return new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+            return new String(stream.readAllBytes(), UTF_8);
         } catch (final IOException ignored) {
             return "";
         }

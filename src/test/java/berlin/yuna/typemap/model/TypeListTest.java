@@ -15,6 +15,7 @@ import java.time.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static berlin.yuna.typemap.logic.JsonDecoder.streamJson;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.model.TypeMapTest.TEST_TIME;
@@ -276,6 +277,28 @@ class TypeListTest {
         assertThat((TypeSet) argsMap.get("name")).contains("neo");
         assertThat(TypeList.fromArgs("--name=neo").get(0)).isInstanceOf(Map.class);
         assertThat(TypeList.fromArgs((CharSequence) "--name=neo").get(0)).isInstanceOf(Map.class);
+    }
+
+    @Test
+    void shouldStreamJsonArray() throws Exception {
+        final String json = "[1,\"alpha\",true]";
+        try (Stream<Pair<Object, Object>> stream = streamJson(json)) {
+            final List<Pair<String, Object>> entries = stream.toList();
+            final List<String> keys = entries.stream().map(Pair::key).toList();
+            final List<Object> values = entries.stream().map(Pair::value).toList();
+            final List<Object> expected = Arrays.asList(1L, "alpha", true);
+            assertThat(keys).containsExactly("0", "1", "2");
+            assertThat(values).containsExactlyElementsOf(expected);
+        }
+        try (InputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+             Stream<Pair<Object, Object>> stream = streamJson(in)) {
+            final List<Pair<String, Object>> entries = stream.toList();
+            final List<String> keys = entries.stream().map(Pair::key).toList();
+            final List<Object> values = entries.stream().map(Pair::value).toList();
+            final List<Object> expected = Arrays.asList(1L, "alpha", true);
+            assertThat(keys).containsExactly("0", "1", "2");
+            assertThat(values).containsExactlyElementsOf(expected);
+        }
     }
 
     @Test

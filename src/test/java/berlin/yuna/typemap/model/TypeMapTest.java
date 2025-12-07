@@ -8,11 +8,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,7 +25,10 @@ import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import berlin.yuna.typemap.model.Type;
+
 import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
+import static berlin.yuna.typemap.logic.JsonDecoder.streamJson;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
@@ -779,6 +784,39 @@ public class TypeMapTest {
         assertThat(fromJsonString.asInt("number")).isEqualTo(7);
         assertThat(fromJsonCharSeq.asInt("number")).isEqualTo(8);
         assertThat(fromJsonPath.toJson()).contains("\"name\":\"alpha\"");
+    }
+
+    @Test
+    void shouldStreamJsonObjectEntries() throws Exception {
+        final String json = "{\"a\":1,\"b\":\"c\"}";
+        try (Stream<Pair<Object, Object>> stream = streamJson(json)) {
+            final LinkedHashMap<String, Object> map = stream.collect(LinkedHashMap::new, (m, p) -> m.put(p.getKey(), p.getValue()), Map::putAll);
+            assertThat(map).containsExactly(entry("a", 1L), entry("b", "c"));
+        }
+        try (InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+             Stream<Pair<Object, Object>> s = streamJson(stream)) {
+            final LinkedHashMap<String, Object> map = s.collect(LinkedHashMap::new, (m, p) -> m.put(p.getKey(), p.getValue()), Map::putAll);
+            assertThat(map).containsExactly(entry("a", 1L), entry("b", "c"));
+        }
+    }
+
+    @Test
+    void shouldExposeTypeInfoConvenienceOnStreamedPairs() throws Exception {
+        final String json = "{\"num\":\"7\",\"flag\":\"true\"}";
+        try (Stream<Pair<String, Object>> stream = streamJson(json).map(objectObjectPair -> {
+            String s = objectObjectPair.valueAs(String.class);
+            final Pair<String, Object> bb = objectObjectPair.to(String.class, Object.class);
+            return objectObjectPair;
+        })) {
+            final LinkedHashMap<String, Object> converted = stream.collect(LinkedHashMap::new, (m, p) -> {
+                if ("num".equals(p.key())) {
+                    m.put(p.key(), p.valueType().asInt());
+                } else if ("flag".equals(p.key())) {
+                    m.put(p.key(), p.valueInfo().asBoolean());
+                }
+            }, Map::putAll);
+            assertThat(converted).containsExactly(entry("num", 7), entry("flag", true));
+        }
     }
 
     @Test

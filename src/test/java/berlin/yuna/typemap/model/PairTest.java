@@ -22,6 +22,16 @@ class PairTest {
     }
 
     @Test
+    void shouldExposeTypeInfoConvenience() {
+        final Pair<String, Object> numberPair = new Pair<>("num", "42");
+        final Pair<String, Object> flagPair = new Pair<>("flag", "true");
+        assertThat(numberPair.asInt()).isEqualTo(42);
+        assertThat(numberPair.valueType().asLong()).isEqualTo(42L);
+        assertThat(flagPair.asBoolean()).isTrue();
+        assertThat(flagPair.asBoolean("value")).isTrue();
+    }
+
+    @Test
     void TestEquals() {
         final Pair<Integer, String> pair1 = new Pair<>(111, "AA");
         final Pair<Integer, String> pair2 = new Pair<>(111, "BB");

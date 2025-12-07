@@ -1,30 +1,36 @@
 package berlin.yuna.typemap.logic;
 
 import berlin.yuna.typemap.model.LinkedTypeMap;
+import berlin.yuna.typemap.model.Pair;
+import berlin.yuna.typemap.model.Type;
 import berlin.yuna.typemap.model.TypeInfo;
 import berlin.yuna.typemap.model.TypeList;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PushbackReader;
 import java.io.Reader;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import berlin.yuna.typemap.model.Type;
 
 import static berlin.yuna.typemap.logic.JsonEncoder.unescapeJson;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
+import static java.util.Spliterators.spliteratorUnknownSize;
 
 public class JsonDecoder {
 
@@ -171,7 +177,7 @@ public class JsonDecoder {
     /**
      * Streams top-level JSON array elements as {@link Type} without loading the whole payload.
      *
-     * @param json input stream containing a JSON array
+     * @param json    input stream containing a JSON array
      * @param charset charset to decode the stream
      * @return lazy stream of Type elements (caller must close)
      * @throws IOException when the stream cannot be read or the payload is not an array
@@ -183,7 +189,7 @@ public class JsonDecoder {
             throw new IllegalStateException("Expected array start '['");
         }
 
-        final Iterator<Type<?>> iterator = new Iterator<Type<?>>() {
+        final Iterator<Type<?>> iterator = new Iterator<>() {
             private boolean endReached;
 
             @Override
@@ -207,6 +213,9 @@ public class JsonDecoder {
 
             @Override
             public Type<?> next() {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
                 try {
                     final Object value = parseValue(stream);
                     final int sep = stream.nextNonWhitespace();
@@ -223,8 +232,216 @@ public class JsonDecoder {
             }
         };
 
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
-            .onClose(() -> closeQuietly(stream.reader));
+        return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
+                .onClose(() -> closeQuietly(stream.reader));
+    }
+
+    /**
+     * Streams top-level JSON object entries as {@link Pair} key/value without loading the whole payload.
+     *
+     * @param json    input stream containing a JSON object
+     * @param charset charset to decode the stream
+     * @return lazy stream of entries (caller must close)
+     * @throws IOException when the stream cannot be read or the payload is not an object
+     */
+    public static Stream<Pair<Object, Object>> streamObject(final InputStream json, final Charset charset) throws IOException {
+        final LenientStream stream = new LenientStream(new InputStreamReader(json, charset), 8 * 1024);
+        final int start = stream.nextNonWhitespace();
+        if (start != '{') {
+            throw new IllegalStateException("Expected object start '{'");
+        }
+        final Iterator<Pair<Object, Object>> iterator = new Iterator<>() {
+            private boolean endReached;
+
+            @Override
+            public boolean hasNext() {
+                if (endReached) {
+                    return false;
+                }
+                try {
+                    final int next = stream.nextNonWhitespace();
+                    if (next == '}') {
+                        endReached = true;
+                        return false;
+                    }
+                    stream.unread(next);
+                    return true;
+                } catch (final IOException e) {
+                    endReached = true;
+                    return false;
+                }
+            }
+
+            @Override
+            public Pair<Object, Object> next() {
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                try {
+                    final int first = stream.nextNonWhitespace();
+                    if (first == '}') {
+                        endReached = true;
+                        return null;
+                    }
+                    final String key = parseKey(stream, first);
+                    final int sep = stream.nextNonWhitespace();
+                    if (sep != ':') {
+                        throw new IllegalStateException("Invalid JSON object separator");
+                    }
+                    final Object value = parseValue(stream);
+                    final int endOrComma = stream.nextNonWhitespace();
+                    if (endOrComma == '}') {
+                        endReached = true;
+                    } else if (endOrComma != ',') {
+                        throw new IllegalStateException("Invalid JSON object separator");
+                    }
+                    return new Pair<>(key, value);
+                } catch (final IOException e) {
+                    endReached = true;
+                    throw new IllegalStateException(e);
+                }
+            }
+        };
+
+        return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
+                .onClose(() -> closeQuietly(stream.reader));
+    }
+
+    /**
+     * Streams a JSON object or array as {@link Pair} entries without buffering the entire payload.
+     * Arrays are surfaced as index-based pairs (index as String, value as element).
+     *
+     * @param json    input stream containing JSON object/array
+     * @param charset charset to decode the stream
+     * @return lazy stream of pairs (caller must close)
+     * @throws IOException when the stream cannot be read or is empty
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final InputStream json, final Charset charset) throws IOException {
+        if (json == null)
+            return Stream.empty();
+        final BufferedInputStream buffered = json instanceof final BufferedInputStream b ? b : new BufferedInputStream(json);
+        buffered.mark(4);
+        int ch;
+        do {
+            ch = buffered.read();
+        } while (ch != -1 && Character.isWhitespace(ch));
+        if (ch == -1) {
+            buffered.reset();
+            return Stream.empty();
+        }
+        buffered.reset();
+        if (ch == '{')
+            return streamObject(buffered, charset);
+        if (ch == '[') {
+            final AtomicInteger index = new AtomicInteger(0);
+            return streamArray(buffered, charset).map(type -> new Pair<>(index.getAndIncrement(), type == null ? null : type.value()));
+        }
+        throw new IllegalStateException("Expected JSON object or array");
+    }
+
+    /**
+     * Streams a JSON object or array as {@link Pair} entries using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final InputStream json) throws IOException {
+        return streamJson(json, UTF_8);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link String} with the provided charset.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final String json, final Charset charset) throws IOException {
+        if (json == null) {
+            return Stream.empty();
+        }
+        return streamJson(new ByteArrayInputStream(json.getBytes(charset)), charset);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link String} using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final String json) throws IOException {
+        return streamJson(json, UTF_8);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link CharSequence} with the provided charset.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final CharSequence json, final Charset charset) throws IOException {
+        return json == null ? Stream.empty() : streamJson(json.toString(), charset);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link CharSequence} using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final CharSequence json) throws IOException {
+        return streamJson(json, UTF_8);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link Path} with the provided charset.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final Path path, final Charset charset) throws IOException {
+        if (path == null) {
+            return Stream.empty();
+        }
+        return streamJson(Files.newInputStream(path), charset);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link Path} using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final Path path) throws IOException {
+        return streamJson(path, UTF_8);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link File} with the provided charset.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final File file, final Charset charset) throws IOException {
+        if (file == null) {
+            return Stream.empty();
+        }
+        return streamJson(file.toPath(), charset);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link File} using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final File file) throws IOException {
+        return streamJson(file, UTF_8);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link URI} with the provided charset.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final URI uri, final Charset charset) throws IOException {
+        if (uri == null) {
+            return Stream.empty();
+        }
+        return streamJson(uri.toURL(), charset);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link URI} using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final URI uri) throws IOException {
+        return streamJson(uri, UTF_8);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link URL} with the provided charset.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final URL url, final Charset charset) throws IOException {
+        if (url == null)
+            return Stream.empty();
+        return streamJson(url.openStream(), charset);
+    }
+
+    /**
+     * Streams a JSON object or array from a {@link URL} using UTF-8.
+     */
+    public static Stream<Pair<Object, Object>> streamJson(final URL url) throws IOException {
+        return streamJson(url, UTF_8);
     }
 
     /**
