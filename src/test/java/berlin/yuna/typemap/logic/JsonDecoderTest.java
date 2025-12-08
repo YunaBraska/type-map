@@ -5,6 +5,7 @@ import berlin.yuna.typemap.model.Pair;
 import berlin.yuna.typemap.model.TypeList;
 import berlin.yuna.typemap.model.TypeMap;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -18,6 +19,7 @@ import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -215,6 +217,52 @@ class JsonDecoderTest {
             .isInstanceOf(UncheckedIOException.class);
     }
 
+    @Test
+    @EnabledIfSystemProperty(named = "perf", matches = "true")
+    void benchmarkStreamJsonArray() {
+        final String payload = largeArrayJson(5000);
+        final AtomicInteger count = new AtomicInteger();
+        final long memBefore = usedMemoryKb();
+        final long start = System.nanoTime();
+
+        try (final Stream<Pair<Integer, Object>> stream = JsonDecoder.streamJsonArray(payload)) {
+            stream.forEach(p -> {
+                count.incrementAndGet();
+                if (count.get() == 1) {
+                    assertThat(p.value()).isInstanceOf(LinkedTypeMap.class);
+                }
+            });
+        }
+
+        final long durationMs = (System.nanoTime() - start) / 1_000_000;
+        final long memDelta = usedMemoryKb() - memBefore;
+        System.out.printf("benchmarkStreamJsonArray items=%d took=%dms memDelta=%dKB%n", count.get(), durationMs, memDelta);
+        assertThat(count.get()).isEqualTo(5000);
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "perf", matches = "true")
+    void benchmarkStreamJsonObject() {
+        final String payload = largeObjectJson(4000);
+        final AtomicInteger count = new AtomicInteger();
+        final long memBefore = usedMemoryKb();
+        final long start = System.nanoTime();
+
+        try (final Stream<Pair<String, Object>> stream = JsonDecoder.streamJsonObject(payload)) {
+            stream.forEach(p -> {
+                count.incrementAndGet();
+                if ("k0".equals(p.key())) {
+                    assertThat(p.value()).isInstanceOf(LinkedTypeMap.class);
+                }
+            });
+        }
+
+        final long durationMs = (System.nanoTime() - start) / 1_000_000;
+        final long memDelta = usedMemoryKb() - memBefore;
+        System.out.printf("benchmarkStreamJsonObject entries=%d took=%dms memDelta=%dKB%n", count.get(), durationMs, memDelta);
+        assertThat(count.get()).isEqualTo(4000);
+    }
+
     private void assertComplex(final Supplier<Stream<Pair<String, Object>>> supplier) {
         final TypeMap data = new TypeMap();
         try (final Stream<Pair<String, Object>> closeable = supplier.get()) {
@@ -254,5 +302,32 @@ class JsonDecoderTest {
                 throw new RuntimeException(e);
             }
         };
+    }
+
+    private static String largeArrayJson(final int size) {
+        final StringBuilder sb = new StringBuilder(size * 64).append('[');
+        for (int i = 0; i < size; i++) {
+            if (i > 0)
+                sb.append(',');
+            sb.append("{\"id\":").append(i).append(",\"name\":\"n").append(i).append("\",\"flags\":[true,false,true]}");
+        }
+        sb.append(']');
+        return sb.toString();
+    }
+
+    private static String largeObjectJson(final int size) {
+        final StringBuilder sb = new StringBuilder(size * 48).append('{');
+        for (int i = 0; i < size; i++) {
+            if (i > 0)
+                sb.append(',');
+            sb.append("\"k").append(i).append("\":{\"idx\":").append(i).append(",\"nested\":{\"v\":").append(i * 2).append("}}");
+        }
+        sb.append('}');
+        return sb.toString();
+    }
+
+    private static long usedMemoryKb() {
+        final Runtime runtime = Runtime.getRuntime();
+        return (runtime.totalMemory() - runtime.freeMemory()) / 1024;
     }
 }

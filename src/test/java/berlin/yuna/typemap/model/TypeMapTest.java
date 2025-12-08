@@ -4,6 +4,7 @@ package berlin.yuna.typemap.model;
 import berlin.yuna.typemap.config.TypeConversionRegister;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -22,6 +23,7 @@ import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -931,6 +933,27 @@ public class TypeMapTest {
     }
 
     @Test
+    @EnabledIfSystemProperty(named = "perf", matches = "true")
+    void benchmarkStreamPairsFromXml() {
+        final String xml = largeXml(3000);
+        final TypeMapI<?> map = TypeMap.fromXml(xml);
+        final long memBefore = usedMemoryKb();
+        final long start = System.nanoTime();
+        final AtomicInteger itemCount = new AtomicInteger();
+
+        map.streamPairs("root")
+            .map(p -> (Pair<?, ?>) p.value())
+            .filter(Objects::nonNull)
+            .filter(p -> "item".equals(p.getKey()))
+            .forEach(p -> itemCount.incrementAndGet());
+
+        final long durationMs = (System.nanoTime() - start) / 1_000_000;
+        final long memDelta = usedMemoryKb() - memBefore;
+        System.out.printf("benchmarkStreamPairsFromXml items=%d took=%dms memDelta=%dKB%n", itemCount.get(), durationMs, memDelta);
+        assertThat(itemCount.get()).isEqualTo(3000);
+    }
+
+    @Test
     void shouldHandleBrokenOrEmptyInputsGracefully() {
         assertThat(TypeMap.fromJson("borken")).isNotNull();
         assertThat(TypeMap.fromJson((String) null)).isEmpty();
@@ -956,5 +979,19 @@ public class TypeMapTest {
 
     private static String normalizeXml(final String xml) {
         return xml == null ? "" : xml.replaceAll(">\\s+<", "><").trim();
+    }
+
+    private static String largeXml(final int size) {
+        final StringBuilder builder = new StringBuilder(size * 48).append("<root>");
+        for (int i = 0; i < size; i++) {
+            builder.append("<item id=\"").append(i).append("\"><name>n").append(i).append("</name><value>").append(i * 2).append("</value></item>");
+        }
+        builder.append("</root>");
+        return builder.toString();
+    }
+
+    private static long usedMemoryKb() {
+        final Runtime runtime = Runtime.getRuntime();
+        return (runtime.totalMemory() - runtime.freeMemory()) / 1024;
     }
 }
