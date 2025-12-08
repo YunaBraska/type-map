@@ -167,8 +167,8 @@ public class XmlDecoder {
             } else if (item.getNodeType() == Node.TEXT_NODE) {
                 // Process value
                 final String text = item.getTextContent();
-                if (i == 0 || hasText(text))
-                    result.add(text != null ? text.trim() : "");
+                if (hasText(text))
+                    result.add(text.strip());
             }
         }
     }
@@ -177,4 +177,3 @@ public class XmlDecoder {
         // static util class
     }
 }
-

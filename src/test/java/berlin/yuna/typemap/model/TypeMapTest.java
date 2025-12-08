@@ -8,19 +8,28 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.time.*;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import berlin.yuna.typemap.model.Type;
+
 import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
+import static berlin.yuna.typemap.logic.JsonDecoder.streamJsonObject;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.logic.XmlDecoder.xmlTypeOf;
@@ -763,6 +772,173 @@ public class TypeMapTest {
     }
 
     @Test
+    void shouldReadJsonFromStringPathAndStream() throws Exception {
+        final Path jsonPath = Files.createTempFile("typemap-json", ".json");
+        Files.writeString(jsonPath, "{\"name\":\"alpha\",\"number\":7}");
+
+        final TypeMapI<?> fromJsonString = TypeMap.fromJson("{\"name\":\"alpha\",\"number\":7}");
+        final TypeMapI<?> fromJsonCharSeq = TypeMap.fromJson((CharSequence) "{\"name\":\"char\",\"number\":8}");
+        final TypeMapI<?> fromJsonPath = TypeMap.fromJson(jsonPath);
+        try (InputStream stream = Files.newInputStream(jsonPath)) {
+            assertThat(TypeMap.fromJson(stream).asString("name")).isEqualTo("alpha");
+        }
+        assertThat(fromJsonString.asInt("number")).isEqualTo(7);
+        assertThat(fromJsonCharSeq.asInt("number")).isEqualTo(8);
+        assertThat(fromJsonPath.toJson()).contains("\"name\":\"alpha\"");
+    }
+
+    @Test
+    void shouldStreamJsonObjectEntries() throws Exception {
+        final String json = "{\"a\":1,\"b\":\"c\"}";
+        try (Stream<Pair<String, Object>> stream = streamJsonObject(json)) {
+            final LinkedHashMap<String, Object> map = stream.collect(LinkedHashMap::new, (m, p) -> m.put(p.getKey(), p.getValue()), Map::putAll);
+            assertThat(map).containsExactly(entry("a", 1L), entry("b", "c"));
+        }
+        try (InputStream stream = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+             Stream<Pair<String, Object>> s = streamJsonObject(stream)) {
+            final LinkedHashMap<String, Object> map = s.collect(LinkedHashMap::new, (m, p) -> m.put(p.getKey(), p.getValue()), Map::putAll);
+            assertThat(map).containsExactly(entry("a", 1L), entry("b", "c"));
+        }
+    }
+
+    @Test
+    void shouldExposeTypeInfoConvenienceOnStreamedPairs() throws Exception {
+        final String json = "{\"num\":\"7\",\"flag\":\"true\"}";
+        try (Stream<Pair<String, Object>> stream = streamJsonObject(json)) {
+            final LinkedHashMap<String, Object> converted = stream.collect(LinkedHashMap::new, (m, p) -> {
+                if ("num".equals(p.key())) {
+                    m.put(p.key(), p.valueType().asInt());
+                } else if ("flag".equals(p.key())) {
+                    m.put(p.key(), p.valueInfo().asBoolean());
+                }
+            }, Map::putAll);
+            assertThat(converted).containsExactly(entry("num", 7), entry("flag", true));
+        }
+    }
+
+    @Test
+    void shouldStreamPairsFromTypeMapInstance() {
+        final TypeMap map = new TypeMap();
+        map.put("a", 1);
+        map.put("b", "two");
+        assertThat(map.streamPairs().toList())
+            .extracting(Pair::key, Pair::value)
+            .containsExactlyInAnyOrder(tuple("a", 1), tuple("b", "two"));
+        assertThat(map.streamPairs(Integer.class).toList())
+            .extracting(Pair::value)
+            .containsExactlyInAnyOrder(1, null);
+        assertThat(map.streamPairs("missing")).isEmpty();
+    }
+
+    @Test
+    void shouldStreamNestedPairsFromXml() {
+        final String xml = """
+            <root>
+              <user id="7">
+                <name>neo</name>
+                <roles>
+                  <role>admin</role>
+                  <role>ops</role>
+                </roles>
+              </user>
+              <active>true</active>
+            </root>
+            """;
+        final TypeMapI<?> map = TypeMap.fromXml(xml);
+
+        assertThat(map.streamPairs().toList())
+            .extracting(Pair::key)
+            .containsExactly("root");
+
+        final List<Pair<String, Object>> rootChildren = map.streamPairs("root")
+            .map(p -> new Pair<>(String.valueOf(p.key()), p.value()))
+            .toList();
+        assertThat(rootChildren).hasSize(2);
+        final List<Pair<?, ?>> rootPairs = rootChildren.stream()
+            .map(pair -> (Pair<?, ?>) pair.value())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+
+        final TypeList userContent = (TypeList) rootPairs.stream()
+            .filter(p -> "user".equals(p.getKey()))
+            .findFirst()
+            .map(Pair::getValue)
+            .orElseThrow();
+        final Object activeValue = rootPairs.stream()
+            .filter(p -> "active".equals(p.getKey()))
+            .findFirst()
+            .map(Pair::getValue)
+            .orElse(null);
+
+        assertThat(activeValue).isInstanceOf(TypeList.class);
+        assertThat((TypeList) activeValue).contains("true");
+        final List<Pair<?, ?>> userEntries = userContent.streamPairs()
+            .map(pair -> (Pair<?, ?>) pair.value())
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
+        final List<String> userKeys = userEntries.stream()
+            .map(entry -> String.valueOf(entry.getKey()))
+            .collect(Collectors.toList());
+        assertThat(userKeys).containsExactlyInAnyOrder("name", "roles", "@id");
+
+        final TypeList roles = (TypeList) userEntries.stream()
+            .filter(p -> "roles".equals(p.getKey()))
+            .findFirst()
+            .map(Pair::getValue)
+            .orElseThrow();
+
+        final List<String> roleValues = roles.streamPairs()
+            .map(Pair::value)
+            .filter(Objects::nonNull)
+            .map(val -> val instanceof Pair<?, ?> pair ? pair.getValue() : val)
+            .flatMap(val -> val instanceof TypeList list ? list.stream().map(String::valueOf) : Stream.of(String.valueOf(val)))
+            .collect(Collectors.toList());
+        assertThat(roleValues).containsExactly("admin", "ops");
+    }
+
+    @Test
+    void shouldReadXmlFromStringPathAndStream() throws Exception {
+        final String xml = "<root><item id=\"9\">value</item></root>";
+        final Path xmlPath = Files.createTempFile("typemap-xml", ".xml");
+        Files.writeString(xmlPath, xml);
+
+        final TypeMapI<?> fromString = TypeMap.fromXml(xml);
+        final TypeMapI<?> fromCharSeq = TypeMap.fromXml((CharSequence) xml);
+        final TypeMapI<?> fromPath = TypeMap.fromXml(xmlPath);
+        try (InputStream stream = Files.newInputStream(xmlPath)) {
+            assertThat(TypeMap.fromXml(stream).toXML()).satisfies(out -> assertThat(normalizeXml(out)).isEqualTo(normalizeXml(xml)));
+        }
+        assertThat(normalizeXml(fromString.toXML())).isEqualTo(normalizeXml(xml));
+        assertThat(normalizeXml(fromCharSeq.toXML())).isEqualTo(normalizeXml(xml));
+        assertThat(normalizeXml(fromPath.toXML())).isEqualTo(normalizeXml(xml));
+        assertThat(fromString.get("root")).isInstanceOf(TypeList.class);
+    }
+
+    @Test
+    void shouldReadArgsFromStringArrayPathAndStream() throws Exception {
+        final String argsString = "--name=neo -v";
+        final String[] argsArray = new String[]{"--name=neo", "-v"};
+        final Path argsPath = Files.createTempFile("typemap-args", ".txt");
+        Files.writeString(argsPath, "--name=trinity -count=3");
+
+        assertThat((TypeSet) TypeMap.fromArgs(argsString).get("name")).contains("neo");
+        assertThat((TypeSet) TypeMap.fromArgs((CharSequence) argsString).get("name")).contains("neo");
+        assertThat((TypeSet) TypeMap.fromArgs(argsArray).get("name")).contains("neo");
+        assertThat((TypeSet) TypeMap.fromArgs(argsPath).get("count")).contains("3");
+        try (InputStream stream = Files.newInputStream(argsPath)) {
+            assertThat((TypeSet) TypeMap.fromArgs(stream).get("name")).contains("trinity");
+        }
+    }
+
+    @Test
+    void shouldHandleBrokenOrEmptyInputsGracefully() {
+        assertThat(TypeMap.fromJson("borken")).isNotNull();
+        assertThat(TypeMap.fromJson((String) null)).isEmpty();
+        assertThat(TypeMap.fromXml("<<<not-xml>>")).isEmpty();
+        assertThat(TypeMap.fromArgs((String) null)).isEmpty();
+    }
+
+    @Test
     void showCaseXml() {
         final String xmlString = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
             + "<error>\n"
@@ -776,5 +952,9 @@ public class TypeMapTest {
         assertThat(xml.get(String.class, "error", "code")).isEqualTo("red");
         assertThat(xml.get(Integer.class, "error", "details", "http-status")).isEqualTo(418);
         assertThat(xml.get(Date.class, "error", "details", "date-time")).isEqualTo(new Date(1800000000000L));
+    }
+
+    private static String normalizeXml(final String xml) {
+        return xml == null ? "" : xml.replaceAll(">\\s+<", "><").trim();
     }
 }

@@ -2,6 +2,8 @@ package berlin.yuna.typemap.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PairTest {
@@ -19,6 +21,40 @@ class PairTest {
         assertThat(pair.setValue("BB")).isEqualTo("AA");
         assertThat(pair.getValue()).isEqualTo("BB");
         assertThat(pair.key(222).key()).isEqualTo(222);
+    }
+
+    @Test
+    void shouldExposeTypeInfoConvenience() {
+        final Pair<String, Object> numberPair = new Pair<>("num", "42");
+        final Pair<String, Object> flagPair = new Pair<>("flag", "true");
+        assertThat(numberPair.asInt()).isEqualTo(42);
+        assertThat(numberPair.valueType().asLong()).isEqualTo(42L);
+        assertThat(flagPair.asBoolean()).isTrue();
+        assertThat(flagPair.asBoolean("value")).isTrue();
+    }
+
+    @Test
+    void shouldSupportTypeInfoLookups() {
+        final Pair<String, Object> pair = new Pair<>("list", List.of("a", "b"));
+        assertThat(pair.valueInfo().asList(String.class)).containsExactly("a", "b");
+        assertThat(pair.typeListOpt().value()).isNull();
+        assertThat(pair.typeMapOpt().value()).isNull();
+        assertThat(pair.asOpt("key").value()).isEqualTo("list");
+        assertThat(pair.asOpt("value").value()).isEqualTo(List.of("a", "b"));
+        final Pair<String, Object> viaAddR = new Pair<String, Object>(null, null).addR("k", null).addR(null, "v");
+        assertThat(viaAddR.getKey()).isEqualTo("k");
+        assertThat(viaAddR.getValue()).isEqualTo("v");
+    }
+
+    @Test
+    void shouldConvertToTargetTypes() {
+        final Pair<Object, Object> pair = new Pair<>("1", "true");
+        final Pair<Integer, Boolean> converted = pair.to(Integer.class, Boolean.class);
+        assertThat(converted.key()).isEqualTo(1);
+        assertThat(converted.value()).isTrue();
+        final Pair<String, Object> widened = pair.to(String.class, Object.class);
+        assertThat(widened.key()).isEqualTo("1");
+        assertThat(widened.value()).isEqualTo("true");
     }
 
     @Test

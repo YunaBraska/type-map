@@ -6,10 +6,16 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.*;
 import java.util.*;
 import java.util.stream.Stream;
 
+import static berlin.yuna.typemap.logic.JsonDecoder.streamJsonArray;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.model.TypeMapTest.TEST_TIME;
@@ -234,5 +240,124 @@ class TypeListTest {
         assertThat(list2.get(0)).isEqualTo(myJson);
         assertThat(list3.get(0)).isEqualTo(myJson);
         assertThat(list4.get(0)).isEqualTo(myJson);
+    }
+
+    @Test
+    void shouldSupportJsonEntryPoints() throws Exception {
+        final TypeList jsonList = TypeList.fromJson("[\"alpha\", {\"beta\":2}]");
+        assertThat(jsonList.toJson()).contains("\"alpha\"").contains("\"beta\"");
+
+        assertThat(TypeList.fromJson((CharSequence) "[9]")).hasSize(1);
+
+        final Path path = Files.createTempFile("typelist-json", ".json");
+        Files.writeString(path, "[1,2,3]");
+        try (InputStream stream = Files.newInputStream(path)) {
+            assertThat(TypeList.fromJson(stream)).hasSize(3);
+        }
+    }
+
+    @Test
+    void shouldSupportXmlEntryPoints() throws Exception {
+        final String xml = "<root><child>v</child></root>";
+        final Path xmlPath = Files.createTempFile("typelist-xml", ".xml");
+        Files.writeString(xmlPath, xml);
+
+        assertThat(TypeList.fromXml((CharSequence) xml).toXML()).contains("<root>").contains("</root>");
+        assertThat(TypeList.fromXml(xml).toXML()).contains("<root>").contains("</root>");
+        try (InputStream stream = Files.newInputStream(xmlPath)) {
+            assertThat(TypeList.fromXml(stream).toXML()).contains("<root>").contains("</root>");
+        }
+    }
+
+    @Test
+    void shouldSupportArgsEntryPoints() {
+        final String[] args = new String[]{"--name=neo", "-v"};
+        final TypeMapI<?> argsMap = (TypeMapI<?>) TypeList.fromArgs(args).get(0);
+        assertThat(argsMap.get("name")).isInstanceOf(TypeSet.class);
+        assertThat((TypeSet) argsMap.get("name")).contains("neo");
+        assertThat(TypeList.fromArgs("--name=neo").get(0)).isInstanceOf(Map.class);
+        assertThat(TypeList.fromArgs((CharSequence) "--name=neo").get(0)).isInstanceOf(Map.class);
+    }
+
+    @Test
+    void shouldReadJsonFromCharSequenceAndPath() throws Exception {
+        final String json = "[\"x\",{\"y\":1}]";
+        final Path jsonPath = Files.createTempFile("typelist-json", ".json");
+        Files.writeString(jsonPath, json);
+        assertThat(TypeList.fromJson((CharSequence) json)).containsExactly("x", Map.of("y", 1L));
+        try (InputStream in = Files.newInputStream(jsonPath)) {
+            assertThat(TypeList.fromJson(in)).hasSize(2);
+        }
+    }
+
+    @Test
+    void shouldHandleEmptyOrNullJsonGracefully() {
+        assertThat(TypeList.fromJson((String) null)).isEmpty();
+        assertThat(TypeList.fromJson((CharSequence) null)).isEmpty();
+    }
+
+    @Test
+    void shouldHandleEmptyArgsAndJson() {
+        assertThat(TypeList.fromArgs((String) null)).isEmpty();
+        assertThat(TypeList.fromArgs((CharSequence) null)).isEmpty();
+        assertThat(TypeList.fromJson("")).isEmpty();
+    }
+
+    @Test
+    void shouldStreamJsonArray() throws Exception {
+        final String json = "[1,\"alpha\",true]";
+        try (Stream<Pair<Integer, Object>> stream = streamJsonArray(json)) {
+            final List<Pair<Integer, Object>> entries = stream.toList();
+            final List<Integer> keys = entries.stream().map(Pair::key).toList();
+            final List<Object> values = entries.stream().map(Pair::value).toList();
+            final List<Object> expected = Arrays.asList(1L, "alpha", true);
+            assertThat(keys).containsExactly(0, 1, 2);
+            assertThat(values).containsExactlyElementsOf(expected);
+        }
+        try (InputStream in = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+             Stream<Pair<Integer, Object>> stream = streamJsonArray(in)) {
+            final List<Pair<Integer, Object>> entries = stream.toList();
+            final List<Integer> keys = entries.stream().map(Pair::key).toList();
+            final List<Object> values = entries.stream().map(Pair::value).toList();
+            final List<Object> expected = Arrays.asList(1L, "alpha", true);
+            assertThat(keys).containsExactly(0, 1, 2);
+            assertThat(values).containsExactlyElementsOf(expected);
+        }
+    }
+
+    @Test
+    void shouldStreamPairsFromTypeListInstance() {
+        final TypeList list = new TypeList();
+        list.addAll(List.of("x", 2));
+        assertThat(list.streamPairs().toList())
+            .extracting(Pair::key, Pair::value)
+            .containsExactly(org.assertj.core.groups.Tuple.tuple(0, "x"), org.assertj.core.groups.Tuple.tuple(1, 2));
+        assertThat(list.streamPairs(String.class).toList())
+            .extracting(Pair::value)
+            .containsExactly("x", "2");
+    }
+
+    @Test
+    void shouldSupportArgsFileAndStream() throws Exception {
+        final Path argsPath = Files.createTempFile("typelist-args", ".txt");
+        Files.writeString(argsPath, "--name=trinity -count=3");
+        final TypeMapI<?> mapFromPath = (TypeMapI<?>) TypeList.fromArgs(argsPath).get(0);
+        assertThat((TypeSet) mapFromPath.get("name")).contains("trinity");
+
+        try (InputStream stream = Files.newInputStream(argsPath)) {
+            final TypeMapI<?> mapFromStream = (TypeMapI<?>) TypeList.fromArgs(stream).get(0);
+            assertThat((TypeSet) mapFromStream.get("count")).contains("3");
+        }
+    }
+
+    @Test
+    void shouldHandleEmptyOrBrokenInputs() {
+        assertThat(TypeList.fromXml((String) null)).isEmpty();
+        assertThat(TypeList.fromArgs((String) null)).isEmpty();
+        try (InputStream stream = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8))) {
+            assertThat(TypeList.fromJson(stream)).isEmpty();
+        } catch (final Exception e) {
+            throw new IllegalStateException(e);
+        }
     }
 }

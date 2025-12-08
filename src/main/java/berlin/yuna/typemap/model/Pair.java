@@ -1,16 +1,15 @@
 package berlin.yuna.typemap.model;
 
-import java.util.AbstractMap;
+import berlin.yuna.typemap.logic.JsonEncoder;
+
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static berlin.yuna.typemap.logic.JsonEncoder.toJson;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
-import static java.util.stream.Collectors.toMap;
+import static berlin.yuna.typemap.model.Type.typeOf;
 
-public class Pair<K, V> implements Map.Entry<K, V> {
+public class Pair<K, V> implements Map.Entry<K, V>, TypeInfo<Pair<K, V>> {
 
     private K key;
     private V value;
@@ -46,6 +45,75 @@ public class Pair<K, V> implements Map.Entry<K, V> {
         return convertObj(value, type);
     }
 
+    /**
+     * Converts key and value into a new {@link Pair} using the provided target types.
+     */
+    public <C, R> Pair<C, R> to(final Class<? extends C> keyType, final Class<? extends R> valueType) {
+        return new Pair<>(convertObj(key, keyType), convertObj(value, valueType));
+    }
+
+    /**
+     * Wraps the key in a {@link Type} to access conversion helpers such as {@code asInt()}.
+     */
+    public Type<K> keyType() {
+        return typeOf(key);
+    }
+
+    /**
+     * Wraps the value in a {@link Type} to access conversion helpers such as {@code asBoolean()}.
+     */
+    public Type<V> valueType() {
+        return typeOf(value);
+    }
+
+    /**
+     * Alias for {@link #valueType()} to highlight {@link TypeInfo}-style access to the value.
+     */
+    public Type<V> valueInfo() {
+        return valueType();
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Pair<K, V> addR(final Object key, final Object value) {
+        if (key != null) {
+            this.key = (K) key;
+        } else {
+            this.value = (V) value;
+        }
+        return this;
+    }
+
+    @Override
+    public Type<TypeMapI<?>> typeMapOpt() {
+        return value instanceof TypeMapI ? typeOf((TypeMapI<?>) value) : typeOf(null);
+    }
+
+    @Override
+    public Type<TypeListI<?>> typeListOpt() {
+        return value instanceof TypeListI ? typeOf((TypeListI<?>) value) : typeOf(null);
+    }
+
+    @Override
+    public Type<?> asOpt(final Object... path) {
+        if (path == null || path.length == 0)
+            return typeOf(value);
+        final Object selector = path[0];
+        if ("key".equals(selector) || (selector instanceof final Number num && num.intValue() == 0))
+            return typeOf(key);
+        if ("value".equals(selector) || (selector instanceof final Number num && num.intValue() == 1))
+            return typeOf(value);
+        return typeOf(null);
+    }
+
+    public <T> T keyAs(final Class<T> type) {
+        return keyType().get(type);
+    }
+
+    public <T> T valueAs(final Class<T> type) {
+        return valueType().get(type);
+    }
+
     @Override
     public K getKey() {
         return key;
@@ -78,7 +146,8 @@ public class Pair<K, V> implements Map.Entry<K, V> {
 
     @Override
     public String toString() {
-        return toJson(Stream.of(new AbstractMap.SimpleEntry<>(key, value)).collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        final Map<Object, Object> map = new LinkedHashMap<>(1);
+        map.put(key, value);
+        return JsonEncoder.toJson(map);
     }
 }
-
