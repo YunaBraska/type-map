@@ -28,7 +28,7 @@ public class TypeSet extends ArrayList<Object> implements TypeListI<TypeSet> {
      * Constructs a new {@link TypeSet} of the specified json.
      */
     public TypeSet(final String json) {
-        this(JsonDecoder.jsonListOf(json));
+        this(JsonDecoder.listOf(json));
     }
 
     /**

@@ -28,7 +28,7 @@ public class ConcurrentTypeList extends CopyOnWriteArrayList<Object> implements 
      * Constructs a new {@link ConcurrentTypeList} of the specified json.
      */
     public ConcurrentTypeList(final String json) {
-        this(JsonDecoder.jsonListOf(json));
+        this(JsonDecoder.listOf(json));
     }
 
     /**

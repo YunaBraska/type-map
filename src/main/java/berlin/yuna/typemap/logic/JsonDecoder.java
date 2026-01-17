@@ -354,48 +354,6 @@ public class JsonDecoder {
         return listOf(jsonOrXml, UTF_8);
     }
 
-    /**
-     * Alias for {@link #mapOf(String)}.
-     */
-    public static LinkedTypeMap jsonMapOf(final String json) {
-        return mapOf(json);
-    }
-
-    /**
-     * Alias for {@link #mapOf(InputStream)}.
-     */
-    public static LinkedTypeMap jsonMapOf(final InputStream json) {
-        return mapOf(json, UTF_8);
-    }
-
-    /**
-     * Alias for {@link #mapOf(InputStream, Charset)}.
-     */
-    public static LinkedTypeMap jsonMapOf(final InputStream json, final Charset charset) {
-        return mapOf(json, charset);
-    }
-
-    /**
-     * Alias for {@link #listOf(String)}.
-     */
-    public static TypeList jsonListOf(final String json) {
-        return listOf(json);
-    }
-
-    /**
-     * Alias for {@link #listOf(InputStream)}.
-     */
-    public static TypeList jsonListOf(final InputStream json) {
-        return listOf(json, UTF_8);
-    }
-
-    /**
-     * Alias for {@link #listOf(InputStream, Charset)}.
-     */
-    public static TypeList jsonListOf(final InputStream json, final Charset charset) {
-        return listOf(json, charset);
-    }
-
     public static Object jsonOf(final String json) {
         if (json == null) {
             return null;

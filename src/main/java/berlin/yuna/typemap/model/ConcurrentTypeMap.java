@@ -29,7 +29,7 @@ public class ConcurrentTypeMap extends ConcurrentHashMap<Object, Object> impleme
      * Constructs a new {@link ConcurrentTypeMap} of the specified json.
      */
     public ConcurrentTypeMap(final String json) {
-        this(JsonDecoder.jsonMapOf(json));
+        this(JsonDecoder.mapOf(json));
     }
 
     /**

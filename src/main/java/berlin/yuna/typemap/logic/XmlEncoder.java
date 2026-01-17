@@ -56,9 +56,21 @@ public class XmlEncoder {
             final TypeList content = new TypeList((Collection<?>) first.getValue());
             return toXml(java.util.Collections.singletonList(new Pair<>(first.getKey(), content)));
         }
-        final TypeList entries = new TypeList();
-        map.forEach((key, value) -> entries.add(new Pair<>(String.valueOf(key), value)));
-        return toXml(java.util.Collections.singletonList(new Pair<>("root", entries)));
+        if (first == null) {
+            return "";
+        }
+        final TypeList content = new TypeList();
+        final Object rootValue = first.getValue();
+        if (rootValue instanceof final Collection<?> collection) {
+            content.addAll(collection);
+        } else if (rootValue != null) {
+            content.add(rootValue);
+        }
+        while (iterator.hasNext()) {
+            final Map.Entry<Object, Object> entry = iterator.next();
+            content.add(new Pair<>(String.valueOf(entry.getKey()), entry.getValue()));
+        }
+        return toXml(java.util.Collections.singletonList(new Pair<>(String.valueOf(first.getKey()), content)));
     }
 
     public static String toXml(final TypeList list) {

@@ -226,9 +226,9 @@ class JsonDecoderTest {
             supplier(() -> JsonDecoder.mapOf(uri, StandardCharsets.UTF_8)),
             supplier(() -> JsonDecoder.mapOf(url)),
             supplier(() -> JsonDecoder.mapOf(url, StandardCharsets.UTF_8)),
-            supplier(() -> JsonDecoder.jsonMapOf(json)),
-            supplier(() -> JsonDecoder.jsonMapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
-            supplier(() -> JsonDecoder.jsonMapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8))
+            supplier(() -> JsonDecoder.mapOf(json)),
+            supplier(() -> JsonDecoder.mapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.mapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8))
         );
 
         suppliers.forEach(supplier -> assertThat(supplier.get()).isEqualTo(expected));
@@ -257,9 +257,9 @@ class JsonDecoderTest {
             supplier(() -> JsonDecoder.listOf(uri, StandardCharsets.UTF_8)),
             supplier(() -> JsonDecoder.listOf(url)),
             supplier(() -> JsonDecoder.listOf(url, StandardCharsets.UTF_8)),
-            supplier(() -> JsonDecoder.jsonListOf(json)),
-            supplier(() -> JsonDecoder.jsonListOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
-            supplier(() -> JsonDecoder.jsonListOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8))
+            supplier(() -> JsonDecoder.listOf(json)),
+            supplier(() -> JsonDecoder.listOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.listOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8))
         );
 
         suppliers.forEach(supplier -> assertThat(supplier.get()).isEqualTo(expected));
@@ -293,7 +293,7 @@ class JsonDecoderTest {
     void shouldDetectJsonAfterLargeWhitespace() {
         final String json = " ".repeat(2048) + "{\"a\":1}";
         final ByteArrayInputStream input = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
-        final LinkedTypeMap map = JsonDecoder.jsonMapOf(input, StandardCharsets.UTF_8);
+        final LinkedTypeMap map = JsonDecoder.mapOf(input, StandardCharsets.UTF_8);
         assertThat(map).containsEntry("a", 1L);
     }
 

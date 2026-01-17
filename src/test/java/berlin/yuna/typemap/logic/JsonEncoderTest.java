@@ -36,47 +36,47 @@ class JsonEncoderTest {
         jsonString = "{}";
         assertThat(toJson(null)).isEqualTo(jsonString);
         assertThat(JsonDecoder.jsonOf(jsonString)).isNull();
-        assertThat(JsonDecoder.jsonListOf(jsonString)).isEmpty();
-        assertThat(JsonDecoder.jsonMapOf(jsonString)).isEmpty();
+        assertThat(JsonDecoder.listOf(jsonString)).isEmpty();
+        assertThat(JsonDecoder.mapOf(jsonString)).isEmpty();
 
         // MAP
         jsonString = "{2:\"Fri Jan 15 08:00:00 UTC 2027\"}";
         assertThat(toJson(inputMap)).isEqualTo(jsonString);
         assertThat((Map<Object, Object>) JsonDecoder.jsonOf(jsonString)).containsExactlyInAnyOrderEntriesOf(outputMap);
-        assertThat(JsonDecoder.jsonListOf(jsonString)).containsExactly(outputMap);
-        assertThat(JsonDecoder.jsonMapOf(jsonString)).containsExactlyInAnyOrderEntriesOf(outputMap);
+        assertThat(JsonDecoder.listOf(jsonString)).containsExactly(outputMap);
+        assertThat(JsonDecoder.mapOf(jsonString)).containsExactlyInAnyOrderEntriesOf(outputMap);
 
         // COLLECTION
         jsonString = "[\"BB\",1,true,null,1.2]";
         final List<Object> expectedCollection = asList("BB", 1L, true, null, 1.2);
         assertThat(toJson(expectedCollection)).isEqualTo(jsonString);
         assertThat((Collection<Object>) JsonDecoder.jsonOf(jsonString)).isEqualTo(expectedCollection);
-        assertThat(JsonDecoder.jsonListOf(jsonString)).isEqualTo(expectedCollection);
-        assertThat((Collection<Object>) JsonDecoder.jsonMapOf(jsonString).get("")).isEqualTo(expectedCollection);
+        assertThat(JsonDecoder.listOf(jsonString)).isEqualTo(expectedCollection);
+        assertThat((Collection<Object>) JsonDecoder.mapOf(jsonString).get("")).isEqualTo(expectedCollection);
 
         // ARRAY
         jsonString = "[\"BB\",1,true]";
         final List<Object> expectedArray = asList("BB", 1L, true);
         assertThat(toJson(new Object[]{"BB", 1, true, null})).isEqualTo(jsonString);
         assertThat((Collection<Object>) JsonDecoder.jsonOf(jsonString)).isEqualTo(expectedArray);
-        assertThat(JsonDecoder.jsonListOf(jsonString)).isEqualTo(expectedArray);
-        assertThat(JsonDecoder.jsonMapOf(jsonString)).containsEntry("", expectedArray);
+        assertThat(JsonDecoder.listOf(jsonString)).isEqualTo(expectedArray);
+        assertThat(JsonDecoder.mapOf(jsonString)).containsEntry("", expectedArray);
 
         // String
         jsonString = "{\"HH,II,\\n\"}";
         final String expectedString = "HH,II,\n";
         assertThat(toJson(expectedString)).isEqualTo(jsonString);
         assertThat((JsonDecoder.jsonOf(jsonString))).isEqualTo(expectedString);
-        assertThat(JsonDecoder.jsonListOf(jsonString)).isEqualTo(singletonList(expectedString));
-        assertThat(JsonDecoder.jsonMapOf(jsonString)).containsEntry("", expectedString);
+        assertThat(JsonDecoder.listOf(jsonString)).isEqualTo(singletonList(expectedString));
+        assertThat(JsonDecoder.mapOf(jsonString)).containsEntry("", expectedString);
         assertThat(JsonDecoder.jsonTypeOf(jsonString).get(String.class,0)).isEqualTo(expectedString);
 
         // STREAM PATHS
         try (InputStream mapStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8));
              InputStream listStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8));
              InputStream valueStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8))) {
-            assertThat(JsonDecoder.jsonMapOf(mapStream)).containsEntry("", expectedString);
-            assertThat(JsonDecoder.jsonListOf(listStream)).containsExactly(expectedString);
+            assertThat(JsonDecoder.mapOf(mapStream)).containsEntry("", expectedString);
+            assertThat(JsonDecoder.listOf(listStream)).containsExactly(expectedString);
             assertThat(JsonDecoder.jsonOf(valueStream)).isEqualTo(expectedString);
         } catch (final IOException e) {
             throw new IllegalStateException(e);

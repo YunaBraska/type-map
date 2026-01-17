@@ -29,7 +29,7 @@ public class LinkedTypeMap extends LinkedHashMap<Object, Object> implements Type
      * Constructs a new {@link LinkedTypeMap} of the specified json.
      */
     public LinkedTypeMap(final String json) {
-        this(JsonDecoder.jsonMapOf(json));
+        this(JsonDecoder.mapOf(json));
     }
 
     /**
