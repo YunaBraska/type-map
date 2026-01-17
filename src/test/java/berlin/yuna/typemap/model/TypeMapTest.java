@@ -2,6 +2,8 @@ package berlin.yuna.typemap.model;
 
 
 import berlin.yuna.typemap.config.TypeConversionRegister;
+import berlin.yuna.typemap.logic.JsonDecoder;
+import berlin.yuna.typemap.logic.XmlDecoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
@@ -207,6 +209,42 @@ public class TypeMapTest {
         assertThat(new LinkedTypeMap(typeMap.toJson()).toJson()).isEqualTo("{\"myKey\":{\"AA\":[\"BB\",1,true,null],\"CC\":[4,5,6],\"DD\":{\"FF\":[\"GG\",2,true]},\"EE\":\"HH,II,\\n\"}}");
     }
 
+    @Test
+    void shouldMapOfOverloads() throws Exception {
+        final String json = "{\"name\":\"neo\",\"tags\":[\"a\"]}";
+        final Path file = Files.createTempFile("typemap-mapof", ".json");
+        Files.writeString(file, json, StandardCharsets.UTF_8);
+        final File asFile = file.toFile();
+        final URI uri = file.toUri();
+        final URL url = uri.toURL();
+        final LinkedTypeMap expected = JsonDecoder.mapOf(json);
+
+        final List<Supplier<LinkedTypeMap>> suppliers = List.of(
+            () -> TypeMap.mapOf(json),
+            () -> TypeMap.mapOf(new StringBuilder(json)),
+            () -> TypeMap.mapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))),
+            () -> TypeMap.mapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8),
+            () -> TypeMap.mapOf(file),
+            () -> TypeMap.mapOf(file, StandardCharsets.UTF_8),
+            () -> TypeMap.mapOf(asFile),
+            () -> TypeMap.mapOf(asFile, StandardCharsets.UTF_8),
+            () -> TypeMap.mapOf(uri),
+            () -> TypeMap.mapOf(uri, StandardCharsets.UTF_8),
+            () -> TypeMap.mapOf((URL) url),
+            () -> TypeMap.mapOf(url, StandardCharsets.UTF_8)
+        );
+
+        suppliers.forEach(supplier -> assertThat(supplier.get()).isEqualTo(expected));
+    }
+
+    @Test
+    void shouldMapOfXml() {
+        final String xml = "<root><item>1</item><item>2</item></root>";
+        final TypeList xmlList = XmlDecoder.xmlTypeOf(xml);
+        final LinkedTypeMap expected = new LinkedTypeMap().putR("", xmlList);
+        assertThat(TypeMap.mapOf(xml)).isEqualTo(expected);
+    }
+
     @ParameterizedTest
     @MethodSource("typeMapProvider")
     void nestedKeysTest(final String mapName, final TypeMapI<?> typeMap) {
@@ -403,7 +441,7 @@ public class TypeMapTest {
 
     @Test
     void mapOfTest() {
-        assertThat(TypeMap.mapOf(null)).isEmpty();
+        assertThat(TypeMap.mapOf((String) null)).isEmpty();
         assertThat(linkedMapOf(null)).isEmpty();
         assertThat(concurrentMapOf(null)).isEmpty();
 

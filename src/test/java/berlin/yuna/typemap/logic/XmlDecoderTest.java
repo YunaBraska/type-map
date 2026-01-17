@@ -79,7 +79,24 @@ class XmlDecoderTest {
         final String xml = XmlEncoder.toXmlMap(input);
         final LinkedTypeMap output = TypeMap.fromXml(xml);
 
-        assertThat(output).isEqualTo(input);
+        assertThat(output).containsOnlyKeys("root");
+        final TypeList rootList = (TypeList) output.get("root");
+        final Pair<?, ?> rootPair = rootList.stream()
+            .filter(Pair.class::isInstance)
+            .map(Pair.class::cast)
+            .filter(pair -> "root".equals(pair.getKey()))
+            .findFirst()
+            .orElseThrow();
+        final Pair<?, ?> extraPair = rootList.stream()
+            .filter(Pair.class::isInstance)
+            .map(Pair.class::cast)
+            .filter(pair -> "extra".equals(pair.getKey()))
+            .findFirst()
+            .orElseThrow();
+        final Pair<?, ?> itemPair = (Pair<?, ?>) ((TypeList) rootPair.getValue()).get(0);
+        assertThat(itemPair.getKey()).isEqualTo("item");
+        assertThat(((TypeList) itemPair.getValue()).get(0)).isEqualTo("a");
+        assertThat(((TypeList) extraPair.getValue()).get(0)).isEqualTo("value");
     }
 
     @Test

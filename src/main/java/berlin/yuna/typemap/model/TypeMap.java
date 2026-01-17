@@ -6,9 +6,11 @@ import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.TypeConverter;
 import berlin.yuna.typemap.logic.XmlDecoder;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,11 +44,11 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     /**
      * Constructs a new {@link TypeMap} of the specified json.
      *
-     * @deprecated use {@link #fromJson(String)} or {@link #fromXml(String)} for clarity
+     * @deprecated use {@link #mapOf(String)} for JSON/XML input
      */
     @Deprecated(forRemoval = true)
     public TypeMap(final String json) {
-        this(JsonDecoder.jsonMapOf(json));
+        this(JsonDecoder.mapOf(json));
     }
 
     /**
@@ -69,20 +71,131 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     }
 
     /**
-     * Parses JSON into a {@link TypeMapI} (returns {@link LinkedTypeMap} when possible).
-     *
-     * @param json raw json content
-     * @return populated map or empty map when input is blank
+     * Parses JSON or XML into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null, blank, or cannot be parsed.
      */
+    public static LinkedTypeMap mapOf(final String jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link CharSequence}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null, blank, or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final CharSequence jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from an {@link InputStream}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final InputStream jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from an {@link InputStream}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final InputStream jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link Path}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final Path jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link Path}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final Path jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link File}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final File jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link File}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final File jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URI}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URI jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URI}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URI jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URL}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URL jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URL}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URL jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON into a {@link TypeMapI} (explicit JSON path).
+     *
+     * @deprecated use {@link #mapOf(String)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromJson(final String json) {
         return (json == null || json.isBlank())
             ? new LinkedTypeMap()
-            : JsonDecoder.jsonMapOf(json);
+            : JsonDecoder.mapOf(json);
     }
 
     /**
      * Parses JSON CharSequence into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(CharSequence)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromJson(final CharSequence json) {
         return json == null
             ? new LinkedTypeMap()
@@ -91,7 +204,10 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
 
     /**
      * Parses JSON file into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(Path)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromJson(final Path json) {
         try (final InputStream in = Files.newInputStream(json)) {
             return fromJson(in);
@@ -102,35 +218,50 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
 
     /**
      * Parses JSON stream into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(InputStream)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromJson(final InputStream json) {
         return fromJson(readStream(json));
     }
 
     /**
      * Parses JSON or XML stream into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(InputStream)} or {@link #mapOf(InputStream, Charset)}
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap from(final InputStream input) {
         return from(input, UTF_8);
     }
 
     /**
      * Parses JSON or XML stream into a {@link TypeMapI} with the given charset for JSON content.
+     *
+     * @deprecated use {@link #mapOf(InputStream, Charset)}
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap from(final InputStream input, final Charset charset) {
-        return input == null ? new LinkedTypeMap() : JsonDecoder.jsonMapOf(input, charset);
+        return input == null ? new LinkedTypeMap() : JsonDecoder.mapOf(input, charset);
     }
 
     /**
      * Parses XML into a {@link LinkedTypeMap} preserving element order.
+     *
+     * @deprecated use {@link #mapOf(String)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromXml(final String xml) {
         return fromXml(XmlDecoder.xmlTypeOf(xml));
     }
 
     /**
      * Parses XML CharSequence into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(CharSequence)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromXml(final CharSequence xml) {
         return xml == null
             ? new LinkedTypeMap()
@@ -139,7 +270,10 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
 
     /**
      * Parses XML file into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(Path)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromXml(final Path xml) {
         try (final InputStream in = Files.newInputStream(xml)) {
             return fromXml(in);
@@ -150,7 +284,10 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
 
     /**
      * Parses XML stream into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(InputStream)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static LinkedTypeMap fromXml(final InputStream xml) {
         return fromXml(readStream(xml));
     }

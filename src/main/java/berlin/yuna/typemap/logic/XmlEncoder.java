@@ -106,6 +106,11 @@ public class XmlEncoder {
                     }
                 }
             }
+        } else {
+            final String text = TypeConverter.convertObj(value, String.class);
+            if (hasText(text)) {
+                parentElement.setTextContent(text);
+            }
         }
     }
 

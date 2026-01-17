@@ -3,8 +3,11 @@ package berlin.yuna.typemap.model;
 
 import berlin.yuna.typemap.logic.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,11 +37,11 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     /**
      * Constructs a new {@link TypeList} of the specified json.
      *
-     * @deprecated use {@link #fromJson(String)} or {@link #fromXml(String)} for clarity
+     * @deprecated use {@link #listOf(String)} for JSON/XML input
      */
     @Deprecated(forRemoval = true)
     public TypeList(final String jsonOrXml) {
-        this(jsonOrXml != null && jsonOrXml.startsWith("<") ? XmlDecoder.xmlTypeOf(jsonOrXml) : JsonDecoder.jsonListOf(jsonOrXml));
+        this(JsonDecoder.listOf(jsonOrXml));
     }
 
     /**
@@ -51,17 +54,129 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
     }
 
     /**
-     * Parses JSON or XML string into a {@link TypeList}.
+     * Parses JSON or XML into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null, blank, or cannot be parsed.
      */
+    public static TypeList listOf(final String jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link CharSequence}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null, blank, or cannot be parsed.
+     */
+    public static TypeList listOf(final CharSequence jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from an {@link InputStream}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final InputStream jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from an {@link InputStream}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final InputStream jsonOrXml, final Charset charset) {
+        return JsonDecoder.listOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link Path}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final Path jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link Path}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final Path jsonOrXml, final Charset charset) {
+        return JsonDecoder.listOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link File}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final File jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link File}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final File jsonOrXml, final Charset charset) {
+        return JsonDecoder.listOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link URI}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URI jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link URI}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URI jsonOrXml, final Charset charset) {
+        return JsonDecoder.listOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link URL}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URL jsonOrXml) {
+        return JsonDecoder.listOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link TypeList} from a {@link URL}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URL jsonOrXml, final Charset charset) {
+        return JsonDecoder.listOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML string into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(String)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
     public static TypeList fromJson(final String jsonOrXml) {
-        return (jsonOrXml == null || jsonOrXml.isBlank())
-            ? new TypeList()
-            : new TypeList(jsonOrXml.startsWith("<") ? XmlDecoder.xmlTypeOf(jsonOrXml) : JsonDecoder.jsonListOf(jsonOrXml));
+        return JsonDecoder.listOf(jsonOrXml);
     }
 
     /**
      * Parses JSON or XML CharSequence into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(CharSequence)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static TypeList fromJson(final CharSequence jsonOrXml) {
         return jsonOrXml == null
             ? new TypeList()
@@ -70,36 +185,51 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
 
     /**
      * Parses JSON or XML stream into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(InputStream)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static TypeList fromJson(final InputStream jsonOrXml) {
         return fromJson(readStream(jsonOrXml));
     }
 
     /**
      * Parses JSON or XML stream into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(InputStream)} or {@link #listOf(InputStream, Charset)}
      */
+    @Deprecated(forRemoval = true)
     public static TypeList from(final InputStream input) {
         return from(input, UTF_8);
     }
 
     /**
      * Parses JSON or XML stream into a {@link TypeList} with the given charset for JSON content.
+     *
+     * @deprecated use {@link #listOf(InputStream, Charset)}
      */
+    @Deprecated(forRemoval = true)
     public static TypeList from(final InputStream input, final Charset charset) {
-        return input == null ? new TypeList() : JsonDecoder.jsonListOf(input, charset);
+        return input == null ? new TypeList() : JsonDecoder.listOf(input, charset);
     }
 
 
     /**
      * Parses XML string into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(String)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static TypeList fromXml(final String xml) {
         return new TypeList(XmlDecoder.xmlTypeOf(xml));
     }
 
     /**
      * Parses XML CharSequence into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(CharSequence)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static TypeList fromXml(final CharSequence xml) {
         return xml == null
             ? new TypeList()
@@ -108,14 +238,20 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
 
     /**
      * Parses XML file into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(Path)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static TypeList fromXml(final Path xml) {
         return fromXml(readPath(xml));
     }
 
     /**
      * Parses XML stream into a {@link TypeList}.
+     *
+     * @deprecated use {@link #listOf(InputStream)} to accept JSON or XML
      */
+    @Deprecated(forRemoval = true)
     public static TypeList fromXml(final InputStream xml) {
         return fromXml(readStream(xml));
     }

@@ -61,31 +61,40 @@ public class JsonDecoder {
     }
 
     /**
-     * Parses JSON into a {@link LinkedTypeMap}, auto-detecting XML if provided.
+     * Parses JSON or XML into a {@link LinkedTypeMap}.
+     * For JSON objects, the map contains the object entries.
+     * For JSON arrays, XML, or primitive values, the map contains a single entry with key "" and the parsed value.
+     * Returns an empty map when input is null, blank, or cannot be parsed.
      */
-    public static LinkedTypeMap jsonMapOf(final String json) {
-        if (json == null)
+    public static LinkedTypeMap mapOf(final String jsonOrXml) {
+        if (jsonOrXml == null)
             return new LinkedTypeMap();
-        try (final ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(UTF_8))) {
-            return jsonMapOf(in, UTF_8);
+        try (final ByteArrayInputStream in = new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8))) {
+            return mapOf(in, UTF_8);
         } catch (final IOException ignored) {
             return new LinkedTypeMap();
         }
     }
 
     /**
-     * Parses JSON into a {@link LinkedTypeMap}, auto-detecting XML if provided.
+     * Parses JSON or XML into a {@link LinkedTypeMap}.
+     * For JSON objects, the map contains the object entries.
+     * For JSON arrays, XML, or primitive values, the map contains a single entry with key "" and the parsed value.
+     * Returns an empty map when input is null or cannot be parsed.
      */
-    public static LinkedTypeMap jsonMapOf(final InputStream json) {
-        return jsonMapOf(json, UTF_8);
+    public static LinkedTypeMap mapOf(final InputStream jsonOrXml) {
+        return mapOf(jsonOrXml, UTF_8);
     }
 
     /**
-     * Parses JSON into a {@link LinkedTypeMap} using the provided charset, auto-detecting XML if provided.
+     * Parses JSON or XML into a {@link LinkedTypeMap} using the provided charset for JSON content.
+     * For JSON objects, the map contains the object entries.
+     * For JSON arrays, XML, or primitive values, the map contains a single entry with key "" and the parsed value.
+     * Returns an empty map when input is null or cannot be parsed.
      */
-    public static LinkedTypeMap jsonMapOf(final InputStream json, final Charset charset) {
+    public static LinkedTypeMap mapOf(final InputStream jsonOrXml, final Charset charset) {
         try {
-            final Object result = detectAndParse(json, charset);
+            final Object result = detectAndParse(jsonOrXml, charset);
             if (result instanceof final LinkedTypeMap map) {
                 return map;
             } else if (result != null) {
@@ -98,32 +107,41 @@ public class JsonDecoder {
     }
 
     /**
-     * Parses JSON into a {@link TypeList}, auto-detecting XML if provided.
+     * Parses JSON or XML into a {@link TypeList}.
+     * For JSON arrays or XML, returns the parsed list.
+     * For JSON objects or primitive values, returns a list containing the parsed value.
+     * Returns an empty list when input is null, blank, or cannot be parsed.
      */
-    public static TypeList jsonListOf(final String json) {
-        if (json == null) {
+    public static TypeList listOf(final String jsonOrXml) {
+        if (jsonOrXml == null) {
             return new TypeList();
         }
-        try (final ByteArrayInputStream in = new ByteArrayInputStream(json.getBytes(UTF_8))) {
-            return jsonListOf(in, UTF_8);
+        try (final ByteArrayInputStream in = new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8))) {
+            return listOf(in, UTF_8);
         } catch (final IOException ignored) {
             return new TypeList();
         }
     }
 
     /**
-     * Parses JSON into a {@link TypeList}, auto-detecting XML if provided.
+     * Parses JSON or XML into a {@link TypeList}.
+     * For JSON arrays or XML, returns the parsed list.
+     * For JSON objects or primitive values, returns a list containing the parsed value.
+     * Returns an empty list when input is null or cannot be parsed.
      */
-    public static TypeList jsonListOf(final InputStream json) {
-        return jsonListOf(json, UTF_8);
+    public static TypeList listOf(final InputStream jsonOrXml) {
+        return listOf(jsonOrXml, UTF_8);
     }
 
     /**
-     * Parses JSON into a {@link TypeList} using the provided charset, auto-detecting XML if provided.
+     * Parses JSON or XML into a {@link TypeList} using the provided charset for JSON content.
+     * For JSON arrays or XML, returns the parsed list.
+     * For JSON objects or primitive values, returns a list containing the parsed value.
+     * Returns an empty list when input is null or cannot be parsed.
      */
-    public static TypeList jsonListOf(final InputStream json, final Charset charset) {
+    public static TypeList listOf(final InputStream jsonOrXml, final Charset charset) {
         try {
-            final Object result = detectAndParse(json, charset);
+            final Object result = detectAndParse(jsonOrXml, charset);
             if (result instanceof final TypeList list) {
                 return list;
             } else if (result instanceof final LinkedTypeMap map) {
@@ -135,6 +153,247 @@ public class JsonDecoder {
             // fallthrough
         }
         return new TypeList();
+    }
+
+    /**
+     * Parses JSON or XML CharSequence into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null, blank, or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final CharSequence jsonOrXml) {
+        return jsonOrXml == null ? new LinkedTypeMap() : mapOf(jsonOrXml.toString());
+    }
+
+    /**
+     * Parses JSON or XML CharSequence into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null, blank, or cannot be parsed.
+     */
+    public static TypeList listOf(final CharSequence jsonOrXml) {
+        return jsonOrXml == null ? new TypeList() : listOf(jsonOrXml.toString());
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final Path jsonOrXml, final Charset charset) {
+        if (jsonOrXml == null) {
+            return new LinkedTypeMap();
+        }
+        try (InputStream in = Files.newInputStream(jsonOrXml)) {
+            return mapOf(in, charset);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    public static LinkedTypeMap mapOf(final Path jsonOrXml) {
+        return mapOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final Path jsonOrXml, final Charset charset) {
+        if (jsonOrXml == null) {
+            return new TypeList();
+        }
+        try (InputStream in = Files.newInputStream(jsonOrXml)) {
+            return listOf(in, charset);
+        } catch (final IOException ignored) {
+            return new TypeList();
+        }
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final Path jsonOrXml) {
+        return listOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final File jsonOrXml, final Charset charset) {
+        return jsonOrXml == null ? new LinkedTypeMap() : mapOf(jsonOrXml.toPath(), charset);
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final File jsonOrXml) {
+        return mapOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final File jsonOrXml, final Charset charset) {
+        return jsonOrXml == null ? new TypeList() : listOf(jsonOrXml.toPath(), charset);
+    }
+
+    /**
+     * Parses JSON or XML file into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final File jsonOrXml) {
+        return listOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML URI into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URI jsonOrXml, final Charset charset) {
+        if (jsonOrXml == null) {
+            return new LinkedTypeMap();
+        }
+        try (InputStream in = jsonOrXml.toURL().openStream()) {
+            return mapOf(in, charset);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    /**
+     * Parses JSON or XML URI into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URI jsonOrXml) {
+        return mapOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML URI into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URI jsonOrXml, final Charset charset) {
+        if (jsonOrXml == null) {
+            return new TypeList();
+        }
+        try (InputStream in = jsonOrXml.toURL().openStream()) {
+            return listOf(in, charset);
+        } catch (final IOException ignored) {
+            return new TypeList();
+        }
+    }
+
+    /**
+     * Parses JSON or XML URI into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URI jsonOrXml) {
+        return listOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML URL into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URL jsonOrXml, final Charset charset) {
+        if (jsonOrXml == null) {
+            return new LinkedTypeMap();
+        }
+        try (InputStream in = jsonOrXml.openStream()) {
+            return mapOf(in, charset);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    /**
+     * Parses JSON or XML URL into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URL jsonOrXml) {
+        return mapOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML URL into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Uses the provided charset for JSON content. Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URL jsonOrXml, final Charset charset) {
+        if (jsonOrXml == null) {
+            return new TypeList();
+        }
+        try (InputStream in = jsonOrXml.openStream()) {
+            return listOf(in, charset);
+        } catch (final IOException ignored) {
+            return new TypeList();
+        }
+    }
+
+    /**
+     * Parses JSON or XML URL into a {@link TypeList}.
+     * JSON arrays and XML return the parsed list; objects and primitive values are wrapped into a single-item list.
+     * Returns an empty list when input is null or cannot be parsed.
+     */
+    public static TypeList listOf(final URL jsonOrXml) {
+        return listOf(jsonOrXml, UTF_8);
+    }
+
+    /**
+     * Alias for {@link #mapOf(String)}.
+     */
+    public static LinkedTypeMap jsonMapOf(final String json) {
+        return mapOf(json);
+    }
+
+    /**
+     * Alias for {@link #mapOf(InputStream)}.
+     */
+    public static LinkedTypeMap jsonMapOf(final InputStream json) {
+        return mapOf(json, UTF_8);
+    }
+
+    /**
+     * Alias for {@link #mapOf(InputStream, Charset)}.
+     */
+    public static LinkedTypeMap jsonMapOf(final InputStream json, final Charset charset) {
+        return mapOf(json, charset);
+    }
+
+    /**
+     * Alias for {@link #listOf(String)}.
+     */
+    public static TypeList jsonListOf(final String json) {
+        return listOf(json);
+    }
+
+    /**
+     * Alias for {@link #listOf(InputStream)}.
+     */
+    public static TypeList jsonListOf(final InputStream json) {
+        return listOf(json, UTF_8);
+    }
+
+    /**
+     * Alias for {@link #listOf(InputStream, Charset)}.
+     */
+    public static TypeList jsonListOf(final InputStream json, final Charset charset) {
+        return listOf(json, charset);
     }
 
     public static Object jsonOf(final String json) {

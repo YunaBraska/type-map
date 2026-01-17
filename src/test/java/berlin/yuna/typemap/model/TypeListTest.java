@@ -2,12 +2,17 @@ package berlin.yuna.typemap.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import berlin.yuna.typemap.logic.JsonDecoder;
+import berlin.yuna.typemap.logic.XmlDecoder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -188,6 +193,41 @@ class TypeListTest {
         assertThat(new TypeList(typeList.toJson("invalidKey")).toJson()).isEqualTo("[]");
         assertThat(new TypeList(typeList.toJson(0)).toJson()).isEqualTo("[{\"AA\":[\"BB\",1,true,null],\"CC\":[4,5,6],\"DD\":{\"FF\":[\"GG\",2,true]},\"EE\":\"HH,II,\\n\"}]");
         assertThat(new TypeList(typeList.toJson()).toJson()).isEqualTo("[{\"AA\":[\"BB\",1,true,null],\"CC\":[4,5,6],\"DD\":{\"FF\":[\"GG\",2,true]},\"EE\":\"HH,II,\\n\"}]");
+    }
+
+    @Test
+    void shouldListOfOverloads() throws Exception {
+        final String json = "[1,true]";
+        final Path file = Files.createTempFile("typelist-listof", ".json");
+        Files.writeString(file, json, StandardCharsets.UTF_8);
+        final File asFile = file.toFile();
+        final URI uri = file.toUri();
+        final URL url = uri.toURL();
+        final TypeList expected = JsonDecoder.listOf(json);
+
+        final List<java.util.function.Supplier<TypeList>> suppliers = List.of(
+            () -> TypeList.listOf(json),
+            () -> TypeList.listOf(new StringBuilder(json)),
+            () -> TypeList.listOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8))),
+            () -> TypeList.listOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8),
+            () -> TypeList.listOf(file),
+            () -> TypeList.listOf(file, StandardCharsets.UTF_8),
+            () -> TypeList.listOf(asFile),
+            () -> TypeList.listOf(asFile, StandardCharsets.UTF_8),
+            () -> TypeList.listOf(uri),
+            () -> TypeList.listOf(uri, StandardCharsets.UTF_8),
+            () -> TypeList.listOf(url),
+            () -> TypeList.listOf(url, StandardCharsets.UTF_8)
+        );
+
+        suppliers.forEach(supplier -> assertThat(supplier.get()).isEqualTo(expected));
+    }
+
+    @Test
+    void shouldListOfXml() {
+        final String xml = "<root><item>1</item><item>2</item></root>";
+        final TypeList expected = XmlDecoder.xmlTypeOf(xml);
+        assertThat(TypeList.listOf(xml)).isEqualTo(expected);
     }
 
     @ParameterizedTest(name = "[{index}] [{0}]")

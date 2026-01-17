@@ -204,6 +204,80 @@ class JsonDecoderTest {
     }
 
     @Test
+    void shouldMapOfOverloads() throws Exception {
+        final String json = "{\"name\":\"neo\",\"tags\":[\"a\"]}";
+        final Path file = Files.createTempFile("mapof-json", ".json");
+        Files.writeString(file, json, StandardCharsets.UTF_8);
+        final File asFile = file.toFile();
+        final URI uri = file.toUri();
+        final URL url = uri.toURL();
+        final LinkedTypeMap expected = JsonDecoder.mapOf(json);
+
+        final List<Supplier<LinkedTypeMap>> suppliers = List.of(
+            supplier(() -> JsonDecoder.mapOf(json)),
+            supplier(() -> JsonDecoder.mapOf(new StringBuilder(json))),
+            supplier(() -> JsonDecoder.mapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.mapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.mapOf(file)),
+            supplier(() -> JsonDecoder.mapOf(file, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.mapOf(asFile)),
+            supplier(() -> JsonDecoder.mapOf(asFile, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.mapOf(uri)),
+            supplier(() -> JsonDecoder.mapOf(uri, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.mapOf(url)),
+            supplier(() -> JsonDecoder.mapOf(url, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.jsonMapOf(json)),
+            supplier(() -> JsonDecoder.jsonMapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.jsonMapOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8))
+        );
+
+        suppliers.forEach(supplier -> assertThat(supplier.get()).isEqualTo(expected));
+    }
+
+    @Test
+    void shouldListOfOverloads() throws Exception {
+        final String json = "[1,true]";
+        final Path file = Files.createTempFile("listof-json", ".json");
+        Files.writeString(file, json, StandardCharsets.UTF_8);
+        final File asFile = file.toFile();
+        final URI uri = file.toUri();
+        final URL url = uri.toURL();
+        final TypeList expected = JsonDecoder.listOf(json);
+
+        final List<Supplier<TypeList>> suppliers = List.of(
+            supplier(() -> JsonDecoder.listOf(json)),
+            supplier(() -> JsonDecoder.listOf(new StringBuilder(json))),
+            supplier(() -> JsonDecoder.listOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.listOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.listOf(file)),
+            supplier(() -> JsonDecoder.listOf(file, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.listOf(asFile)),
+            supplier(() -> JsonDecoder.listOf(asFile, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.listOf(uri)),
+            supplier(() -> JsonDecoder.listOf(uri, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.listOf(url)),
+            supplier(() -> JsonDecoder.listOf(url, StandardCharsets.UTF_8)),
+            supplier(() -> JsonDecoder.jsonListOf(json)),
+            supplier(() -> JsonDecoder.jsonListOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)))),
+            supplier(() -> JsonDecoder.jsonListOf(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8))
+        );
+
+        suppliers.forEach(supplier -> assertThat(supplier.get()).isEqualTo(expected));
+    }
+
+    @Test
+    void shouldMapAndListOfXml() {
+        final String xml = "<root><item>1</item><item>2</item></root>";
+        final TypeList expectedList = XmlDecoder.xmlTypeOf(xml);
+        final LinkedTypeMap expectedMap = new LinkedTypeMap().putR("", expectedList);
+
+        assertThat(JsonDecoder.listOf(xml)).isEqualTo(expectedList);
+        assertThat(JsonDecoder.listOf(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)).isEqualTo(expectedList);
+        assertThat(JsonDecoder.mapOf(xml)).isEqualTo(expectedMap);
+        assertThat(JsonDecoder.mapOf(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8)).isEqualTo(expectedMap);
+    }
+
+    @Test
     void shouldStreamArrayAllowNullElements() {
         final String json = "[1,null,2]";
         try (Stream<Pair<Integer, Object>> stream = JsonDecoder.streamJsonArray(json)) {
