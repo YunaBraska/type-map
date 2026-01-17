@@ -69,7 +69,7 @@ class JsonEncoderTest {
         assertThat((JsonDecoder.jsonOf(jsonString))).isEqualTo(expectedString);
         assertThat(JsonDecoder.listOf(jsonString)).isEqualTo(singletonList(expectedString));
         assertThat(JsonDecoder.mapOf(jsonString)).containsEntry("", expectedString);
-        assertThat(JsonDecoder.jsonTypeOf(jsonString).get(String.class,0)).isEqualTo(expectedString);
+        assertThat(JsonDecoder.typeOf(jsonString).get(String.class,0)).isEqualTo(expectedString);
 
         // STREAM PATHS
         try (InputStream mapStream = new ByteArrayInputStream(jsonString.getBytes(UTF_8));

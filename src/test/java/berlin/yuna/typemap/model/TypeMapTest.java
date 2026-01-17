@@ -32,7 +32,6 @@ import java.util.stream.Stream;
 
 import berlin.yuna.typemap.model.Type;
 
-import static berlin.yuna.typemap.logic.JsonDecoder.jsonTypeOf;
 import static berlin.yuna.typemap.logic.JsonDecoder.streamJsonObject;
 import static berlin.yuna.typemap.logic.TypeConverter.collectionOf;
 import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
@@ -456,7 +455,7 @@ public class TypeMapTest {
 
     @Test
     void addTest() {
-        final TypeInfo<?> jsonMap = jsonTypeOf("{\n"
+        final TypeInfo<?> jsonMap = JsonDecoder.typeOf("{\n"
             + "  \"outerMap\": {\n"
             + "    \"times\": {\n"
             + "      \"timestamp1\": 1800000000000,\n"
@@ -476,7 +475,7 @@ public class TypeMapTest {
 
     @Test
     void setTest() {
-        final TypeInfo<?> jsonMap = jsonTypeOf("{\n"
+        final TypeInfo<?> jsonMap = JsonDecoder.typeOf("{\n"
             + "  \"outerMap\": {\n"
             + "    \"times\": {\n"
             + "      \"timestamp1\": 1800000000000,\n"
@@ -498,7 +497,7 @@ public class TypeMapTest {
 
     @Test
     void putTest() {
-        final TypeInfo<?> jsonMap = jsonTypeOf("{\n"
+        final TypeInfo<?> jsonMap = JsonDecoder.typeOf("{\n"
             + "  \"outerMap\": {\n"
             + "    \"times\": {\n"
             + "      \"timestamp1\": 1800000000000,\n"
@@ -521,7 +520,7 @@ public class TypeMapTest {
 
     @Test
     void containsTest() {
-        final TypeInfo<?> jsonMap = jsonTypeOf("{\n"
+        final TypeInfo<?> jsonMap = JsonDecoder.typeOf("{\n"
             + "  \"outerMap\": {\n"
             + "    \"times\": {\n"
             + "      \"timestamp1\": 1800000000000,\n"
@@ -569,7 +568,7 @@ public class TypeMapTest {
             + "  }\n"
             + "}";
 
-        final TypeInfo<?> jsonMap = jsonTypeOf(jsonInput);
+        final TypeInfo<?> jsonMap = JsonDecoder.typeOf(jsonInput);
         final LinkedTypeMap map1 = jsonMap.asMap("outerMap", "times");
         final TestEnum testEnum = jsonMap.asList("outerMap", "myList").get(TestEnum.class, 0);
 

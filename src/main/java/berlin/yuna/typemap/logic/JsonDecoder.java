@@ -33,25 +33,25 @@ public class JsonDecoder {
      * Uses the streaming path under the hood to keep memory usage predictable.
      */
     @SuppressWarnings("java:S1452")
-    public static TypeInfo<?> jsonTypeOf(final String jsonOrXml) {
+    public static TypeInfo<?> typeOf(final String jsonOrXml) {
         return jsonOrXml == null
-                ? new TypeList()
-                : jsonTypeOf(new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8)));
+            ? new TypeList()
+            : typeOf(new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8)));
     }
 
     /**
      * Parses JSON or XML content from a stream and returns a {@link TypeInfo} (map/list) structure.
      */
     @SuppressWarnings("java:S1452")
-    public static TypeInfo<?> jsonTypeOf(final InputStream jsonOrXml) {
-        return jsonTypeOf(jsonOrXml, UTF_8);
+    public static TypeInfo<?> typeOf(final InputStream jsonOrXml) {
+        return typeOf(jsonOrXml, UTF_8);
     }
 
     /**
      * Parses JSON or XML content from a stream with the given charset and returns a {@link TypeInfo}.
      */
     @SuppressWarnings("java:S1452")
-    public static TypeInfo<?> jsonTypeOf(final InputStream jsonOrXml, final Charset charset) {
+    public static TypeInfo<?> typeOf(final InputStream jsonOrXml, final Charset charset) {
         try {
             final Object result = detectAndParse(jsonOrXml, charset);
             return result instanceof TypeInfo ? (TypeInfo<?>) result : new TypeList().addR(result);
@@ -390,7 +390,7 @@ public class JsonDecoder {
      *
      * @param json    input stream containing a JSON array
      * @param charset charset to decode the stream
-     * @return lazy stream of Type elements (caller must close)
+     * @return lazy stream of Type elements (close the stream to release the input)
      */
     public static Stream<Object> streamArray(final InputStream json, final Charset charset) throws IOException {
         return JsonLenientParser.streamArray(new InputStreamReader(json, charset));
@@ -401,7 +401,7 @@ public class JsonDecoder {
      *
      * @param json    input stream containing a JSON object
      * @param charset charset to decode the stream
-     * @return lazy stream of entries (caller must close)
+     * @return lazy stream of entries (close the stream to release the input)
      */
     @SuppressWarnings("java:S3776")
     public static Stream<Pair<String, Object>> streamObject(final InputStream json, final Charset charset) throws IOException {
@@ -413,13 +413,14 @@ public class JsonDecoder {
      *
      * @param json    input stream containing a JSON array
      * @param charset charset to decode the stream
-     * @return lazy stream of index/value pairs (caller must close)
+     * @return lazy stream of index/value pairs (close the stream to release the input)
      */
     public static Stream<Pair<Integer, Object>> streamJsonArray(final InputStream json, final Charset charset) {
         try {
             final AtomicInteger index = new AtomicInteger(0);
             return JsonLenientParser.errorTolerantStream(streamArray(json, charset).map(value -> new Pair<>(index.getAndIncrement(), value)));
         } catch (final Exception ignored) {
+            JsonLenientParser.closeQuietly(json);
             return Stream.empty();
         }
     }
@@ -489,11 +490,13 @@ public class JsonDecoder {
 
     /**
      * Streams a JSON object as key/value {@link Pair} entries without loading the whole payload.
+     * Close the returned stream to release the input.
      */
     public static Stream<Pair<String, Object>> streamJsonObject(final InputStream json, final Charset charset) {
         try {
             return streamObject(json, charset);
         } catch (final Exception ignored) {
+            JsonLenientParser.closeQuietly(json);
             return Stream.empty();
         }
     }
@@ -567,7 +570,7 @@ public class JsonDecoder {
      *
      * @param json    input stream containing JSON object/array
      * @param charset charset to decode the stream
-     * @return lazy stream of pairs (caller must close); returns an empty stream on invalid/IO input
+     * @return lazy stream of pairs (close the stream to release the input); returns an empty stream on invalid/IO input
      */
     @SuppressWarnings("unchecked")
     public static Stream<Pair<Object, Object>> streamJson(final InputStream json, final Charset charset) {
@@ -602,6 +605,7 @@ public class JsonDecoder {
 
     /**
      * Streams a JSON object or array as {@link Pair} entries using UTF-8.
+     * Close the returned stream to release the input.
      */
     public static Stream<Pair<Object, Object>> streamJson(final InputStream json) {
         return streamJson(json, UTF_8);
@@ -700,6 +704,7 @@ public class JsonDecoder {
 
     /**
      * Streams a JSON object or array from a {@link URL} using UTF-8.
+     * Close the returned stream to release the input.
      */
     public static Stream<Pair<Object, Object>> streamJson(final URL url) {
         return streamJson(url, UTF_8);

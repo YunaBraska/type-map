@@ -298,6 +298,41 @@ class JsonDecoderTest {
     }
 
     @Test
+    void shouldCloseInputStreamOnStreamArrayFailure() {
+        final TrackingInputStream input = new TrackingInputStream("{}".getBytes(StandardCharsets.UTF_8));
+        try (Stream<Pair<Integer, Object>> stream = JsonDecoder.streamJsonArray(input, StandardCharsets.UTF_8)) {
+            assertThat(stream).isEmpty();
+        }
+        assertThat(input.isClosed()).isTrue();
+    }
+
+    @Test
+    void shouldCloseInputStreamOnStreamObjectFailure() {
+        final TrackingInputStream input = new TrackingInputStream("[]".getBytes(StandardCharsets.UTF_8));
+        try (Stream<Pair<String, Object>> stream = JsonDecoder.streamJsonObject(input, StandardCharsets.UTF_8)) {
+            assertThat(stream).isEmpty();
+        }
+        assertThat(input.isClosed()).isTrue();
+    }
+
+    private static final class TrackingInputStream extends ByteArrayInputStream {
+        private boolean closed;
+
+        private TrackingInputStream(final byte[] buf) {
+            super(buf);
+        }
+
+        @Override
+        public void close() {
+            closed = true;
+        }
+
+        private boolean isClosed() {
+            return closed;
+        }
+    }
+
+    @Test
     void shouldReturnEmptyOnNullOrWhitespace() {
         assertThat(JsonDecoder.streamJson((InputStream) null)).isEmpty();
         try (final Stream<Pair<Object, Object>> stream = JsonDecoder.streamJson("   ")) {
