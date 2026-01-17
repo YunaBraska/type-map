@@ -52,7 +52,7 @@ public class XmlEncoder {
         }
         final java.util.Iterator<Map.Entry<Object, Object>> iterator = map.entrySet().iterator();
         final Map.Entry<Object, Object> first = iterator.hasNext() ? iterator.next() : null;
-        if (first != null && first.getKey() instanceof String && first.getValue() instanceof Collection<?>) {
+        if (first != null && map.size() == 1 && first.getKey() instanceof String && first.getValue() instanceof Collection<?>) {
             final TypeList content = new TypeList((Collection<?>) first.getValue());
             return toXml(java.util.Collections.singletonList(new Pair<>(first.getKey(), content)));
         }

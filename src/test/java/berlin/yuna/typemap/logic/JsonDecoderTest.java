@@ -18,11 +18,13 @@ import java.nio.file.Path;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -199,6 +201,26 @@ class JsonDecoderTest {
             assertThat((TypeList) second.get("nums")).containsExactly(10L, 20L);
             assertThat(second.asBoolean("flag")).isTrue();
         }
+    }
+
+    @Test
+    void shouldStreamArrayAllowNullElements() {
+        final String json = "[1,null,2]";
+        try (Stream<Pair<Integer, Object>> stream = JsonDecoder.streamJsonArray(json)) {
+            final Spliterator<Pair<Integer, Object>> spliterator = stream.spliterator();
+            assertThat(spliterator.hasCharacteristics(Spliterator.NONNULL)).isFalse();
+            final List<Pair<Integer, Object>> pairs = StreamSupport.stream(spliterator, false).toList();
+            assertThat(pairs).hasSize(3);
+            assertThat(pairs.get(1).value()).isNull();
+        }
+    }
+
+    @Test
+    void shouldDetectJsonAfterLargeWhitespace() {
+        final String json = " ".repeat(2048) + "{\"a\":1}";
+        final ByteArrayInputStream input = new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8));
+        final LinkedTypeMap map = JsonDecoder.jsonMapOf(input, StandardCharsets.UTF_8);
+        assertThat(map).containsEntry("a", 1L);
     }
 
     @Test

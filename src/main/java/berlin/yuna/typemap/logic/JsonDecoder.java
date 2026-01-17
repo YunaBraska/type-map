@@ -6,7 +6,6 @@ import berlin.yuna.typemap.model.Type;
 import berlin.yuna.typemap.model.TypeInfo;
 import berlin.yuna.typemap.model.TypeList;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -16,6 +15,7 @@ import java.io.InputStreamReader;
 import java.io.PushbackReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
+import java.io.PushbackInputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
@@ -235,7 +235,7 @@ public class JsonDecoder {
             }
         };
 
-        return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
+        return StreamSupport.stream(spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
                 .onClose(() -> closeQuietly(stream.reader));
     }
 
@@ -498,24 +498,25 @@ public class JsonDecoder {
         if (json == null)
             return Stream.empty();
         try {
-            final BufferedInputStream buffered = json instanceof final BufferedInputStream b ? b : new BufferedInputStream(json);
-            buffered.mark(4);
-            int ch;
-            do {
-                ch = buffered.read();
-            } while (ch != -1 && Character.isWhitespace(ch));
-            if (ch == -1)
+            final PushbackInputStream pushback = json instanceof final PushbackInputStream p ? p : new PushbackInputStream(json, 1);
+            final int ch = nextNonWhitespace(pushback);
+            if (ch == -1) {
+                closeQuietly(pushback);
                 return Stream.empty();
-            buffered.reset();
+            }
+            pushback.unread(ch);
             try {
                 if (ch == '{')
-                    return (Stream<Pair<Object, Object>>) (Stream<?>) streamJsonObject(buffered, charset);
+                    return (Stream<Pair<Object, Object>>) (Stream<?>) streamJsonObject(pushback, charset);
                 if (ch == '[')
-                    return (Stream<Pair<Object, Object>>) (Stream<?>) streamJsonArray(buffered, charset);
+                    return (Stream<Pair<Object, Object>>) (Stream<?>) streamJsonArray(pushback, charset);
+                closeQuietly(pushback);
                 throw new UncheckedIOException(new IOException("Unsupported top-level token: " + (char) ch));
             } catch (final UncheckedIOException e) {
+                closeQuietly(pushback);
                 throw e;
             } catch (final Exception e) {
+                closeQuietly(pushback);
                 throw new UncheckedIOException(new IOException(e));
             }
         } catch (final IOException e) {
@@ -650,17 +651,21 @@ public class JsonDecoder {
      * @throws IOException when the stream cannot be read
      */
     public static Object detectAndParse(final InputStream input, final Charset charset) throws IOException {
-        final BufferedInputStream buffered = input instanceof final BufferedInputStream bufferedInputStream ? bufferedInputStream : new BufferedInputStream(input);
-        buffered.mark(1024);
-        int ch;
-        do {
-            ch = buffered.read();
-        } while (ch != -1 && Character.isWhitespace(ch));
-        buffered.reset();
-        if (ch == '<')
-            return XmlDecoder.xmlTypeOf(buffered);
-        try (final Reader reader = buffered(new InputStreamReader(buffered, charset))) {
-            return parse(reader);
+        if (input == null) {
+            return null;
+        }
+        try (final PushbackInputStream pushback = new PushbackInputStream(input, 1)) {
+            final int ch = nextNonWhitespace(pushback);
+            if (ch == -1) {
+                return null;
+            }
+            pushback.unread(ch);
+            if (ch == '<') {
+                return XmlDecoder.xmlTypeOf(pushback);
+            }
+            try (final Reader reader = buffered(new InputStreamReader(pushback, charset))) {
+                return parse(reader);
+            }
         }
     }
 
@@ -718,6 +723,14 @@ public class JsonDecoder {
 
     private static Reader buffered(final Reader reader) {
         return reader instanceof BufferedReader ? reader : new BufferedReader(reader, 8192);
+    }
+
+    private static int nextNonWhitespace(final InputStream input) throws IOException {
+        int ch;
+        do {
+            ch = input.read();
+        } while (ch != -1 && Character.isWhitespace(ch));
+        return ch;
     }
 
     private static Object parseValue(final LenientStream stream) throws IOException {

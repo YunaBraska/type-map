@@ -75,6 +75,20 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
         return fromJson(readStream(jsonOrXml));
     }
 
+    /**
+     * Parses JSON or XML stream into a {@link TypeList}.
+     */
+    public static TypeList from(final InputStream input) {
+        return from(input, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML stream into a {@link TypeList} with the given charset for JSON content.
+     */
+    public static TypeList from(final InputStream input, final Charset charset) {
+        return input == null ? new TypeList() : JsonDecoder.jsonListOf(input, charset);
+    }
+
 
     /**
      * Parses XML string into a {@link TypeList}.
@@ -207,8 +221,8 @@ public class TypeList extends ArrayList<Object> implements TypeListI<TypeList> {
         if (stream == null) {
             return "";
         }
-        try {
-            return new String(stream.readAllBytes(), UTF_8);
+        try (InputStream in = stream) {
+            return new String(in.readAllBytes(), UTF_8);
         } catch (final IOException ignored) {
             return "";
         }

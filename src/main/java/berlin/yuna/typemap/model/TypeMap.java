@@ -108,6 +108,20 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     }
 
     /**
+     * Parses JSON or XML stream into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap from(final InputStream input) {
+        return from(input, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML stream into a {@link TypeMapI} with the given charset for JSON content.
+     */
+    public static LinkedTypeMap from(final InputStream input, final Charset charset) {
+        return input == null ? new LinkedTypeMap() : JsonDecoder.jsonMapOf(input, charset);
+    }
+
+    /**
      * Parses XML into a {@link LinkedTypeMap} preserving element order.
      */
     public static LinkedTypeMap fromXml(final String xml) {
@@ -199,8 +213,8 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
         if (stream == null) {
             return "";
         }
-        try {
-            return new String(stream.readAllBytes(), UTF_8);
+        try (InputStream in = stream) {
+            return new String(in.readAllBytes(), UTF_8);
         } catch (final IOException ignored) {
             return "";
         }
