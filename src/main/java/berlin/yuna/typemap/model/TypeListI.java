@@ -2,60 +2,78 @@ package berlin.yuna.typemap.model;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Stream;
 
+import static berlin.yuna.typemap.logic.TypeConverter.convertObj;
 import static berlin.yuna.typemap.model.Type.empty;
 import static berlin.yuna.typemap.model.Type.typeOf;
 
 public interface TypeListI<C extends TypeListI<C>> extends List<Object>, TypeInfo<C> {
 
     /**
-     * Adds the specified value
+     * Adds a value at the given index (or appends when index is negative) and returns this instance for chaining.
      *
-     * @param index the index whose associated value is to be returned.
-     * @param value the value to be added
-     * @return the updated {@link TypeListI} instance for chaining.
+     * @param index index to insert at, or negative to append
+     * @param value value to add
+     * @return this list instance
      */
     C addR(final int index, final Object value);
 
     /**
-     * Adds the specified value
+     * Appends a value and returns this instance for chaining.
      *
-     * @param value the value to be added
-     * @return the updated TypeList instance for chaining.
+     * @param value value to add
+     * @return this list instance
      */
     default C addR(final Object value) {
         return addR(-1, value);
     }
 
     /**
-     * Adds all entries to this specified List
+     * Adds all values from the given collection and returns this instance for chaining.
      *
-     * @param collection which provides all entries to add
-     * @return the updated {@link TypeListI} instance for chaining.
+     * @param collection collection of values to add
+     * @return this list instance
      */
     default C addAllR(final Collection<?> collection) {
         addAll(collection);
         return (C) this;
     }
 
-    /**
-     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeMapI}
-     *
-     * @return {@link Optional#empty()} if current object is not a {@link TypeMapI}, else returns self.
-     */
     @SuppressWarnings("java:S1452")
     default Type<TypeMapI<?>> typeMapOpt() {
         return empty();
     }
 
-    /**
-     * Fluent typecheck if the current {@link TypeInfo} is a {@link TypeListI}
-     *
-     * @return {@link Optional#empty()} if current object is not a {@link TypeListI}, else returns self.
-     */
     @SuppressWarnings("java:S1452")
     default Type<TypeListI<?>> typeListOpt() {
         return typeOf(this);
+    }
+
+    /**
+     * Streams list content as index/value pairs.
+     */
+    default Stream<Pair<Integer, Object>> streamPairs() {
+        return streamPairs(null, (Object[]) null);
+    }
+
+    /**
+     * Streams list content as index/value pairs, converting values to the given type.
+     *
+     * @param valueType optional target type for values
+     */
+    default <V> Stream<Pair<Integer, V>> streamPairs(final Class<V> valueType) {
+        return streamPairs(valueType, (Object[]) null);
+    }
+
+    /**
+     * Streams list content as index/value pairs from a nested map/list path, converting values to the given type.
+     *
+     * @param valueType optional target type for values
+     * @param path      path to a nested map/list
+     */
+    default <V> Stream<Pair<Integer, V>> streamPairs(final Class<V> valueType, final Object... path) {
+        return TypeInfo.super.streamAny(valueType, path)
+            .map(p -> new Pair<>(convertObj(p.key(), Integer.class), p.value()));
     }
 }

@@ -4,7 +4,16 @@ package berlin.yuna.typemap.model;
 import berlin.yuna.typemap.logic.ArgsDecoder;
 import berlin.yuna.typemap.logic.JsonDecoder;
 import berlin.yuna.typemap.logic.TypeConverter;
+import berlin.yuna.typemap.logic.XmlDecoder;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -12,6 +21,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static berlin.yuna.typemap.logic.TypeConverter.iterateOverArray;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static java.util.Optional.ofNullable;
 
@@ -33,14 +43,20 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
 
     /**
      * Constructs a new {@link TypeMap} of the specified json.
+     *
+     * @deprecated use {@link #mapOf(String)} for JSON/XML input
      */
+    @Deprecated(forRemoval = true)
     public TypeMap(final String json) {
-        this(JsonDecoder.jsonMapOf(json));
+        this(JsonDecoder.mapOf(json));
     }
 
     /**
      * Constructs a new {@link TypeMap} of the specified command line arguments.
+     *
+     * @deprecated use {@link #fromArgs(String[])} instead
      */
+    @Deprecated(forRemoval = true)
     public TypeMap(final String[] cliArgs) {
         this(ArgsDecoder.argsOf(String.join(" ", cliArgs)));
     }
@@ -52,6 +68,293 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
      */
     public TypeMap(final Map<?, ?> map) {
         ofNullable(map).ifPresent(super::putAll);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null, blank, or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final String jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link CharSequence}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null, blank, or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final CharSequence jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from an {@link InputStream}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final InputStream jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from an {@link InputStream}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final InputStream jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link Path}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final Path jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link Path}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final Path jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link File}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final File jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link File}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final File jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URI}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URI jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URI}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URI jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URL}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URL jsonOrXml) {
+        return JsonDecoder.mapOf(jsonOrXml);
+    }
+
+    /**
+     * Parses JSON or XML into a {@link LinkedTypeMap} from a {@link URL}.
+     * JSON objects become map entries; arrays, XML, and primitive values are wrapped under the "" key.
+     * Uses the provided charset for JSON content. Returns an empty map when input is null or cannot be parsed.
+     */
+    public static LinkedTypeMap mapOf(final URL jsonOrXml, final Charset charset) {
+        return JsonDecoder.mapOf(jsonOrXml, charset);
+    }
+
+    /**
+     * Parses JSON into a {@link TypeMapI} (explicit JSON path).
+     *
+     * @deprecated use {@link #mapOf(String)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromJson(final String json) {
+        return (json == null || json.isBlank())
+            ? new LinkedTypeMap()
+            : JsonDecoder.mapOf(json);
+    }
+
+    /**
+     * Parses JSON CharSequence into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(CharSequence)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromJson(final CharSequence json) {
+        return json == null
+            ? new LinkedTypeMap()
+            : fromJson(json.toString());
+    }
+
+    /**
+     * Parses JSON file into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(Path)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromJson(final Path json) {
+        try (final InputStream in = Files.newInputStream(json)) {
+            return fromJson(in);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    /**
+     * Parses JSON stream into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(InputStream)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromJson(final InputStream json) {
+        return fromJson(readStream(json));
+    }
+
+    /**
+     * Parses JSON or XML stream into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(InputStream)} or {@link #mapOf(InputStream, Charset)}
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap from(final InputStream input) {
+        return from(input, UTF_8);
+    }
+
+    /**
+     * Parses JSON or XML stream into a {@link TypeMapI} with the given charset for JSON content.
+     *
+     * @deprecated use {@link #mapOf(InputStream, Charset)}
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap from(final InputStream input, final Charset charset) {
+        return input == null ? new LinkedTypeMap() : JsonDecoder.mapOf(input, charset);
+    }
+
+    /**
+     * Parses XML into a {@link LinkedTypeMap} preserving element order.
+     *
+     * @deprecated use {@link #mapOf(String)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromXml(final String xml) {
+        return fromXml(XmlDecoder.xmlTypeOf(xml));
+    }
+
+    /**
+     * Parses XML CharSequence into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(CharSequence)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromXml(final CharSequence xml) {
+        return xml == null
+            ? new LinkedTypeMap()
+            : fromXml(xml.toString());
+    }
+
+    /**
+     * Parses XML file into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(Path)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromXml(final Path xml) {
+        try (final InputStream in = Files.newInputStream(xml)) {
+            return fromXml(in);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    /**
+     * Parses XML stream into a {@link TypeMapI}.
+     *
+     * @deprecated use {@link #mapOf(InputStream)} to accept JSON or XML
+     */
+    @Deprecated(forRemoval = true)
+    public static LinkedTypeMap fromXml(final InputStream xml) {
+        return fromXml(readStream(xml));
+    }
+
+    /**
+     * Parses CLI args into a {@link LinkedTypeMap}.
+     */
+    public static LinkedTypeMap fromArgs(final String args) {
+        return (args == null || args.isBlank())
+            ? new LinkedTypeMap()
+            : ArgsDecoder.argsOf(args);
+    }
+
+    /**
+     * Parses CLI args array into a {@link LinkedTypeMap}.
+     */
+    public static LinkedTypeMap fromArgs(final String[] args) {
+        return (args == null || args.length == 0)
+            ? new LinkedTypeMap()
+            : ArgsDecoder.argsOf(String.join(" ", args));
+    }
+
+    /**
+     * Parses CLI args CharSequence into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromArgs(final CharSequence args) {
+        return args == null
+            ? new LinkedTypeMap()
+            : fromArgs(args.toString());
+    }
+
+    /**
+     * Parses CLI args file into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromArgs(final Path args) {
+        try (final InputStream in = Files.newInputStream(args)) {
+            return fromArgs(in);
+        } catch (final IOException ignored) {
+            return new LinkedTypeMap();
+        }
+    }
+
+    /**
+     * Parses CLI args stream into a {@link TypeMapI}.
+     */
+    public static LinkedTypeMap fromArgs(final InputStream args) {
+        return fromArgs(readStream(args));
+    }
+
+    private static LinkedTypeMap fromXml(final TypeList xml) {
+        if (xml == null || xml.isEmpty())
+            return new LinkedTypeMap();
+        final Object first = xml.get(0);
+        if (first instanceof final Pair<?, ?> pair)
+            return new LinkedTypeMap().putR(pair.getKey(), pair.getValue());
+        return new LinkedTypeMap().putR("root", xml);
+    }
+
+    private static String readStream(final InputStream stream) {
+        if (stream == null) {
+            return "";
+        }
+        try (InputStream in = stream) {
+            return new String(in.readAllBytes(), UTF_8);
+        } catch (final IOException ignored) {
+            return "";
+        }
     }
 
     /**
@@ -87,29 +390,28 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
     @SuppressWarnings("java:S3776")
     public static Object treeGet(final Object mapOrCollection, final Object... path) {
         if (path == null || path.length == 0) {
-            if (mapOrCollection instanceof Type)
-                return ((Type<?>) mapOrCollection).value();
-            return mapOrCollection instanceof Optional ? ((Optional<?>) mapOrCollection).orElse(null) : mapOrCollection;
+            if (mapOrCollection instanceof final Type<?> type)
+                return type.value();
+            return mapOrCollection instanceof final Optional<?> optional ? optional.orElse(null) : mapOrCollection;
         }
 
         Object value = mapOrCollection;
         for (final Object key : path) {
             if (key == null || value == null) {
                 return null;
-            } else if (value instanceof Map<?, ?>) {
-                value = ((Map<?, ?>) value).get(key);
-            } else if (value instanceof Collection<?>) {
-                if (key instanceof Number) {
-                    final int index = ((Number) key).intValue();
-                    final List<?> list = (List<?>) value;
+            } else if (value instanceof final Map<?, ?> map) {
+                value = map.get(key);
+            } else if (value instanceof final Collection<?> collection) {
+                if (key instanceof final Number numberKey && value instanceof final List<?> list) {
+                    final int index = numberKey.intValue();
                     value = (index >= 0 && index < list.size()) ? list.get(index) : null;
                 } else {
-                    value = ((Collection<?>) value).stream().filter(item -> Objects.equals(item, key)
-                        || (item instanceof Map.Entry && Objects.equals(((Map.Entry<?, ?>) item).getKey(), key))
-                    ).map(o -> o instanceof Map.Entry ? ((Map.Entry<?, ?>) o).getValue() : o).findFirst().orElse(null);
+                    value = collection.stream().filter(item -> Objects.equals(item, key)
+                        || (item instanceof final Map.Entry<?, ?> entry && Objects.equals(entry.getKey(), key))
+                    ).map(o -> o instanceof final Map.Entry<?, ?> entry ? entry.getValue() : o).findFirst().orElse(null);
                 }
             } else if (value.getClass().isArray()) {
-                final int index = key instanceof Number ? ((Number) key).intValue() : -1;
+                final int index = key instanceof final Number num ? num.intValue() : -1;
                 final AtomicInteger itemCount = new AtomicInteger(0);
                 final AtomicReference<Object> result = new AtomicReference<>(null);
                 iterateOverArray(value, item -> {
@@ -117,12 +419,11 @@ public class TypeMap extends HashMap<Object, Object> implements TypeMapI<TypeMap
                         result.set(item);
                 });
                 return result.get();
-            } else if (value instanceof Type) {
-                value = ((Type<?>) value).value();
-            } else if (value instanceof Optional<?>) {
-                value = ((Optional<?>) value).orElse(null);
-            } else if (value instanceof Map.Entry) {
-                final Map.Entry<?, ?> pair = (Map.Entry<?, ?>) value;
+            } else if (value instanceof final Type<?> type) {
+                value = type.value();
+            } else if (value instanceof final Optional<?> optional) {
+                value = optional.orElse(null);
+            } else if (value instanceof final Map.Entry<?, ?> pair) {
                 value = (Objects.equals(pair.getKey(), key)) ? pair.getValue() : null;
             } else {
                 value = null;

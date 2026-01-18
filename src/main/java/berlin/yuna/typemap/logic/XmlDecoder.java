@@ -9,11 +9,17 @@ import org.xml.sax.SAXParseException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static berlin.yuna.typemap.logic.ArgsDecoder.hasText;
 
@@ -30,6 +36,8 @@ public class XmlDecoder {
      * @return a {@code TypeList} representing the XML structure, or an empty {@code TypeList} if parsing fails.
      */
     public static TypeList xmlTypeOf(final File xml) {
+        if (xml == null)
+            return new TypeList();
         try (final InputStream fileStream = Files.newInputStream(xml.toPath())) {
             return xmlTypeOf(fileStream);
         } catch (final Exception ignored) {
@@ -44,8 +52,12 @@ public class XmlDecoder {
      * @return a {@code TypeList} representing the XML structure, or an empty {@code TypeList} if parsing fails.
      */
     public static TypeList xmlTypeOf(final InputStream xml) {
-        try {
-            return toTypeMap(documentBuilder().parse(xml));
+        if (xml == null)
+            return new TypeList();
+        try (final Stream<Pair<String, Object>> stream = streamXmlObject(xml)) {
+            final TypeList result = new TypeList();
+            stream.forEach(result::add);
+            return result;
         } catch (final Exception ignored) {
             return new TypeList();
         }
@@ -58,11 +70,9 @@ public class XmlDecoder {
      * @return a {@code TypeList} representing the XML structure, or an empty {@code TypeList} if parsing fails.
      */
     public static TypeList xmlTypeOf(final String xml) {
-        try {
-            return toTypeMap(documentBuilder().parse(new ByteArrayInputStream(xml.getBytes(Charset.defaultCharset()))));
-        } catch (final Exception ignored) {
+        if (xml == null)
             return new TypeList();
-        }
+        return xmlTypeOf(new ByteArrayInputStream(xml.getBytes(Charset.defaultCharset())));
     }
 
     /**
@@ -167,8 +177,202 @@ public class XmlDecoder {
             } else if (item.getNodeType() == Node.TEXT_NODE) {
                 // Process value
                 final String text = item.getTextContent();
-                if (i == 0 || hasText(text))
-                    result.add(text != null ? text.trim() : "");
+                if (hasText(text))
+                    result.add(text.strip());
+            }
+        }
+    }
+
+    /**
+     * Streams top-level XML elements as key/value pairs without materializing a DOM.
+     *
+     * @param xml     input stream containing XML
+     * @param charset optional charset override (otherwise XML prolog/UTF-8 is used)
+     * @return stream of top-level element pairs
+     */
+    public static Stream<Pair<String, Object>> streamXmlObject(final InputStream xml, final Charset charset) {
+        if (xml == null)
+            return Stream.empty();
+        final var reader = charset == null
+            ? XmlStreams.reader(xml)
+            : XmlStreams.reader(new InputStreamReader(xml, charset));
+
+        final IteratorIterator iterator = new IteratorIterator(reader);
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED | Spliterator.NONNULL), false)
+            .onClose(() -> XmlStreams.closeQuietly(reader));
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final InputStream xml) {
+        return streamXmlObject(xml, null);
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final String xml) {
+        return streamXmlObject(xml, Charset.defaultCharset());
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final CharSequence xml, final Charset charset) {
+        if (xml == null || xml.toString().isBlank())
+            return Stream.empty();
+        return streamXmlObject(new ByteArrayInputStream(xml.toString().getBytes(charset)), charset);
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final CharSequence xml) {
+        return streamXmlObject(xml, Charset.defaultCharset());
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final File xml, final Charset charset) {
+        try {
+            return streamXmlObject(Files.newInputStream(xml.toPath()), charset);
+        } catch (final Exception e) {
+            throw new UncheckedIOException(new IOException(e));
+        }
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final File xml) {
+        return streamXmlObject(xml, Charset.defaultCharset());
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final java.nio.file.Path xml, final Charset charset) {
+        try {
+            return streamXmlObject(Files.newInputStream(xml), charset);
+        } catch (final Exception e) {
+            throw new UncheckedIOException(new IOException(e));
+        }
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final java.nio.file.Path xml) {
+        return streamXmlObject(xml, Charset.defaultCharset());
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final java.net.URI xml, final Charset charset) {
+        try {
+            return streamXmlObject(xml.toURL(), charset);
+        } catch (final Exception e) {
+            throw new UncheckedIOException(new IOException(e));
+        }
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final java.net.URI xml) {
+        return streamXmlObject(xml, Charset.defaultCharset());
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final java.net.URL xml, final Charset charset) {
+        try {
+            return streamXmlObject(xml.openStream(), charset);
+        } catch (final Exception e) {
+            throw new UncheckedIOException(new IOException(e));
+        }
+    }
+
+    public static Stream<Pair<String, Object>> streamXmlObject(final java.net.URL xml) {
+        return streamXmlObject(xml, Charset.defaultCharset());
+    }
+
+    private static class IteratorIterator implements java.util.Iterator<Pair<String, Object>> {
+        private final XMLStreamReader reader;
+        private final Deque<ElementFrame> stack = new ArrayDeque<>();
+        private Pair<String, Object> next;
+        private boolean finished;
+
+        IteratorIterator(final XMLStreamReader reader) {
+            this.reader = reader;
+            advance();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+        @Override
+        public Pair<String, Object> next() {
+            final Pair<String, Object> current = next;
+            advance();
+            return current;
+        }
+
+        private void advance() {
+            if (finished) {
+                next = null;
+                return;
+            }
+            try {
+                while (reader.hasNext()) {
+                    final int event = reader.next();
+                    if (event == javax.xml.stream.XMLStreamConstants.START_ELEMENT) {
+                        final ElementFrame frame = new ElementFrame(reader.getLocalName());
+                        for (int i = 0; i < reader.getAttributeCount(); i++) {
+                            frame.content.add(new Pair<>("@" + reader.getAttributeLocalName(i), reader.getAttributeValue(i)));
+                        }
+                        stack.push(frame);
+                    } else if (event == javax.xml.stream.XMLStreamConstants.CHARACTERS || event == javax.xml.stream.XMLStreamConstants.CDATA) {
+                        if (!stack.isEmpty()) {
+                            stack.peek().text.append(reader.getText());
+                        }
+                    } else if (event == javax.xml.stream.XMLStreamConstants.END_ELEMENT) {
+                        final ElementFrame frame = stack.pop();
+                        final String text = frame.text.toString().trim();
+                        if (hasText(text))
+                            frame.content.add(text);
+
+                        final Pair<String, Object> completed = new Pair<>(frame.name, frame.content);
+                        if (stack.isEmpty()) {
+                            next = completed;
+                            return;
+                        }
+                        stack.peek().content.add(completed);
+                    }
+                }
+                finished = true;
+                next = null;
+            } catch (final Exception e) {
+                finished = true;
+                throw new UncheckedIOException(new IOException(e));
+            }
+        }
+    }
+
+    private static class ElementFrame {
+        final String name;
+        final TypeList content = new TypeList();
+        final StringBuilder text = new StringBuilder();
+
+        ElementFrame(final String name) {
+            this.name = name;
+        }
+    }
+
+    private static final class XmlStreams {
+        private static XMLStreamReader reader(final InputStream in) {
+            return createReader(factory(), in);
+        }
+
+        private static XMLStreamReader reader(final InputStreamReader in) {
+            return createReader(factory(), in);
+        }
+
+        private static XMLInputFactory factory() {
+            final XMLInputFactory factory = XMLInputFactory.newInstance();
+            factory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+            factory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            return factory;
+        }
+
+        private static XMLStreamReader createReader(final XMLInputFactory factory, final Object source) {
+            try {
+                return source instanceof final InputStream input
+                    ? factory.createXMLStreamReader(input)
+                    : factory.createXMLStreamReader((InputStreamReader) source);
+            } catch (final Exception e) {
+                throw new UncheckedIOException(new IOException(e));
+            }
+        }
+
+        private static void closeQuietly(final XMLStreamReader reader) {
+            try {
+                reader.close();
+            } catch (final Exception ignored) {
+                // ignored
             }
         }
     }
@@ -177,4 +381,3 @@ public class XmlDecoder {
         // static util class
     }
 }
-
