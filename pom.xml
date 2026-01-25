@@ -6,7 +6,7 @@
 
     <groupId>berlin.yuna</groupId>
     <artifactId>type-map</artifactId>
-    <version>2026.01.0241815</version>
+    <version>2026.01.0250714</version>
     <packaging>jar</packaging>
 
     <name>type-map</name>
@@ -45,7 +45,7 @@
 
         <!-- TEST -->
         <junit.version>6.0.2</junit.version>
-        <assertj.version>3.27.6</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
         <junit-launcher.version>6.0.2</junit-launcher.version>
 
         <!-- BUILD -->
