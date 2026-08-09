@@ -742,7 +742,7 @@ public class JsonDecoder {
     }
 
     /**
-     * Detects whether the input stream is XML (leading '<') or JSON and delegates to the appropriate parser.
+     * Detects whether the input stream is XML (leading {@code &lt;}) or JSON and delegates to the appropriate parser.
      * Uses streaming to avoid buffering whole payloads; wraps incoming streams in a {@link PushbackInputStream}.
      *
      * @param input   stream to parse
