@@ -40,7 +40,8 @@ jobs:
       actions: read
       contents: read
       deployments: write
-    uses: YunaBraska/YunaBraska/.github/workflows/wc_java_publish_central.yml@f6c362d9c539d7a028b816572d812e892072c50b
+      packages: read
+    uses: YunaBraska/YunaBraska/.github/workflows/wc_java_publish_central.yml@e2cfc207057bbfc7ddf260ce6c77aee1070d5e9a
     secrets:
       CENTRAL_USER: ${{ secrets.CENTRAL_USER }}
       CENTRAL_PASS: ${{ secrets.CENTRAL_PASS }}
