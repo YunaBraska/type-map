@@ -4,7 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-      day: monday
+      day: sunday
+      time: '00:00'
+      timezone: Etc/UTC
     groups:
       workflow-dependencies:
         patterns:
@@ -14,7 +16,9 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-      day: monday
+      day: sunday
+      time: '00:00'
+      timezone: Etc/UTC
     groups:
       maven-dependencies:
         patterns:
