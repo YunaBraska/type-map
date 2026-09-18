@@ -34,9 +34,13 @@ public class JsonDecoder {
      */
     @SuppressWarnings("java:S1452")
     public static TypeInfo<?> typeOf(final String jsonOrXml) {
-        return jsonOrXml == null
-            ? new TypeList()
-            : typeOf(new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8)));
+        if (jsonOrXml == null) {
+            return new TypeList();
+        }
+        if (jsonOrXml.isEmpty()) {
+            return new TypeList().addR("");
+        }
+        return typeOf(new ByteArrayInputStream(jsonOrXml.getBytes(UTF_8)));
     }
 
     /**

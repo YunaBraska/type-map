@@ -278,6 +278,14 @@ class JsonDecoderTest {
     }
 
     @Test
+    void shouldTypeOfEmptyStringAndWhitespacePrefixedXml() {
+        final String xml = "<root><item>1</item></root>";
+
+        assertThat(JsonDecoder.typeOf("")).isEqualTo(new TypeList().addR(""));
+        assertThat(JsonDecoder.typeOf(" \n\t" + xml)).isEqualTo(XmlDecoder.xmlTypeOf(xml));
+    }
+
+    @Test
     void shouldStreamArrayAllowNullElements() {
         final String json = "[1,null,2]";
         try (Stream<Pair<Integer, Object>> stream = JsonDecoder.streamJsonArray(json)) {
