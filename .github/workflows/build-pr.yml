@@ -28,4 +28,4 @@ jobs:
       contents: read
     uses: YunaBraska/YunaBraska/.github/workflows/wc_java_build_common.yml@f6c362d9c539d7a028b816572d812e892072c50b
     with:
-      ref: ${{ inputs.ref || github.sha }}
+      ref: ${{ github.event.inputs.ref || github.sha }}
